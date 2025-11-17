@@ -1,0 +1,65 @@
+# ------------------
+# Python / Streamlit
+# ------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Ambientes virtuais
+.venv/
+venv/
+env/
+.env/
+.env
+
+# Streamlit
+.streamlit/
+
+# ------------------
+# IDE / SO
+# ------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# ------------------
+# Nextflow / Bactopia / PORT
+# ------------------
+
+# workdirs grandes
+work/
+work_*/
+work-*/
+
+# Nextflow metadata/cache
+.nextflow/
+.nextflow.*
+*.nfcache
+
+# Bactopia / PORT outputs
+bactopia_out/
+bactopia-out/
+port_out/
+results/
+reports/
+
+# Datasets locais e fastqs (ajuste conforme sua org)
+fastqs/
+FASTQ/
+fastq/
+FASTQS/
+datasets/
+data/
+
+# Logs / temporários
+*.log
+*.tmp
+*.bak
