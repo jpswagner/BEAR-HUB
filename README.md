@@ -1,8 +1,5 @@
 <p align="center">
-  <!-- TODO: adicionar logo do BEAR-HUB aqui -->
-  <!-- Exemplo futuro:
-  <img src="docs/logo.png" alt="BEAR-HUB logo" width="220" />
-  -->
+<img width="1024" height="1024" alt="Gemini_Generated_Image_dr7x8bdr7x8bdr7x" src="https://github.com/user-attachments/assets/6d23dc4b-fc4d-4fa7-9b2a-e55adb623598" />
 </p>
 
 # BEAR-HUB (Bacterial Epidemiology & AMR Reporter - HUB ou BEAR-HUB) -  EM DESENVOLVIMENTO
