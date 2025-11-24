@@ -44,9 +44,33 @@ APP_STATE_DIR = pathlib.Path.home() / ".bactopia_ui_local"
 PRESETS_FILE = APP_STATE_DIR / "presets.yaml"
 DEFAULT_PRESET_NAME = "default"
 
-# Outdir padrão: respeita BEAR_HUB_OUT (setado pelo bear-hub.sh para /bactopia_out)
-DEFAULT_OUTDIR = os.getenv("BEAR_HUB_OUT", str((pathlib.Path.cwd() / "bactopia_out").resolve()))
+# Outdir padrão:
+# - fora do Docker: cwd/bactopia_out
+# - dentro do BEAR-HUB: /bactopia_out (volume mapeado pelo bear-hub.sh)
+if pathlib.Path("/bactopia_out").exists():
+    DEFAULT_OUTDIR = str(pathlib.Path("/bactopia_out").resolve())
+else:
+    DEFAULT_OUTDIR = str((pathlib.Path.cwd() / "bactopia_out").resolve())
+
 st.session_state.setdefault("outdir", DEFAULT_OUTDIR)
+
+# ================== Nextflow: forçar NXF_HOME em área gravável ==================
+# Dentro do container BEAR-HUB:
+#   - /bactopia_out é sempre gravável (mapeado a partir do host)
+# Então usamos /bactopia_out/.nextflow como "home" do Nextflow.
+if "NXF_HOME" not in os.environ:
+    if pathlib.Path("/bactopia_out").exists():
+        nxf_home = pathlib.Path("/bactopia_out/.nextflow")
+    else:
+        # fallback se rodar fora do Docker
+        nxf_home = pathlib.Path.home() / ".nextflow"
+    os.environ["NXF_HOME"] = str(nxf_home)
+
+try:
+    pathlib.Path(os.environ["NXF_HOME"]).mkdir(parents=True, exist_ok=True)
+except Exception as e:
+    # Não quebra a app, só loga um aviso no stdout do container
+    print(f"[WARN] Não foi possível criar NXF_HOME={os.environ['NXF_HOME']}: {e}")
 
 # ============================= Utils =============================
 
