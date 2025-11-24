@@ -73,7 +73,7 @@ def run_cmd(cmd: str | List[str], cwd: str | None = None) -> tuple[int, str, str
         shell_cmd = cmd
     try:
         res = subprocess.run(
-            ["bash", "-lc", shell_cmd],
+            ["bash", "-c", shell_cmd],   # <- aqui
             cwd=cwd,
             text=True,
             capture_output=True,
@@ -82,6 +82,7 @@ def run_cmd(cmd: str | List[str], cwd: str | None = None) -> tuple[int, str, str
         return res.returncode, res.stdout or "", res.stderr or ""
     except Exception as e:
         return 1, "", f"Falha ao executar: {e}"
+
 
 # ============================= Presets =============================
 
