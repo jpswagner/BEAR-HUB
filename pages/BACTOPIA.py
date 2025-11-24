@@ -37,7 +37,8 @@ st.set_page_config(page_title="Bactopia UI", layout="wide")
 
 def _st_rerun():
     fn = getattr(st, "rerun", None) or getattr(st, "experimental_rerun", None)
-    if fn: fn()
+    if fn:
+        fn()
 
 APP_STATE_DIR = pathlib.Path.home() / ".bactopia_ui_local"
 PRESETS_FILE = APP_STATE_DIR / "presets.yaml"
@@ -65,11 +66,18 @@ def nextflow_available():
     return which("nextflow") is not None
 
 def run_cmd(cmd: str | List[str], cwd: str | None = None) -> tuple[int, str, str]:
-    if isinstance(cmd, list): shell_cmd = " ".join(shlex.quote(x) for x in cmd)
-    else: shell_cmd = cmd
+    if isinstance(cmd, list):
+        shell_cmd = " ".join(shlex.quote(x) for x in cmd)
+    else:
+        shell_cmd = cmd
     try:
-        res = subprocess.run(["bash","-lc", shell_cmd], cwd=cwd, text=True,
-                             capture_output=True, check=False)
+        res = subprocess.run(
+            ["bash", "-lc", shell_cmd],
+            cwd=cwd,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
         return res.returncode, res.stdout or "", res.stderr or ""
     except Exception as e:
         return 1, "", f"Falha ao executar: {e}"
@@ -78,19 +86,19 @@ def run_cmd(cmd: str | List[str], cwd: str | None = None) -> tuple[int, str, str
 
 PRESET_KEYS_ALLOWLIST = {
     # Execução
-    "profile","outdir","datasets","resume","threads","memory_gb",
+    "profile", "outdir", "datasets", "resume", "threads", "memory_gb",
     # FOFN generator
-    "fofn_base","fofn_recursive","fofn_species","fofn_gsize","fofn_use",
-    "fofn_long_reads","fofn_infer_ont_by_name","fofn_merge_multi","fofn_include_assemblies",
+    "fofn_base", "fofn_recursive", "fofn_species", "fofn_gsize", "fofn_use",
+    "fofn_long_reads", "fofn_infer_ont_by_name", "fofn_merge_multi", "fofn_include_assemblies",
     # Ferramentas
-    "fastp_mode","fastp_dash3","fastp_M","fastp_W","fastp_opts_text",
-    "fastp_enable_5prime","fastp_q_enable","fastp_q","fastp_l_enable","fastp_l",
-    "fastp_n","fastp_u","fastp_cut_front","fastp_cut_tail","fastp_cut_meanq","fastp_cut_win",
-    "fastp_detect_adapter_pe","fastp_poly_g","fastp_extra",
+    "fastp_mode", "fastp_dash3", "fastp_M", "fastp_W", "fastp_opts_text",
+    "fastp_enable_5prime", "fastp_q_enable", "fastp_q", "fastp_l_enable", "fastp_l",
+    "fastp_n", "fastp_u", "fastp_cut_front", "fastp_cut_tail", "fastp_cut_meanq", "fastp_cut_win",
+    "fastp_detect_adapter_pe", "fastp_poly_g", "fastp_extra",
     # Unicycler
-    "unicycler_mode","unicycler_min_len","unicycler_extra",
+    "unicycler_mode", "unicycler_min_len", "unicycler_extra",
     # Params extras e relatórios
-    "extra_params","with_report","with_timeline","with_trace",
+    "extra_params", "with_report", "with_timeline", "with_trace",
 }
 
 def load_presets():
@@ -129,7 +137,8 @@ def apply_preset_before_widgets():
 
 def _cb_stage_apply_preset():
     name = st.session_state.get("__preset_to_load")
-    if not name or name == "(nenhum)": return
+    if not name or name == "(nenhum)":
+        return
     presets = load_presets()
     st.session_state["__pending_preset_values"] = presets.get(name, {})
     st.session_state["__preset_msg"] = f"Preset preparado: {name} (aplicado neste reload)"
@@ -144,7 +153,8 @@ def _cb_save_preset():
 
 def _cb_delete_preset():
     name = st.session_state.get("__preset_to_load")
-    if not name or name == "(nenhum)": return
+    if not name or name == "(nenhum)":
+        return
     presets = load_presets()
     if name in presets:
         del presets[name]
@@ -177,7 +187,7 @@ def _list_dir(cur: pathlib.Path) -> tuple[list[pathlib.Path], list[pathlib.Path]
         entries = list(cur.iterdir())
     except Exception:
         entries = []
-    dirs  = [p for p in entries if p.is_dir()]
+    dirs = [p for p in entries if p.is_dir()]
     files = [p for p in entries if p.is_file()]
     dirs.sort(key=lambda p: p.name.lower())
     files.sort(key=lambda p: p.name.lower())
@@ -195,16 +205,35 @@ def _fs_browser_core(label: str, key: str, mode: str = "file",
     def set_cur(p: pathlib.Path):
         st.session_state[cur_key] = str(p.expanduser().resolve())
 
-    c_up, c_home, c_path, c_pick = st.columns([0.9,0.9,6,2])
+    # raiz do filesystem do host montado pelo Docker
+    hostfs_root = os.getenv("HOSTFS_ROOT", "/hostfs")
+
+    # ⬆️ Subir | 🏠 Base | 🖥 Host | caminho atual | Escolher
+    c_up, c_home, c_host, c_path, c_pick = st.columns([0.9, 0.9, 0.9, 6, 2])
+
     with c_up:
         if st.button("⬆️ Subir", key=f"{key}_up"):
             parent = cur.parent if cur.parent != cur else cur
-            set_cur(parent); _st_rerun()
+            set_cur(parent)
+            _st_rerun()
+
     with c_home:
-        if st.button("🏠 Home", key=f"{key}_home"):
-            set_cur(pathlib.Path.home()); _st_rerun()
+        # "Base" = diretório de start passado para o picker (ex.: /dados)
+        home_base = pathlib.Path(start or pathlib.Path.home())
+        if st.button("🏠 Base", key=f"{key}_home"):
+            set_cur(home_base)
+            _st_rerun()
+
+    with c_host:
+        # Pula direto para o filesystem do host montado como /hostfs
+        if os.path.exists(hostfs_root):
+            if st.button("🖥 Host", key=f"{key}_host"):
+                set_cur(pathlib.Path(hostfs_root))
+                _st_rerun()
+
     with c_path:
         st.caption(str(cur))
+
     with c_pick:
         if mode == "dir":
             if st.button("Escolher", key=f"{key}_choose_dir"):
@@ -216,7 +245,8 @@ def _fs_browser_core(label: str, key: str, mode: str = "file",
     for i, d in enumerate(dirs):
         did = _safe_id(str(d))
         if dcols[i % 2].button("📁 " + d.name, key=f"{key}_d_{did}"):
-            set_cur(d); _st_rerun()
+            set_cur(d)
+            _st_rerun()
 
     if mode == "file":
         if patterns:
@@ -231,7 +261,7 @@ def _fs_browser_core(label: str, key: str, mode: str = "file",
 
 def path_picker(label: str, key: str, mode: str = "dir",
                 start: str | None = None, patterns: list[str] | None = None, help: str | None = None):
-    col1, col2 = st.columns([7,2])
+    col1, col2 = st.columns([7, 2])
     with col1:
         val = st.text_input(label, value=st.session_state.get(key, start or ""), key=key, help=help)
         try:
@@ -246,9 +276,13 @@ def path_picker(label: str, key: str, mode: str = "dir",
             st.session_state[f"__open_{key}"] = True
             try:
                 hint = pathlib.Path(st.session_state.get(key) or start or os.getcwd())
-                st.session_state[f"__picker_cur__{key}"] = str((hint if hint.is_dir() else hint.parent).expanduser().resolve())
+                st.session_state[f"__picker_cur__{key}"] = str(
+                    (hint if hint.is_dir() else hint.parent).expanduser().resolve()
+                )
             except Exception:
-                st.session_state[f"__picker_cur__{key}"] = str(pathlib.Path(start or os.getcwd()).expanduser().resolve())
+                st.session_state[f"__picker_cur__{key}"] = str(
+                    pathlib.Path(start or os.getcwd()).expanduser().resolve()
+                )
 
     if st.session_state.get(f"__open_{key}", False) and hasattr(st, "dialog"):
         @st.dialog(label, width="large")
@@ -260,10 +294,12 @@ def path_picker(label: str, key: str, mode: str = "dir",
                     if mode == "dir":
                         cur = pathlib.Path(st.session_state.get(f"__picker_cur__{key}", start or os.getcwd()))
                         st.session_state[key] = str(cur.expanduser().resolve())
-                    st.session_state[f"__open_{key}"] = False; _st_rerun()
+                    st.session_state[f"__open_{key}"] = False
+                    _st_rerun()
             with c_cancel:
                 if st.button("Cancelar", key=f"cancel_{key}"):
-                    st.session_state[f"__open_{key}"] = False; _st_rerun()
+                    st.session_state[f"__open_{key}"] = False
+                    _st_rerun()
         _dlg()
     elif st.session_state.get(f"__open_{key}", False):
         st.info(f"{label} (modo inline)")
@@ -272,14 +308,15 @@ def path_picker(label: str, key: str, mode: str = "dir",
             if mode == "dir":
                 cur = pathlib.Path(st.session_state.get(f"__picker_cur__{key}", start or os.getcwd()))
                 st.session_state[key] = str(cur.expanduser().resolve())
-            st.session_state[f"__open_{key}"] = False; _st_rerun()
+            st.session_state[f"__open_{key}"] = False
+            _st_rerun()
 
     return st.session_state.get(key) or ""
 
 # ============================= Descoberta / FOFN =============================
 
-FASTQ_PATTERNS = ["*.fastq.gz","*.fq.gz","*.fastq","*.fq"]
-FA_PATTERNS    = ["*.fna.gz","*.fa.gz","*.fasta.gz","*.fna","*.fa","*.fasta"]
+FASTQ_PATTERNS = ["*.fastq.gz", "*.fq.gz", "*.fastq", "*.fq"]
+FA_PATTERNS = ["*.fna.gz", "*.fa.gz", "*.fasta.gz", "*.fna", "*.fa", "*.fasta"]
 
 PE1_PATTERNS = [
     re.compile(r"^(?P<root>.+?)[._-](?:R?1|1|[Aa])(?:_[0-9]{3})?$", re.IGNORECASE),
@@ -294,7 +331,7 @@ PE2_PATTERNS = [
 LANE_SUFFIX = re.compile(r"(_L\d{3,4})?(_\d{3})?$", re.IGNORECASE)
 
 def _drop_exts(name: str) -> str:
-    for ext in [".fastq.gz",".fq.gz",".fastq",".fq",".fna.gz",".fa.gz",".fasta.gz",".fna",".fa",".fasta"]:
+    for ext in [".fastq.gz", ".fq.gz", ".fastq", ".fq", ".fna.gz", ".fa.gz", ".fasta.gz", ".fna", ".fa", ".fasta"]:
         if name.endswith(ext):
             return name[: -len(ext)]
     return name
@@ -315,7 +352,7 @@ def _infer_root_and_tag(path: pathlib.Path) -> Tuple[str, str]:
 
 def _is_probably_ont(p: pathlib.Path) -> bool:
     s = str(p.as_posix()).lower()
-    return any(x in s for x in ["ont","nanopore","minion","promethion","fastq_pass","guppy"])
+    return any(x in s for x in ["ont", "nanopore", "minion", "promethion", "fastq_pass", "guppy"])
 
 def _collect_files(base: pathlib.Path, patterns: List[str], recursive: bool) -> List[pathlib.Path]:
     out: List[pathlib.Path] = []
@@ -357,7 +394,7 @@ def discover_runs_and_build_fofn(base_dir: str,
 
     for fq in fq_files:
         root, tag = _infer_root_and_tag(fq)
-        d = groups.setdefault(root, {"pe1":[], "pe2":[], "se":[], "ont":[], "assembly":[]})
+        d = groups.setdefault(root, {"pe1": [], "pe2": [], "se": [], "ont": [], "assembly": []})
         if tag == "PE1":
             d["pe1"].append(str(fq))
         elif tag == "PE2":
@@ -370,25 +407,34 @@ def discover_runs_and_build_fofn(base_dir: str,
 
     for fa in fa_files:
         root = _drop_exts(fa.name)
-        d = groups.setdefault(root, {"pe1":[], "pe2":[], "se":[], "ont":[], "assembly":[]})
+        d = groups.setdefault(root, {"pe1": [], "pe2": [], "se": [], "ont": [], "assembly": []})
         d["assembly"].append(str(fa))
 
-    header = ["sample","runtype","genome_size","species","r1","r2","extra"]
+    header = ["sample", "runtype", "genome_size", "species", "r1", "r2", "extra"]
     rows: List[List[str]] = []
 
     def _join_or_pick(paths: List[str]) -> str:
-        if not paths: return ""
+        if not paths:
+            return ""
         if merge_multi:
             return ",".join(paths)
         try:
-            return sorted(paths, key=lambda p: pathlib.Path(p).stat().st_size if pathlib.Path(p).exists() else 0, reverse=True)[0]
+            return sorted(
+                paths,
+                key=lambda p: pathlib.Path(p).stat().st_size if pathlib.Path(p).exists() else 0,
+                reverse=True,
+            )[0]
         except Exception:
             return paths[0]
 
-    counts = {"paired-end":0, "single-end":0, "ont":0, "hybrid":0, "assembly":0}
+    counts = {"paired-end": 0, "single-end": 0, "ont": 0, "hybrid": 0, "assembly": 0}
 
     for sample, parts in sorted(groups.items()):
-        pe1 = parts["pe1"]; pe2 = parts["pe2"]; se = parts["se"]; ont = parts["ont"]; fa = parts["assembly"]
+        pe1 = parts["pe1"]
+        pe2 = parts["pe2"]
+        se = parts["se"]
+        ont = parts["ont"]
+        fa = parts["assembly"]
 
         if pe1 and not pe2:
             issues.append(f"{sample}: R1 encontrado sem R2.")
@@ -397,7 +443,9 @@ def discover_runs_and_build_fofn(base_dir: str,
 
         if fa and not (pe1 or pe2 or se or ont):
             runtype = "assembly"
-            r1 = ""; r2 = ""; extra = _join_or_pick(fa)
+            r1 = ""
+            r2 = ""
+            extra = _join_or_pick(fa)
         elif pe1 and pe2 and ont:
             runtype = "hybrid"
             r1 = _join_or_pick(pe1)
@@ -411,21 +459,35 @@ def discover_runs_and_build_fofn(base_dir: str,
         elif ont and not (pe1 or pe2):
             runtype = "ont"
             r1 = _join_or_pick(ont)
-            r2 = ""; extra = ""
+            r2 = ""
+            extra = ""
         elif se and not (pe1 or pe2 or ont):
             runtype = "single-end"
             r1 = _join_or_pick(se)
-            r2 = ""; extra = ""
+            r2 = ""
+            extra = ""
         elif fa and (pe1 or pe2 or se or ont):
             issues.append(f"{sample}: FASTA e FASTQ presentes; ignorando assembly no FOFN (use somente um).")
             if pe1 and pe2 and ont:
-                runtype = "hybrid"; r1 = _join_or_pick(pe1); r2 = _join_or_pick(pe2); extra = _join_or_pick(ont)
+                runtype = "hybrid"
+                r1 = _join_or_pick(pe1)
+                r2 = _join_or_pick(pe2)
+                extra = _join_or_pick(ont)
             elif pe1 and pe2:
-                runtype = "paired-end"; r1 = _join_or_pick(pe1); r2 = _join_or_pick(pe2); extra = ""
+                runtype = "paired-end"
+                r1 = _join_or_pick(pe1)
+                r2 = _join_or_pick(pe2)
+                extra = ""
             elif ont:
-                runtype = "ont"; r1 = _join_or_pick(ont); r2 = ""; extra = ""
+                runtype = "ont"
+                r1 = _join_or_pick(ont)
+                r2 = ""
+                extra = ""
             else:
-                runtype = "single-end"; r1 = _join_or_pick(se); r2 = ""; extra = ""
+                runtype = "single-end"
+                r1 = _join_or_pick(se)
+                r2 = ""
+                extra = ""
         else:
             issues.append(f"{sample}: não foi possível classificar (arquivos ausentes?).")
             continue
@@ -435,7 +497,10 @@ def discover_runs_and_build_fofn(base_dir: str,
 
         for label, arr in [("PE1", pe1), ("PE2", pe2), ("ONT", ont), ("SE", se)]:
             if len(arr) > 1 and not merge_multi:
-                issues.append(f"{sample}: múltiplos arquivos em {label}; usando o maior. Ative 'Mesclar' para concatenar por vírgula.")
+                issues.append(
+                    f"{sample}: múltiplos arquivos em {label}; usando o maior. "
+                    "Ative 'Mesclar' para concatenar por vírgula."
+                )
 
     with open(fofn_path, "w", encoding="utf-8") as fh:
         fh.write("\t".join(header) + "\n")
@@ -458,27 +523,32 @@ def _strip_ansi(s: str) -> str:
     return ANSI_ESCAPE.sub("", s)
 
 def _normalize_linebreaks(chunk: str) -> list[str]:
-    if not chunk: return []
-    chunk = _strip_ansi(chunk).replace("\r","\n")
+    if not chunk:
+        return []
+    chunk = _strip_ansi(chunk).replace("\r", "\n")
     chunk = re.sub(r"\s+-\s+\[", "\n[", chunk)
     chunk = re.sub(r"(?<!^)\s+(?=executor\s*>)", "\n", chunk, flags=re.IGNORECASE)
     chunk = re.sub(r"✔\s+(?=\[)", "✔\n", chunk)
-    parts = [p.rstrip() for p in chunk.split("\n") if p.strip()!=""]
+    parts = [p.rstrip() for p in chunk.split("\n") if p.strip() != ""]
     return parts
 
 async def _async_read_stream(stream, log_q: Queue, stop_event: threading.Event):
     while True:
         line = await stream.readline()
-        if not line: break
+        if not line:
+            break
         s = line.decode(errors="replace")
-        for sub in _normalize_linebreaks(s): log_q.put(sub)
-        if stop_event.is_set(): break
+        for sub in _normalize_linebreaks(s):
+            log_q.put(sub)
+        if stop_event.is_set():
+            break
 
 async def _async_exec(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: threading.Event):
     try:
         proc = await asyncio.create_subprocess_exec(
-            "bash","-lc", full_cmd,
-            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+            "bash", "-lc", full_cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
         )
     except Exception as e:
         status_q.put(("error", f"Falha ao iniciar processo: {e}"))
@@ -489,15 +559,20 @@ async def _async_exec(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: 
         if stop_event.is_set():
             try:
                 proc.terminate()
-                try: await asyncio.wait_for(proc.wait(), timeout=5.0)
-                except asyncio.TimeoutError: proc.kill()
+                try:
+                    await asyncio.wait_for(proc.wait(), timeout=5.0)
+                except asyncio.TimeoutError:
+                    proc.kill()
             except ProcessLookupError:
                 pass
             break
-        if proc.returncode is not None: break
+        if proc.returncode is not None:
+            break
         await asyncio.sleep(0.1)
-    try: await asyncio.gather(t_out, t_err)
-    except Exception: pass
+    try:
+        await asyncio.gather(t_out, t_err)
+    except Exception:
+        pass
     rc = await proc.wait()
     status_q.put(("rc", rc))
 
@@ -510,8 +585,14 @@ def _thread_entry(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: thre
         loop.close()
 
 def start_async_runner_ns(full_cmd: str, ns: str):
-    log_q = Queue(); status_q = Queue(); stop_event = threading.Event()
-    th = threading.Thread(target=_thread_entry, args=(full_cmd, log_q, status_q, stop_event), daemon=True)
+    log_q = Queue()
+    status_q = Queue()
+    stop_event = threading.Event()
+    th = threading.Thread(
+        target=_thread_entry,
+        args=(full_cmd, log_q, status_q, stop_event),
+        daemon=True,
+    )
     th.start()
     st.session_state[f"{ns}_running"] = True
     st.session_state[f"{ns}_log_q"] = log_q
@@ -522,24 +603,31 @@ def start_async_runner_ns(full_cmd: str, ns: str):
 
 def request_stop_ns(ns: str):
     ev = st.session_state.get(f"{ns}_stop_event")
-    if ev and not ev.is_set(): ev.set()
+    if ev and not ev.is_set():
+        ev.set()
 
 def drain_log_queue_ns(ns: str, tail_limit: int = 200, max_pull: int = 500):
     q: Queue = st.session_state.get(f"{ns}_log_q")
-    if not q: return
+    if not q:
+        return
     buf = st.session_state.get(f"{ns}_live_log", [])
     pulled = 0
     while pulled < max_pull:
-        try: line = q.get_nowait()
-        except Empty: break
-        buf.append(line); pulled += 1
-    if len(buf) > tail_limit: buf[:] = buf[-tail_limit:]
+        try:
+            line = q.get_nowait()
+        except Empty:
+            break
+        buf.append(line)
+        pulled += 1
+    if len(buf) > tail_limit:
+        buf[:] = buf[-tail_limit:]
     st.session_state[f"{ns}_live_log"] = buf
 
 def render_log_box_ns(ns: str, height: int = 560):
     lines = st.session_state.get(f"{ns}_live_log", [])
     content = html.escape("\n".join(lines)) if lines else ""
-    components.html(f"""
+    components.html(
+        f"""
     <div id="logbox_{ns}" style=
         "
         width:100%; height:{height-40}px; margin:0 auto; padding:12px;
@@ -549,31 +637,46 @@ def render_log_box_ns(ns: str, height: int = 560):
       <pre style="margin:0; white-space: pre;">{content or "&nbsp;"}</pre>
     </div>
     <script>const el=document.getElementById("logbox_{ns}"); if(el){{el.scrollTop=el.scrollHeight;}}</script>
-    """, height=height, scrolling=False)
+    """,
+        height=height,
+        scrolling=False,
+    )
 
 def check_status_and_finalize_ns(outdir: str, ns: str, status_box, report_zone):
     sq: Queue = st.session_state.get(f"{ns}_status_q")
-    if not sq: return False
-    finalized = False; msg=None; rc=None
+    if not sq:
+        return False
+    finalized = False
+    msg = None
+    rc = None
     try:
         while True:
             kind, payload = sq.get_nowait()
-            if kind=="error": msg=payload; finalized=True; rc=-1
-            elif kind=="rc": rc=int(payload); finalized=True
+            if kind == "error":
+                msg = payload
+                finalized = True
+                rc = -1
+            elif kind == "rc":
+                rc = int(payload)
+                finalized = True
     except Empty:
         pass
     if finalized:
         st.session_state[f"{ns}_running"] = False
         st.session_state[f"{ns}_thread"] = None
         st.session_state[f"{ns}_stop_event"] = None
-        if rc==0: status_box.success("Concluído com sucesso.")
-        else: status_box.error(msg or f"Execução terminou com código {rc}. Veja o log abaixo.")
+        if rc == 0:
+            status_box.success("Concluído com sucesso.")
+        else:
+            status_box.error(msg or f"Execução terminou com código {rc}. Veja o log abaixo.")
     return finalized
 
 # ============================= Sidebar =============================
 with st.sidebar:
     st.header("Ambiente")
-    nf_ok = nextflow_available(); docker_ok = docker_available(); sing_ok = singularity_available()
+    nf_ok = nextflow_available()
+    docker_ok = docker_available()
+    sing_ok = singularity_available()
     st.write(
         f"Nextflow: {'✅' if nf_ok else '❌'} | "
         f"Docker: {'✅' if docker_ok else '❌'} | "
@@ -583,7 +686,8 @@ with st.sidebar:
     st.divider()
     render_presets_sidebar()
 
-st.markdown("""
+st.markdown(
+    """
 <style>
 [data-testid="stSidebar"] #presets-section,
 [data-testid="stSidebar"] #presets-section .stElementContainer,
@@ -598,7 +702,9 @@ st.markdown("""
 }
 button[kind="secondary"] span, button[kind="secondary"] div { white-space: nowrap !important; }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 # ============================= Página =============================
 st.title("🧬 Bactopia UI")
@@ -655,9 +761,6 @@ Os caminhos são normalizados, duplicatas removidas e a lista é ordenada.
 Cabeçalho fixo:
 sample runtype genome_size species r1 r2 extra
 
-markdown
-Copiar código
-
 Exemplos:
 - **paired-end**  
   `S1	paired-end	5e6	Ecoli	/.../S1_R1.fastq.gz	/.../S1_R2.fastq.gz	`
@@ -699,29 +802,57 @@ Se seus nomes diferem muito, ajuste as regex no código.
 A execução **sempre injeta** `--samples <caminho/samples.txt>` nos parâmetros, centralizando a orquestração via FOFN.
 """
 
-st.subheader("Gerar FOFN (múltiplas amostras)", help = FOFN_HELP_MD)
+st.subheader("Gerar FOFN (múltiplas amostras)", help=FOFN_HELP_MD)
+
 with st.expander("Gerar FOFN", expanded=False):
 
-    base_dir = path_picker("Pasta base de FASTQs/FASTAs", key="fofn_base", mode="dir", start=str(pathlib.Path.cwd()))
+    base_default = os.getenv("BEAR_HUB_DATA", "/dados")
+    base_dir = path_picker(
+        "Pasta base de FASTQs/FASTAs",
+        key="fofn_base",
+        mode="dir",
+        start=base_default,
+        help="Se estiver rodando via Docker, o sistema do host está em /hostfs (ex.: /hostfs/mnt/HD/...).",
+    )
     recursive = st.checkbox("Incluir subpastas", value=True, key="fofn_recursive")
 
     cA, cB, cC = st.columns(3)
     with cA:
-        species_in = st.text_input("species (opcional)", value=st.session_state.get("fofn_species","UNKNOWN_SPECIES"), key="fofn_species")
+        species_in = st.text_input(
+            "species (opcional)",
+            value=st.session_state.get("fofn_species", "UNKNOWN_SPECIES"),
+            key="fofn_species",
+        )
     with cB:
-        gsize_in = st.text_input("genome_size (opcional)", value=st.session_state.get("fofn_gsize","0"), key="fofn_gsize")
+        gsize_in = st.text_input(
+            "genome_size (opcional)",
+            value=st.session_state.get("fofn_gsize", "0"),
+            key="fofn_gsize",
+        )
     with cC:
         st.checkbox("Incluir assemblies (FASTA)", value=True, key="fofn_include_assemblies")
 
     c1, c2, c3 = st.columns(3)
     with c1:
-        st.checkbox("Tratar SE como ONT (long reads)", value=False, key="fofn_long_reads",
-                    help="Equivalente ao --long_reads do 'bactopia prepare'.")
+        st.checkbox(
+            "Tratar SE como ONT (long reads)",
+            value=False,
+            key="fofn_long_reads",
+            help="Equivalente ao --long_reads do 'bactopia prepare'.",
+        )
     with c2:
-        st.checkbox("Heurística: inferir ONT por nome (ont|nanopore|...)", value=True, key="fofn_infer_ont_by_name")
+        st.checkbox(
+            "Heurística: inferir ONT por nome (ont|nanopore|...)",
+            value=True,
+            key="fofn_infer_ont_by_name",
+        )
     with c3:
-        st.checkbox("Mesclar múltiplos arquivos por vírgula", value=True, key="fofn_merge_multi",
-                    help="Se desmarcado, será usado apenas o maior arquivo por categoria (PE1/PE2/ONT/SE).")
+        st.checkbox(
+            "Mesclar múltiplos arquivos por vírgula",
+            value=True,
+            key="fofn_merge_multi",
+            help="Se desmarcado, será usado apenas o maior arquivo por categoria (PE1/PE2/ONT/SE).",
+        )
 
     fofn_out = str((pathlib.Path(st.session_state.get("outdir", DEFAULT_OUTDIR)) / "samples.txt").resolve())
     st.caption(f"FOFN será salvo/atualizado em: `{fofn_out}`")
@@ -746,7 +877,10 @@ if st.button("🔎 Escanear e montar FOFN", key="btn_scan_fofn"):
             st.dataframe(df.head(1000), width=True)
         except Exception:
             st.write("Total de linhas:", len(res["rows"]))
-        st.info("Resumo de runtype: " + ", ".join([f"{k}={v}" for k,v in res["counts"].items()]))
+        st.info(
+            "Resumo de runtype: "
+            + ", ".join([f"{k}={v}" for k, v in res["counts"].items()])
+        )
         if res["issues"]:
             st.warning("Possíveis problemas detectados:")
             for msg in res["issues"]:
@@ -762,15 +896,25 @@ st.subheader("Parâmetros principais")
 with st.expander("Parâmetros globais", expanded=False):
     colA, colB = st.columns(2)
     with colA:
-        profile  = st.selectbox("Profile", ["docker","singularity","standard"], index=0, key="profile")
-        outdir   = path_picker("Outdir (raiz resultados)", key="outdir", mode="dir", start=DEFAULT_OUTDIR,
-                            help="Pasta onde o Nextflow/Bactopia escreverá a saída.")
-        datasets = path_picker("datasets/ (opcional)", key="datasets", mode="dir", start=str(pathlib.Path.home()))
+        profile = st.selectbox("Profile", ["docker", "singularity", "standard"], index=0, key="profile")
+        outdir = path_picker(
+            "Outdir (raiz resultados)",
+            key="outdir",
+            mode="dir",
+            start=DEFAULT_OUTDIR,
+            help="Pasta onde o Nextflow/Bactopia escreverá a saída.",
+        )
+        datasets = path_picker(
+            "datasets/ (opcional)",
+            key="datasets",
+            mode="dir",
+            start=str(pathlib.Path.home()),
+        )
     with colB:
-        resume     = st.checkbox("-resume (retomar)", value=True, key="resume")
+        resume = st.checkbox("-resume (retomar)", value=True, key="resume")
         # Mantidos apenas estes recursos globais:
         max_cpus_default = min(os.cpu_count() or 64, 128)
-        threads   = st.slider("--max_cpus", 0, max_cpus_default, 0, 1, key="threads")
+        threads = st.slider("--max_cpus", 0, max_cpus_default, 0, 1, key="threads")
         memory_gb = st.slider("--max_memory (GB)", 0, 256, 0, 1, key="memory_gb")
 
 # ------------------------- fastp -------------------------
@@ -853,16 +997,24 @@ Digite exatamente como na CLI oficial; o conteúdo será **append** ao `--fastp_
 - Se combinar várias flags em **Extras**, a **ordem** segue a linha final de comando gerada.
 
 '''
-st.subheader("Parâmetros FASTP/Unicycler", help= FASTP_HELP_MD)
+st.subheader("Parâmetros FASTP/Unicycler", help=FASTP_HELP_MD)
 
 with st.expander("Parâmetros do fastp", expanded=False):
-    fastp_mode = st.radio("Modo", ["Simples (recomendado)", "Avançado (linha completa)"],
-                          index=0, key="fastp_mode", horizontal=True)
+    fastp_mode = st.radio(
+        "Modo",
+        ["Simples (recomendado)", "Avançado (linha completa)"],
+        index=0,
+        key="fastp_mode",
+        horizontal=True,
+    )
     if fastp_mode.startswith("Simples"):
         topA, topB, topC = st.columns(3)
-        with topA: st.checkbox("Ativar 3’ (-3)", value=True, key="fastp_dash3")
-        with topB: st.slider("-M (média mínima da janela)", 0, 40, 20, 1, key="fastp_M")
-        with topC: st.slider("-W (tamanho da janela)", 1, 50, 5, 1, key="fastp_W")
+        with topA:
+            st.checkbox("Ativar 3’ (-3)", value=True, key="fastp_dash3")
+        with topB:
+            st.slider("-M (média mínima da janela)", 0, 40, 20, 1, key="fastp_M")
+        with topC:
+            st.slider("-W (tamanho da janela)", 1, 50, 5, 1, key="fastp_W")
 
         st.markdown("**Opções adicionais (opcionais)**")
         c1, c2, c3, c4 = st.columns(4)
@@ -883,31 +1035,50 @@ with st.expander("Parâmetros do fastp", expanded=False):
 
         st.markdown("**Cortes dirigidos (cut_*)**")
         cc1, cc2, cc3, cc4 = st.columns(4)
-        with cc1: st.checkbox("--cut_front", value=False, key="fastp_cut_front")
-        with cc2: st.checkbox("--cut_tail",  value=False, key="fastp_cut_tail")
-        with cc3: st.number_input("cut_mean_quality", min_value=0, max_value=40, value=20, step=1, key="fastp_cut_meanq")
-        with cc4: st.number_input("cut_window_size", min_value=1, max_value=100, value=4, step=1, key="fastp_cut_win")
+        with cc1:
+            st.checkbox("--cut_front", value=False, key="fastp_cut_front")
+        with cc2:
+            st.checkbox("--cut_tail", value=False, key="fastp_cut_tail")
+        with cc3:
+            st.number_input("cut_mean_quality", min_value=0, max_value=40, value=20, step=1, key="fastp_cut_meanq")
+        with cc4:
+            st.number_input("cut_window_size", min_value=1, max_value=100, value=4, step=1, key="fastp_cut_win")
 
         st.checkbox("polyG (-g)", value=False, key="fastp_poly_g")
-        fastp_extra = st.text_input("Extra avançado (append)", value=st.session_state.get("fastp_extra",""), key="fastp_extra")
+        fastp_extra = st.text_input(
+            "Extra avançado (append)",
+            value=st.session_state.get("fastp_extra", ""),
+            key="fastp_extra",
+        )
 
         parts = []
-        if st.session_state.get("fastp_dash3", True): parts.append("-3")
-        if st.session_state.get("fastp_enable_5prime"): parts.append("-5")
+        if st.session_state.get("fastp_dash3", True):
+            parts.append("-3")
+        if st.session_state.get("fastp_enable_5prime"):
+            parts.append("-5")
         parts += ["-M", str(st.session_state.get("fastp_M", 20))]
         parts += ["-W", str(st.session_state.get("fastp_W", 5))]
-        if st.session_state.get("fastp_q_enable"): parts += ["-q", str(st.session_state.get("fastp_q", 20))]
-        if st.session_state.get("fastp_l_enable"): parts += ["-l", str(st.session_state.get("fastp_l", 15))]
-        n_val = st.session_state.get("fastp_n", 0);   u_val = st.session_state.get("fastp_u", 0)
-        if n_val: parts += ["-n", str(n_val)]
-        if u_val: parts += ["-u", str(u_val)]
-        if st.session_state.get("fastp_cut_front"): parts.append("--cut_front")
-        if st.session_state.get("fastp_cut_tail"):  parts.append("--cut_tail")
+        if st.session_state.get("fastp_q_enable"):
+            parts += ["-q", str(st.session_state.get("fastp_q", 20))]
+        if st.session_state.get("fastp_l_enable"):
+            parts += ["-l", str(st.session_state.get("fastp_l", 15))]
+        n_val = st.session_state.get("fastp_n", 0)
+        u_val = st.session_state.get("fastp_u", 0)
+        if n_val:
+            parts += ["-n", str(n_val)]
+        if u_val:
+            parts += ["-u", str(u_val)]
+        if st.session_state.get("fastp_cut_front"):
+            parts.append("--cut_front")
+        if st.session_state.get("fastp_cut_tail"):
+            parts.append("--cut_tail")
         if st.session_state.get("fastp_cut_front") or st.session_state.get("fastp_cut_tail"):
             parts += ["--cut_mean_quality", str(st.session_state.get("fastp_cut_meanq", 20))]
-            parts += ["--cut_window_size",  str(st.session_state.get("fastp_cut_win", 4))]
-        if st.session_state.get("fastp_detect_adapter_pe"): parts.append("--detect_adapter_for_pe")
-        if st.session_state.get("fastp_poly_g"): parts.append("-g")
+            parts += ["--cut_window_size", str(st.session_state.get("fastp_cut_win", 4))]
+        if st.session_state.get("fastp_detect_adapter_pe"):
+            parts.append("--detect_adapter_for_pe")
+        if st.session_state.get("fastp_poly_g"):
+            parts.append("-g")
         if (st.session_state.get("fastp_extra") or "").strip():
             parts.append(st.session_state["fastp_extra"].strip())
 
@@ -916,16 +1087,20 @@ with st.expander("Parâmetros do fastp", expanded=False):
     else:
         fastp_opts_value = st.text_input(
             "Linha completa do fastp (avançado)",
-            value=st.session_state.get("fastp_opts_text","-3 -M 20 -W 5"),
+            value=st.session_state.get("fastp_opts_text", "-3 -M 20 -W 5"),
             key="fastp_opts_text",
         )
 
 # ------------------------- Unicycler -------------------------
 with st.expander("Parâmetros do Unicycler", expanded=False):
-    st.radio("Modo", ["conservative","normal","bold"], index=1, key="unicycler_mode")
+    st.radio("Modo", ["conservative", "normal", "bold"], index=1, key="unicycler_mode")
     st.number_input("min_fasta_length", 0, 100000, 1000, 100, key="unicycler_min_len")
-    st.text_input("Extra (append)", value=st.session_state.get("unicycler_extra",""), key="unicycler_extra")
-    uni_parts = ["--mode", st.session_state.get("unicycler_mode","normal")]
+    st.text_input(
+        "Extra (append)",
+        value=st.session_state.get("unicycler_extra", ""),
+        key="unicycler_extra",
+    )
+    uni_parts = ["--mode", st.session_state.get("unicycler_mode", "normal")]
     if st.session_state.get("unicycler_min_len", 1000):
         uni_parts += ["--min_fasta_length", str(int(st.session_state["unicycler_min_len"]))]
     if (st.session_state.get("unicycler_extra") or "").strip():
@@ -934,7 +1109,11 @@ with st.expander("Parâmetros do Unicycler", expanded=False):
     st.caption(f"unicycler_opts: `{unicycler_opts_value}`")
 
 # ------------------------- Extra Params + Relatórios -------------------------
-extra_params_input = st.text_input("Parâmetros extras (linha crua)", value=st.session_state.get("extra_params",""), key="extra_params")
+extra_params_input = st.text_input(
+    "Parâmetros extras (linha crua)",
+    value=st.session_state.get("extra_params", ""),
+    key="extra_params",
+)
 computed_extra = extra_params_input
 if st.session_state.get("fofn_use") and fofn_out:
     computed_extra = (computed_extra + f" --samples {shlex.quote(fofn_out)}").strip()
@@ -946,32 +1125,47 @@ with st.expander("Relatórios (Nextflow)", expanded=False):
 
 # ------------------------- Montagem do comando -------------------------
 def build_bactopia_cmd(params: dict) -> str:
-    profile = params.get("profile","docker")
+    profile = params.get("profile", "docker")
     outdir = params.get("outdir", DEFAULT_OUTDIR)
     datasets = params.get("datasets")
-    fastp_opts=params.get("fastp_opts"); unicycler_opts=params.get("unicycler_opts")
-    extra=params.get("extra_params"); resume=params.get("resume", True)
-    threads=params.get("threads"); memory=params.get("memory")
-    with_report=params.get("with_report"); with_timeline=params.get("with_timeline"); with_trace=params.get("with_trace")
+    fastp_opts = params.get("fastp_opts")
+    unicycler_opts = params.get("unicycler_opts")
+    extra = params.get("extra_params")
+    resume = params.get("resume", True)
+    threads = params.get("threads")
+    memory = params.get("memory")
+    with_report = params.get("with_report")
+    with_timeline = params.get("with_timeline")
+    with_trace = params.get("with_trace")
 
-    base = ["nextflow","run","bactopia/bactopia","-profile",profile,"--outdir",outdir]
-    if datasets: base += ["--datasets", datasets]
+    base = ["nextflow", "run", "bactopia/bactopia", "-profile", profile, "--outdir", outdir]
+    if datasets:
+        base += ["--datasets", datasets]
 
     # Relatórios (salvos no outdir)
     report_dir = pathlib.Path(outdir)
-    if with_report:   base += ["-with-report", str(report_dir / "nf-report.html")]
-    if with_timeline: base += ["-with-timeline", str(report_dir / "nf-timeline.html")]
-    if with_trace:    base += ["-with-trace", str(report_dir / "nf-trace.txt")]
+    if with_report:
+        base += ["-with-report", str(report_dir / "nf-report.html")]
+    if with_timeline:
+        base += ["-with-timeline", str(report_dir / "nf-timeline.html")]
+    if with_trace:
+        base += ["-with-trace", str(report_dir / "nf-trace.txt")]
 
-    if fastp_opts:     base += ["--fastp_opts", fastp_opts]
-    if unicycler_opts: base += ["--unicycler_opts", unicycler_opts]
+    if fastp_opts:
+        base += ["--fastp_opts", fastp_opts]
+    if unicycler_opts:
+        base += ["--unicycler_opts", unicycler_opts]
 
     # Mantidos apenas estes recursos globais:
-    if threads:        base += ["--max_cpus", str(threads)]
-    if memory:         base += ["--max_memory", memory]
-    if resume:         base += ["-resume"]
+    if threads:
+        base += ["--max_cpus", str(threads)]
+    if memory:
+        base += ["--max_memory", memory]
+    if resume:
+        base += ["-resume"]
 
-    if extra:          base += shlex.split(extra)
+    if extra:
+        base += shlex.split(extra)
 
     return " ".join(shlex.quote(x) for x in base)
 
@@ -979,12 +1173,12 @@ params = {
     "profile": st.session_state.get("profile"),
     "outdir": st.session_state.get("outdir"),
     "datasets": st.session_state.get("datasets") or None,
-    "fastp_opts": (fastp_opts_value.strip() if 'fastp_opts_value' in locals() and fastp_opts_value.strip() else None),
-    "unicycler_opts": (unicycler_opts_value.strip() if 'unicycler_opts_value' in locals() and unicycler_opts_value.strip() else None),
+    "fastp_opts": (fastp_opts_value.strip() if "fastp_opts_value" in locals() and fastp_opts_value.strip() else None),
+    "unicycler_opts": (unicycler_opts_value.strip() if "unicycler_opts_value" in locals() and unicycler_opts_value.strip() else None),
     "extra_params": computed_extra or None,
     "resume": st.session_state.get("resume", True),
     "threads": st.session_state.get("threads") or None,
-    "memory": (f"{st.session_state.get('memory_gb')} GB" if st.session_state.get('memory_gb') else None),
+    "memory": (f"{st.session_state.get('memory_gb')} GB" if st.session_state.get("memory_gb") else None),
     "with_report": st.session_state.get("with_report", True),
     "with_timeline": st.session_state.get("with_timeline", True),
     "with_trace": st.session_state.get("with_trace", True),
@@ -1006,6 +1200,7 @@ def preflight_validate(params: dict) -> list[str]:
     def _must_exist(pth, label):
         if pth and not pathlib.Path(pth).exists():
             errs.append(f"Caminho não existe: {label} = {pth}")
+
     _must_exist(params.get("outdir"), "outdir")
     _must_exist(params.get("datasets"), "datasets")
     _must_exist(fofn_out, "FOFN (samples.txt)")
@@ -1015,20 +1210,36 @@ def preflight_validate(params: dict) -> list[str]:
 _errors = preflight_validate(params)
 if _errors:
     st.error("Erros de configuração encontrados. Corrija antes de executar:")
-    for e in _errors: st.markdown(f"- {e}")
+    for e in _errors:
+        st.markdown(f"- {e}")
 
 # ------------------------- Botões Execução / Clean -------------------------
-col1, col2, col3 = st.columns([1,1,2])
+col1, col2, col3 = st.columns([1, 1, 2])
 with col1:
-    start_main = st.button("▶️ Executar (async)", key="btn_main_start", disabled=st.session_state.get("main_running", False))
+    start_main = st.button(
+        "▶️ Executar (async)",
+        key="btn_main_start",
+        disabled=st.session_state.get("main_running", False),
+    )
 with col2:
-    stop_main = st.button("⏹️ Interromper", key="btn_main_stop", disabled=not st.session_state.get("main_running", False))
+    stop_main = st.button(
+        "⏹️ Interromper",
+        key="btn_main_stop",
+        disabled=not st.session_state.get("main_running", False),
+    )
 with col3:
-    c1, c2, c3 = st.columns([1,1,2])
-    with c1: st.checkbox("Confirmar", value=False, key="confirm_clean")
-    with c2: st.checkbox("Manter logs (-k)", value=False, key="clean_keep_logs")
-    with c3: st.checkbox("Todas execuções", value=False, key="clean_all_runs")
-    clean_clicked = st.button("🧹 Limpar ambiente", key="btn_clean_main", disabled=not st.session_state.get("confirm_clean", False))
+    c1, c2, c3 = st.columns([1, 1, 2])
+    with c1:
+        st.checkbox("Confirmar", value=False, key="confirm_clean")
+    with c2:
+        st.checkbox("Manter logs (-k)", value=False, key="clean_keep_logs")
+    with c3:
+        st.checkbox("Todas execuções", value=False, key="clean_all_runs")
+    clean_clicked = st.button(
+        "🧹 Limpar ambiente",
+        key="btn_clean_main",
+        disabled=not st.session_state.get("confirm_clean", False),
+    )
 
 status_box_main = st.empty()
 report_zone_main = st.empty()
@@ -1045,29 +1256,41 @@ if clean_clicked:
     if not nextflow_available():
         st.error("Nextflow não encontrado no PATH.")
     else:
-        all_runs  = st.session_state.get("clean_all_runs", False)
+        all_runs = st.session_state.get("clean_all_runs", False)
         keep_logs = st.session_state.get("clean_keep_logs", False)
 
         try:
             log_res = subprocess.run(
                 ["nextflow", "log", "-q"],
-                cwd=str(launch_dir), text=True, capture_output=True, check=False
+                cwd=str(launch_dir),
+                text=True,
+                capture_output=True,
+                check=False,
             )
             raw_names = [ln.strip() for ln in (log_res.stdout or "").splitlines() if ln.strip()]
-            seen = set(); run_names = []
+            seen = set()
+            run_names = []
             for rn in raw_names:
                 if rn not in seen:
-                    seen.add(rn); run_names.append(rn)
+                    seen.add(rn)
+                    run_names.append(rn)
 
             if not run_names:
                 st.info("Nenhuma execução encontrada pelo 'nextflow log'.")
             else:
                 targets = [run_names[-1]] if not all_runs else list(reversed(run_names))
-                failures = []; cleaned  = 0
+                failures = []
+                cleaned = 0
                 for rn in targets:
                     cmdc = ["nextflow", "clean", "-f"] + (["-k"] if keep_logs else []) + [rn]
                     st.code(" ".join(shlex.quote(x) for x in cmdc), language="bash")
-                    res = subprocess.run(cmdc, cwd=str(launch_dir), text=True, capture_output=True, check=False)
+                    res = subprocess.run(
+                        cmdc,
+                        cwd=str(launch_dir),
+                        text=True,
+                        capture_output=True,
+                        check=False,
+                    )
                     if res.returncode == 0:
                         cleaned += 1
                     else:
@@ -1082,7 +1305,9 @@ if clean_clicked:
                 elif cleaned and failures:
                     st.warning(f"Limpeza parcial: {cleaned} ok, {len(failures)} com erro.")
                 else:
-                    st.error("Falha ao limpar." if not all_runs else "Falha ao limpar todas as execuções.")
+                    st.error(
+                        "Falha ao limpar." if not all_runs else "Falha ao limpar todas as execuções."
+                    )
 
                 for rn, msg in failures:
                     st.markdown(f"- **{rn}**")
@@ -1099,7 +1324,8 @@ if clean_clicked:
             st.exception(e)
 
 if stop_main:
-    request_stop_ns("main"); status_box_main.warning("Solicitada interrupção…")
+    request_stop_ns("main")
+    status_box_main.warning("Solicitada interrupção…")
 
 if start_main:
     if _errors:
@@ -1118,8 +1344,14 @@ if start_main:
 if st.session_state.get("main_running", False):
     drain_log_queue_ns("main", tail_limit=200, max_pull=500)
     render_log_box_ns("main")
-    finished = check_status_and_finalize_ns(params.get("outdir", DEFAULT_OUTDIR), "main", status_box_main, report_zone_main)
+    finished = check_status_and_finalize_ns(
+        params.get("outdir", DEFAULT_OUTDIR),
+        "main",
+        status_box_main,
+        report_zone_main,
+    )
     if not finished:
-        time.sleep(0.3); _st_rerun()
+        time.sleep(0.3)
+        _st_rerun()
 else:
     render_log_box_ns("main")
