@@ -3,13 +3,12 @@
 # Imagem base com micromamba para gerenciar ambiente conda
 FROM mambaorg/micromamba:1.5.10
 
-
-# Desliga o lock do mamba (evita erro em /home/mambauser/.cache/mamba/proc/proc.lock)
-ENV MAMBA_NO_LOCK=1
-
+# Evita problemas de lock do mamba/micromamba
+ENV MAMBA_ROOT_PREFIX=/opt/conda \
+    MAMBA_NO_BANNER=1 \
+    MAMBA_NO_LOCK=1
 
 # Cria o ambiente "bear-hub" com ferramentas de sistema e bioinfo
-# - Python será instalado depois via pip (requirements.txt)
 RUN micromamba create -y -n bear-hub \
     -c conda-forge -c bioconda -c defaults \
     python=3.11 \
@@ -31,23 +30,18 @@ RUN micromamba run -n bear-hub pip install --no-cache-dir -r requirements.txt
 # Agora copia o restante do código do app
 COPY . /opt/bear-hub
 
-# (Opcional) Clonar o PORT dentro da imagem
-# Desativado por enquanto
-# RUN micromamba run -n bear-hub bash -lc "\
-#     if [ ! -d /opt/PORT ]; then \
-#         git clone https://github.com/immem-hackathon-2025/PORT.git /opt/PORT; \
-#     fi \
-# "
-
-# Variáveis de ambiente úteis
+# Variáveis de ambiente úteis + PATH do ambiente bear-hub
 ENV PORT_MAIN_NF=/opt/PORT/main.nf \
     BEAR_HUB_OUTDIR=/bactopia_out \
     BEAR_HUB_DATA=/dados \
-    HOSTFS_ROOT=/hostfs
+    PATH=/opt/conda/envs/bear-hub/bin:$PATH
 
 # Porta usada pelo Streamlit
 EXPOSE 8501
 
+# Remove o entrypoint padrão da imagem micromamba (que usa "micromamba run ...")
+ENTRYPOINT []
+
 # Comando de entrada:
-# Executa o Streamlit usando o ambiente bear-hub e o HUB.py como app principal
-CMD ["micromamba", "run", "-n", "bear-hub", "streamlit", "run", "HUB.py", "--server.address=0.0.0.0", "--server.port=8501"]
+# Executa o Streamlit diretamente (já com o PATH apontando para o env bear-hub)
+CMD ["bash", "-lc", "streamlit run HUB.py --server.address=0.0.0.0 --server.port=8501"]
