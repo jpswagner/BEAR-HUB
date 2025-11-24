@@ -3,6 +3,11 @@
 # Imagem base com micromamba para gerenciar ambiente conda
 FROM mambaorg/micromamba:1.5.10
 
+
+# Desliga o lock do mamba (evita erro em /home/mambauser/.cache/mamba/proc/proc.lock)
+ENV MAMBA_NO_LOCK=1
+
+
 # Cria o ambiente "bear-hub" com ferramentas de sistema e bioinfo
 # - Python será instalado depois via pip (requirements.txt)
 RUN micromamba create -y -n bear-hub \
