@@ -896,7 +896,13 @@ st.subheader("Parâmetros principais")
 with st.expander("Parâmetros globais", expanded=False):
     colA, colB = st.columns(2)
     with colA:
-        profile = st.selectbox("Profile", ["docker", "singularity", "standard"], index=0, key="profile")
+        profile = st.selectbox(
+            "Profile",
+            ["standard", "docker", "singularity"],
+            index=0,  # agora default = standard
+            key="profile",
+        )
+
         outdir = path_picker(
             "Outdir (raiz resultados)",
             key="outdir",
@@ -1189,25 +1195,40 @@ st.caption(f"Profile: {params['profile']} | Outdir: {params['outdir']}")
 st.code(cmd, language="bash")
 
 # ------------------------- Validação pré-execução -------------------------
-def preflight_validate(params: dict) -> list[str]:
+def preflight_validate(params: dict, fofn_path: str) -> list[str]:
     errs = []
     prof = params.get("profile")
+
+    # 1) Profile / backends
     if prof == "docker" and not docker_available():
-        errs.append("Profile 'docker' selecionado, mas Docker não está disponível no PATH.")
+        errs.append(
+            "Profile 'docker' selecionado, mas Docker não está disponível no PATH. "
+            "Dentro do container do BEAR-HUB, prefira o profile 'standard'."
+        )
     if prof == "singularity" and not singularity_available():
-        errs.append("Profile 'singularity' selecionado, mas Singularity/Apptainer não está disponível no PATH.")
+        errs.append(
+            "Profile 'singularity' selecionado, mas Singularity/Apptainer não está disponível no PATH."
+        )
 
-    def _must_exist(pth, label):
-        if pth and not pathlib.Path(pth).exists():
-            errs.append(f"Caminho não existe: {label} = {pth}")
+    # 2) datasets é opcional, mas se foi preenchido precisa existir
+    datasets = params.get("datasets")
+    if datasets and not pathlib.Path(datasets).exists():
+        errs.append(f"Caminho não existe: datasets = {datasets}")
 
-    _must_exist(params.get("outdir"), "outdir")
-    _must_exist(params.get("datasets"), "datasets")
-    _must_exist(fofn_out, "FOFN (samples.txt)")
+    # 3) FOFN deve existir na hora de executar
+    if not pathlib.Path(fofn_path).is_file():
+        errs.append(
+            f"FOFN não encontrado: {fofn_path}.\n"
+            "Gere o FOFN em 'Gerar FOFN' (botão '🔎 Escanear e montar FOFN') antes de executar."
+        )
 
+    # OBS: não exigimos que 'outdir' exista; o próprio Nextflow/Bactopia cria.
     return errs
 
-_errors = preflight_validate(params)
+
+_errors = preflight_validate(params, fofn_out)
+
+
 if _errors:
     st.error("Erros de configuração encontrados. Corrija antes de executar:")
     for e in _errors:

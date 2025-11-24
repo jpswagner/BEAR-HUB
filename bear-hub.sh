@@ -21,14 +21,13 @@ for arg in "$@"; do
 done
 
 # ------------------------ Checks básicos ------------------------
-# 1) Checa se Docker está instalado
 if ! command -v docker >/dev/null 2>&1; then
   echo "Erro: 'docker' não encontrado no PATH."
   echo "Instale Docker antes de rodar o BEAR-HUB."
   exit 1
 fi
 
-# 2) Decide se precisa construir a imagem
+# ------------------------ Build da imagem ------------------------
 if $REBUILD; then
   echo ">> '--rebuild' especificado. Reconstruindo a imagem '$IMAGE'."
   docker build -t "$IMAGE" "$SCRIPT_DIR"
@@ -40,7 +39,7 @@ else
   echo ">> Imagem Docker '$IMAGE' já existe. Pulando build (use --rebuild para forçar)."
 fi
 
-# 3) Garante que os diretórios de dados existem
+# ------------------------ Diretórios de dados ------------------------
 mkdir -p "$DATA_DIR" "$OUT_DIR"
 
 URL="http://localhost:8501"
@@ -52,18 +51,18 @@ echo
 echo "Abrindo em: $URL"
 echo
 
-# 3.1) Tenta abrir o navegador automaticamente (best-effort, não quebra o script)
+# Tentativa best-effort de abrir o navegador
 if command -v xdg-open >/dev/null 2>&1; then
   xdg-open "$URL" >/dev/null 2>&1 || true
 elif command -v sensible-browser >/dev/null 2>&1; then
   sensible-browser "$URL" >/dev/null 2>&1 || true
 elif command -v open >/dev/null 2>&1; then
-  # macOS
   open "$URL" >/dev/null 2>&1 || true
 fi
 
-# 4) Sobe o container
+# ------------------------ Sobe o container ------------------------
 docker run --rm -it \
+  --user "$(id -u):$(id -g)" \
   -p 8501:8501 \
   -v "$DATA_DIR":/dados \
   -v "$OUT_DIR":/bactopia_out \
