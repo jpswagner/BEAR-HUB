@@ -16,7 +16,6 @@
 import os
 import shlex
 import time
-#import yaml
 import pathlib
 import subprocess
 import re
@@ -32,6 +31,12 @@ from queue import Queue, Empty
 import streamlit as st
 import streamlit.components.v1 as components
 
+# PyYAML é opcional: se não existir, presets viram no-op
+try:
+    import yaml  # type: ignore
+except Exception:
+    yaml = None  # presets desabilitados se PyYAML não estiver disponível
+
 # ============================= Config inicial =============================
 st.set_page_config(page_title="Bactopia UI", layout="wide")
 
@@ -44,7 +49,29 @@ APP_STATE_DIR = pathlib.Path.home() / ".bactopia_ui_local"
 PRESETS_FILE = APP_STATE_DIR / "presets.yaml"
 DEFAULT_PRESET_NAME = "default"
 
-DEFAULT_OUTDIR = str((pathlib.Path.cwd() / "bactopia_out").resolve())
+
+def _detect_default_outdir() -> str:
+    """
+    Define o outdir padrão de forma inteligente:
+
+    1) Se BEAR_OUT ou BEAR_HUB_OUTDIR estiverem definidos, usa esse caminho.
+    2) Se /bactopia_out existir (caso do bear-hub.sh dentro do Docker), usa /bactopia_out.
+    3) Fallback para ./bactopia_out relativo ao CWD (execução "local" fora do Docker).
+    """
+    env = os.getenv("BEAR_OUT") or os.getenv("BEAR_HUB_OUTDIR")
+    if env:
+        try:
+            return str(pathlib.Path(env).expanduser().resolve())
+        except Exception:
+            return env
+
+    if pathlib.Path("/bactopia_out").exists():
+        return "/bactopia_out"
+
+    return str((pathlib.Path.cwd() / "bactopia_out").resolve())
+
+
+DEFAULT_OUTDIR = _detect_default_outdir()
 st.session_state.setdefault("outdir", DEFAULT_OUTDIR)
 
 # ============================= Utils =============================
@@ -103,7 +130,7 @@ PRESET_KEYS_ALLOWLIST = {
 
 def load_presets():
     ensure_state_dir()
-    if PRESETS_FILE.exists():
+    if PRESETS_FILE.exists() and yaml is not None:
         try:
             with open(PRESETS_FILE, "r", encoding="utf-8") as fh:
                 data = yaml.safe_load(fh) or {}
@@ -113,6 +140,9 @@ def load_presets():
     return {}
 
 def save_presets(presets: dict):
+    if yaml is None:
+        # Sem PyYAML instalado, ignoramos silenciosamente o save
+        return
     ensure_state_dir()
     with open(PRESETS_FILE, "w", encoding="utf-8") as fh:
         yaml.safe_dump(presets, fh, sort_keys=True, allow_unicode=True)
@@ -381,7 +411,7 @@ def discover_runs_and_build_fofn(base_dir: str,
     if not base.exists():
         raise FileNotFoundError("Pasta base não existe.")
 
-    # garante outdir do FOFN
+    # garante outdir do FOFN (agora apontando para /bactopia_out no container)
     fofn_parent = pathlib.Path(fofn_path).parent
     fofn_parent.mkdir(parents=True, exist_ok=True)
 
