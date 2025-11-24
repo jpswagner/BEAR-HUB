@@ -78,17 +78,22 @@ def nextflow_available():
     return which("nextflow") is not None
 
 def run_cmd(cmd: str | List[str], cwd: str | None = None) -> tuple[int, str, str]:
+    """
+    Executa comando em shell simples (sem bash -lc) para preservar o PATH
+    herdado do micromamba/conda.
+    """
     if isinstance(cmd, list):
         shell_cmd = " ".join(shlex.quote(x) for x in cmd)
     else:
         shell_cmd = cmd
     try:
         res = subprocess.run(
-            ["bash", "-lc", shell_cmd],
+            shell_cmd,
             cwd=cwd,
             text=True,
             capture_output=True,
             check=False,
+            shell=True,
         )
         return res.returncode, res.stdout or "", res.stderr or ""
     except Exception as e:
@@ -557,8 +562,9 @@ async def _async_read_stream(stream, log_q: Queue, stop_event: threading.Event):
 
 async def _async_exec(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: threading.Event):
     try:
-        proc = await asyncio.create_subprocess_exec(
-            "bash", "-lc", full_cmd,
+        # shell=True para usar /bin/sh com PATH herdado do ambiente micromamba
+        proc = await asyncio.create_subprocess_shell(
+            full_cmd,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
