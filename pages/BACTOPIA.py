@@ -542,7 +542,7 @@ async def _async_read_stream(stream, log_q: Queue, stop_event: threading.Event):
 async def _async_exec(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: threading.Event):
     try:
         proc = await asyncio.create_subprocess_exec(
-            "bash", "-lc", full_cmd,
+            "bash", "-c", full_cmd,   # <- aqui
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
