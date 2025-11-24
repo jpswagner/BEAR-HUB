@@ -16,6 +16,7 @@
 import os
 import shlex
 import time
+import yaml
 import pathlib
 import subprocess
 import re
@@ -31,12 +32,6 @@ from queue import Queue, Empty
 import streamlit as st
 import streamlit.components.v1 as components
 
-# PyYAML é opcional: se não existir, presets viram no-op
-try:
-    import yaml  # type: ignore
-except Exception:
-    yaml = None  # presets desabilitados se PyYAML não estiver disponível
-
 # ============================= Config inicial =============================
 st.set_page_config(page_title="Bactopia UI", layout="wide")
 
@@ -49,29 +44,19 @@ APP_STATE_DIR = pathlib.Path.home() / ".bactopia_ui_local"
 PRESETS_FILE = APP_STATE_DIR / "presets.yaml"
 DEFAULT_PRESET_NAME = "default"
 
+# Detecta outdir padrão:
+# - se /bactopia_out existir (caso típico do Docker do BEAR-HUB), usa ele
+# - caso contrário, usa ./bactopia_out relativo ao cwd
+_default_out = os.getenv("BEAR_HUB_OUT", "/bactopia_out")
+try:
+    p_out = pathlib.Path(_default_out)
+    if p_out.exists():
+        DEFAULT_OUTDIR = _default_out
+    else:
+        DEFAULT_OUTDIR = str((pathlib.Path.cwd() / "bactopia_out").resolve())
+except Exception:
+    DEFAULT_OUTDIR = str((pathlib.Path.cwd() / "bactopia_out").resolve())
 
-def _detect_default_outdir() -> str:
-    """
-    Define o outdir padrão de forma inteligente:
-
-    1) Se BEAR_OUT ou BEAR_HUB_OUTDIR estiverem definidos, usa esse caminho.
-    2) Se /bactopia_out existir (caso do bear-hub.sh dentro do Docker), usa /bactopia_out.
-    3) Fallback para ./bactopia_out relativo ao CWD (execução "local" fora do Docker).
-    """
-    env = os.getenv("BEAR_OUT") or os.getenv("BEAR_HUB_OUTDIR")
-    if env:
-        try:
-            return str(pathlib.Path(env).expanduser().resolve())
-        except Exception:
-            return env
-
-    if pathlib.Path("/bactopia_out").exists():
-        return "/bactopia_out"
-
-    return str((pathlib.Path.cwd() / "bactopia_out").resolve())
-
-
-DEFAULT_OUTDIR = _detect_default_outdir()
 st.session_state.setdefault("outdir", DEFAULT_OUTDIR)
 
 # ============================= Utils =============================
@@ -130,7 +115,7 @@ PRESET_KEYS_ALLOWLIST = {
 
 def load_presets():
     ensure_state_dir()
-    if PRESETS_FILE.exists() and yaml is not None:
+    if PRESETS_FILE.exists():
         try:
             with open(PRESETS_FILE, "r", encoding="utf-8") as fh:
                 data = yaml.safe_load(fh) or {}
@@ -140,9 +125,6 @@ def load_presets():
     return {}
 
 def save_presets(presets: dict):
-    if yaml is None:
-        # Sem PyYAML instalado, ignoramos silenciosamente o save
-        return
     ensure_state_dir()
     with open(PRESETS_FILE, "w", encoding="utf-8") as fh:
         yaml.safe_dump(presets, fh, sort_keys=True, allow_unicode=True)
@@ -411,7 +393,7 @@ def discover_runs_and_build_fofn(base_dir: str,
     if not base.exists():
         raise FileNotFoundError("Pasta base não existe.")
 
-    # garante outdir do FOFN (agora apontando para /bactopia_out no container)
+    # garante outdir do FOFN
     fofn_parent = pathlib.Path(fofn_path).parent
     fofn_parent.mkdir(parents=True, exist_ok=True)
 
@@ -1385,8 +1367,15 @@ if start_main:
         st.error("Nextflow não encontrado no PATH.")
     else:
         try:
-            stdbuf = shutil.which("stdbuf")
-            full_cmd = f"stdbuf -oL -eL {cmd}" if stdbuf else cmd
+            # Tentativa opcional de usar stdbuf; se falhar, cai pro comando "puro"
+            full_cmd = cmd
+            stdbuf_path = shutil.which("stdbuf")
+            if stdbuf_path:
+                # Testa se stdbuf consegue rodar nextflow; se não, ignora stdbuf
+                test_rc, _, _ = run_cmd("stdbuf -oL -eL nextflow -version")
+                if test_rc == 0:
+                    full_cmd = f"stdbuf -oL -eL {cmd}"
+
             status_box_main.info("Executando (async).")
             start_async_runner_ns(full_cmd, "main")
         except Exception as e:
