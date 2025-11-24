@@ -6,7 +6,7 @@ IMAGE="${BEAR_IMAGE:-bear-hub}"
 
 # Diretórios padrão no host (podem ser sobrescritos com BEAR_DATA / BEAR_OUT)
 DATA_DIR="${BEAR_DATA:-$HOME/BEAR_DATA}"   # entradas (FASTQs, assemblies, etc.)
-OUT_DIR="${BEAR_OUT:-$HOME/BEAR_OUT}"     # saídas (resultados)
+OUT_DIR="${BEAR_OUT:-$HOME/BEAR_OUT}"      # saídas (resultados)
 
 # Diretório da raiz do repo (onde está o Dockerfile)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -30,16 +30,29 @@ fi
 # 3) Garante que os diretórios de dados existem
 mkdir -p "$DATA_DIR" "$OUT_DIR"
 
+URL="http://localhost:8501"
+
 echo "== BEAR-HUB =="
 echo "Dados de entrada (host): $DATA_DIR"
 echo "Resultados saída (host): $OUT_DIR"
 echo
-echo "Abrindo em: http://localhost:8501"
+echo "Abrindo em: $URL"
 echo
+
+# 3.1) Tenta abrir o navegador automaticamente (best-effort, não quebra o script)
+if command -v xdg-open >/dev/null 2>&1; then
+  xdg-open "$URL" >/dev/null 2>&1 || true
+elif command -v sensible-browser >/dev/null 2>&1; then
+  sensible-browser "$URL" >/dev/null 2>&1 || true
+elif command -v open >/dev/null 2>&1; then
+  # macOS
+  open "$URL" >/dev/null 2>&1 || true
+fi
 
 # 4) Sobe o container
 docker run --rm -it \
   -p 8501:8501 \
   -v "$DATA_DIR":/dados \
   -v "$OUT_DIR":/bactopia_out \
+  -v /:/hostfs:ro \
   "$IMAGE"

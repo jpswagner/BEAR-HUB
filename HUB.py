@@ -81,12 +81,12 @@ else:
     cA, cB = st.columns(2)
 
     with cA:
-        st.markdown("### 🦠 Bactopia — Pipeline Principal")
+        st.markdown("### Bactopia — Pipeline Principal")
         st.caption("Gera **FOFN** automaticamente, monta o comando do **Bactopia** e executa via Nextflow (assíncrono).")
-        st.page_link("pages/BACTOPIA.py", label="Abrir Bactopia", icon="🧪")
+        st.page_link("pages/BACTOPIA.py", label="Abrir Bactopia", icon="🦠")
 
     with cB:
-        st.markdown("### 🧰 Ferramentas Bactopia")
+        st.markdown("### Ferramentas Bactopia")
         st.caption("Executa **amrfinderplus, rgi, abricate, mobsuite, mlst, pangenome, mashtree** nas amostras concluídas.")
         st.page_link("pages/BACTOPIA-TOOLS.py", label="Abrir página Ferramentas", icon="🧰")
 
@@ -95,7 +95,7 @@ else:
     cA1, cB2 = st.columns(2)
 
     with cA1:
-        st.markdown("### 🍷 PORT — Plasmid Outbreak Investigation Tool")
+        st.markdown("### PORT — Plasmid Outbreak Investigation Tool")
         st.caption("PORT.")
         st.page_link("pages/BACTOPIA.py", label="Abrir PORT", icon="🍷")
 

@@ -27,17 +27,18 @@ RUN micromamba run -n bear-hub pip install --no-cache-dir -r requirements.txt
 COPY . /opt/bear-hub
 
 # (Opcional) Clonar o PORT dentro da imagem
-# TODO: ajuste a URL do repositório do PORT se necessário
-RUN micromamba run -n bear-hub bash -lc "\
-    if [ ! -d /opt/PORT ]; then \
-        git clone https://github.com/immem-hackathon-2025/PORT.git /opt/PORT; \
-    fi \
-"
+# Desativado por enquanto
+# RUN micromamba run -n bear-hub bash -lc "\
+#     if [ ! -d /opt/PORT ]; then \
+#         git clone https://github.com/immem-hackathon-2025/PORT.git /opt/PORT; \
+#     fi \
+# "
 
 # Variáveis de ambiente úteis
 ENV PORT_MAIN_NF=/opt/PORT/main.nf \
     BEAR_HUB_OUTDIR=/bactopia_out \
-    BEAR_HUB_DATA=/dados
+    BEAR_HUB_DATA=/dados \
+    HOSTFS_ROOT=/hostfs
 
 # Porta usada pelo Streamlit
 EXPOSE 8501
