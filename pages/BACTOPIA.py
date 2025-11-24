@@ -54,23 +54,18 @@ else:
 
 st.session_state.setdefault("outdir", DEFAULT_OUTDIR)
 
-# ================== Nextflow: forçar NXF_HOME em área gravável ==================
-# Dentro do container BEAR-HUB:
-#   - /bactopia_out é sempre gravável (mapeado a partir do host)
-# Então usamos /bactopia_out/.nextflow como "home" do Nextflow.
+# ================== Nextflow: NXF_HOME em área gravável (bootstrap simples) ==================
+# Esse bloco só garante que exista ALGUM NXF_HOME; o ajuste fino é feito por ensure_nextflow_env().
 if "NXF_HOME" not in os.environ:
     if pathlib.Path("/bactopia_out").exists():
-        nxf_home = pathlib.Path("/bactopia_out/.nextflow")
+        nxf_home_boot = pathlib.Path("/bactopia_out/.nextflow")
     else:
-        # fallback se rodar fora do Docker
-        nxf_home = pathlib.Path.home() / ".nextflow"
-    os.environ["NXF_HOME"] = str(nxf_home)
-
-try:
-    pathlib.Path(os.environ["NXF_HOME"]).mkdir(parents=True, exist_ok=True)
-except Exception as e:
-    # Não quebra a app, só loga um aviso no stdout do container
-    print(f"[WARN] Não foi possível criar NXF_HOME={os.environ['NXF_HOME']}: {e}")
+        nxf_home_boot = pathlib.Path.home() / ".nextflow"
+    os.environ["NXF_HOME"] = str(nxf_home_boot)
+    try:
+        nxf_home_boot.mkdir(parents=True, exist_ok=True)
+    except Exception as e:
+        print(f"[WARN] Não foi possível criar NXF_HOME inicial={nxf_home_boot}: {e}")
 
 # ============================= Utils =============================
 
@@ -97,7 +92,7 @@ def run_cmd(cmd: str | List[str], cwd: str | None = None) -> tuple[int, str, str
         shell_cmd = cmd
     try:
         res = subprocess.run(
-            ["bash", "-c", shell_cmd],   # <- aqui
+            ["bash", "-c", shell_cmd],
             cwd=cwd,
             text=True,
             capture_output=True,
@@ -107,6 +102,45 @@ def run_cmd(cmd: str | List[str], cwd: str | None = None) -> tuple[int, str, str
     except Exception as e:
         return 1, "", f"Falha ao executar: {e}"
 
+# ================== Nextflow env consistente (HOME / NXF_HOME / NXF_WORK) ==================
+
+def ensure_nextflow_env(outdir: str | None) -> dict:
+    """
+    Garante que Nextflow use um diretório gravável dentro do OUTDIR:
+      - HOME     = <outdir>
+      - NXF_HOME = <outdir>/.nextflow
+      - NXF_WORK = <outdir>/work
+      - NXF_OPTS = -Duser.home=<outdir>
+    Cria as pastas se necessário e devolve um dict com esses valores.
+    """
+    out = pathlib.Path(outdir or DEFAULT_OUTDIR).resolve()
+    try:
+        out.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+
+    home = out
+    nxf_home = home / ".nextflow"
+    nxf_work = home / "work"
+
+    # Ajusta env do processo Python (herdado pelos subprocessos)
+    os.environ["HOME"] = str(home)
+    os.environ["NXF_HOME"] = str(nxf_home)
+    os.environ["NXF_WORK"] = str(nxf_work)
+    os.environ["NXF_OPTS"] = f"-Duser.home={home}"
+
+    for p in (nxf_home, nxf_work):
+        try:
+            p.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
+
+    return {
+        "HOME": str(home),
+        "NXF_HOME": str(nxf_home),
+        "NXF_WORK": str(nxf_work),
+        "NXF_OPTS": os.environ["NXF_OPTS"],
+    }
 
 # ============================= Presets =============================
 
@@ -231,10 +265,8 @@ def _fs_browser_core(label: str, key: str, mode: str = "file",
     def set_cur(p: pathlib.Path):
         st.session_state[cur_key] = str(p.expanduser().resolve())
 
-    # raiz do filesystem do host montado pelo Docker
     hostfs_root = os.getenv("HOSTFS_ROOT", "/hostfs")
 
-    # ⬆️ Subir | 🏠 Base | 🖥 Host | caminho atual | Escolher
     c_up, c_home, c_host, c_path, c_pick = st.columns([0.9, 0.9, 0.9, 6, 2])
 
     with c_up:
@@ -502,12 +534,10 @@ def discover_runs_and_build_fofn(base_dir: str,
                 runtype = "ont"
                 r1 = _join_or_pick(ont)
                 r2 = ""
-                extra = ""
             else:
                 runtype = "single-end"
                 r1 = _join_or_pick(se)
                 r2 = ""
-                extra = ""
         else:
             issues.append(f"{sample}: não foi possível classificar (arquivos ausentes?).")
             continue
@@ -566,7 +596,7 @@ async def _async_read_stream(stream, log_q: Queue, stop_event: threading.Event):
 async def _async_exec(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: threading.Event):
     try:
         proc = await asyncio.create_subprocess_exec(
-            "bash", "-c", full_cmd,   # <- aqui
+            "bash", "-c", full_cmd,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
@@ -981,7 +1011,7 @@ extra_params_input = st.text_input(
     key="extra_params",
 )
 computed_extra = extra_params_input
-if st.session_state.get("fofn_use") and fofn_out:
+if st.session_state.get("fofn_use") and 'fofn_out' in locals() and fofn_out:
     computed_extra = (computed_extra + f" --samples {shlex.quote(fofn_out)}").strip()
 
 with st.expander("Relatórios (Nextflow)", expanded=False):
@@ -991,36 +1021,9 @@ with st.expander("Relatórios (Nextflow)", expanded=False):
 
 # ------------------------- Montagem do comando / Nextflow env -------------------------
 
-def ensure_nextflow_env(outdir: str | None):
-    """
-    Garante que Nextflow use um diretório gravável dentro do OUTDIR:
-      - NXF_HOME = <outdir>/.nextflow
-      - NXF_WORK = <outdir>/work
-      - NXF_OPTS = -Duser.home=<outdir>
-    E cria as pastas se necessário.
-    """
-    out = pathlib.Path(outdir or DEFAULT_OUTDIR)
-    try:
-        out.mkdir(parents=True, exist_ok=True)
-    except Exception:
-        pass
-
-    nx_home = os.environ.get("NXF_HOME") or str(out / ".nextflow")
-    os.environ["NXF_HOME"] = nx_home
-
-    nx_work = os.environ.get("NXF_WORK") or str(out / "work")
-    os.environ["NXF_WORK"] = nx_work
-
-    os.environ.setdefault("NXF_OPTS", f"-Duser.home={out}")
-
-    for p in (nx_home, nx_work):
-        try:
-            pathlib.Path(p).mkdir(parents=True, exist_ok=True)
-        except Exception:
-            pass
-
 def build_bactopia_cmd(params: dict) -> str:
-    ensure_nextflow_env(params.get("outdir"))
+    # Garante HOME/NXF_HOME/NXF_WORK/NXF_OPTS consistentes e graváveis
+    nx_env = ensure_nextflow_env(params.get("outdir"))
 
     profile = params.get("profile", "docker")
     outdir = params.get("outdir", DEFAULT_OUTDIR)
@@ -1035,7 +1038,18 @@ def build_bactopia_cmd(params: dict) -> str:
     with_timeline = params.get("with_timeline")
     with_trace = params.get("with_trace")
 
-    base = ["nextflow", "run", "bactopia/bactopia", "-profile", profile, "--outdir", outdir]
+    # Prefixo de ambiente inline: HOME=... NXF_HOME=... NXF_WORK=... NXF_OPTS=...
+    env_prefix: List[str] = []
+    for k in ("HOME", "NXF_HOME", "NXF_WORK", "NXF_OPTS"):
+        v = nx_env.get(k)
+        if v:
+            env_prefix.append(f"{k}={v}")
+
+    base: List[str] = env_prefix + [
+        "nextflow", "run", "bactopia/bactopia",
+        "-profile", profile,
+        "--outdir", outdir,
+    ]
     if datasets:
         base += ["--datasets", datasets]
 
@@ -1081,6 +1095,9 @@ params = {
 cmd = build_bactopia_cmd(params)
 
 st.caption(f"Profile: {params['profile']} | Outdir: {params['outdir']}")
+st.caption(
+    f"NXF_HOME: {os.environ.get('NXF_HOME')} | NXF_WORK: {os.environ.get('NXF_WORK')} | HOME: {os.environ.get('HOME')}"
+)
 st.code(cmd, language="bash")
 
 # ------------------------- Validação pré-execução -------------------------
@@ -1156,6 +1173,9 @@ if clean_clicked:
         time.sleep(0.8)
 
     launch_dir = pathlib.Path.cwd()
+
+    # Garante o mesmo ambiente de NXF_HOME/HOME usado nas execuções
+    ensure_nextflow_env(params.get("outdir", DEFAULT_OUTDIR))
 
     if not nextflow_available():
         st.error("Nextflow não encontrado no PATH.")
