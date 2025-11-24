@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Nome da imagem (pode sobrescrever com BEAR_IMAGE, se quiser)
+IMAGE="${BEAR_IMAGE:-bear-hub}"
+
+# Diretórios padrão no host (podem ser sobrescritos com BEAR_DATA / BEAR_OUT)
+DATA_DIR="${BEAR_DATA:-$HOME/BEAR_DATA}"   # entradas (FASTQs, assemblies, etc.)
+OUT_DIR="${BEAR_OUT:-$HOME/BEAR_OUT}"     # saídas (resultados)
+
+# Diretório da raiz do repo (onde está o Dockerfile)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# 1) Checa se Docker está instalado
+if ! command -v docker >/dev/null 2>&1; then
+  echo "Erro: 'docker' não encontrado no PATH."
+  echo "Instale Docker antes de rodar o BEAR-HUB."
+  exit 1
+fi
+
+# 2) Constrói a imagem se ainda não existir
+if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
+  echo ">> Imagem '$IMAGE' não encontrada. Construindo a partir de: $SCRIPT_DIR"
+  docker build -t "$IMAGE" "$SCRIPT_DIR"
+  echo ">> Imagem '$IMAGE' construída com sucesso."
+else
+  echo ">> Imagem Docker '$IMAGE' já existe. Pulando build."
+fi
+
+# 3) Garante que os diretórios de dados existem
+mkdir -p "$DATA_DIR" "$OUT_DIR"
+
+echo "== BEAR-HUB =="
+echo "Dados de entrada (host): $DATA_DIR"
+echo "Resultados saída (host): $OUT_DIR"
+echo
+echo "Abrindo em: http://localhost:8501"
+echo
+
+# 4) Sobe o container
+docker run --rm -it \
+  -p 8501:8501 \
+  -v "$DATA_DIR":/dados \
+  -v "$OUT_DIR":/bactopia_out \
+  "$IMAGE"

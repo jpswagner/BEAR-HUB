@@ -17,6 +17,7 @@ PAGES_DIR = APP_ROOT / "pages"
 PAGE_BACTOPIA = PAGES_DIR / "BACTOPIA.py"
 PAGE_TOOLS = PAGES_DIR / "BACTOPIA-TOOLS.py"
 PAGE_PORT = PAGES_DIR / "PORT.py"
+PAGE_TEST = PAGES_DIR / "TEST.py"
 
 # ============================= Utils =============================
 def which(cmd: str):

@@ -15,6 +15,7 @@ import asyncio
 import html
 import threading
 import hashlib
+import gzip
 from typing import List
 from queue import Queue, Empty
 
@@ -977,6 +978,82 @@ def bt_nextflow_cmd(
         base += shlex.split(st.session_state["bt_extra"])
     return " ".join(shlex.quote(x) for x in base)
 
+# ======================= MobSuite plasmids extraction =======================
+def extract_mobsuite_plasmids(
+    bt_outdir: str,
+    samples: List[str],
+    dest_root: str | None = None,
+    decompress_gz: bool = False,
+) -> tuple[int, int, list[str]]:
+    """
+    Varre as amostras em bt_outdir, procura FASTA de plasmídeos do MobSuite e
+    copia (e opcionalmente descompacta) para dest_root/<sample>/.
+
+    Retorna:
+        (n_samples_ok, n_files_total, logs)
+    """
+    logs: list[str] = []
+    if not bt_outdir:
+        logs.append("bt_outdir vazio.")
+        return 0, 0, logs
+
+    root = pathlib.Path(bt_outdir)
+    if not root.exists():
+        logs.append(f"Diretório não existe: {root}")
+        return 0, 0, logs
+
+    if dest_root is None:
+        dest_root = str(root / "plasmids_mobsuite")
+
+    dest_root_path = pathlib.Path(dest_root)
+    dest_root_path.mkdir(parents=True, exist_ok=True)
+
+    samples_ok = 0
+    files_total = 0
+
+    for sample in samples:
+        sample_dir = root / sample / "tools" / "mobsuite"
+        if not sample_dir.exists():
+            logs.append(f"[{sample}] pasta MobSuite não encontrada: {sample_dir}")
+            continue
+
+        # procura plasmid_*.fasta e plasmid_*.fasta.gz
+        fasta_files = list(sample_dir.glob("plasmid_*.fasta")) + list(sample_dir.glob("plasmid_*.fasta.gz"))
+        if not fasta_files:
+            logs.append(f"[{sample}] nenhum FASTA de plasmídeo encontrado em {sample_dir}")
+            continue
+
+        out_sample_dir = dest_root_path / sample
+        out_sample_dir.mkdir(parents=True, exist_ok=True)
+
+        for src in fasta_files:
+            if decompress_gz and src.suffix == ".gz":
+                # descompactar para .fasta (mesmo nome sem .gz)
+                dest_fa = out_sample_dir / src.stem  # remove .gz
+                try:
+                    with gzip.open(src, "rt") as fin, open(dest_fa, "w", encoding="utf-8") as fout:
+                        fout.write(fin.read())
+                    logs.append(f"[{sample}] descompactado: {src.name} -> {dest_fa}")
+                    files_total += 1
+                except Exception as e:
+                    logs.append(f"[{sample}] ERRO ao descompactar {src}: {e}")
+            else:
+                # só copia o arquivo como está
+                dest_file = out_sample_dir / src.name
+                try:
+                    shutil.copy2(src, dest_file)
+                    logs.append(f"[{sample}] copiado: {src.name} -> {dest_file}")
+                    files_total += 1
+                except Exception as e:
+                    logs.append(f"[{sample}] ERRO ao copiar {src}: {e}")
+
+        samples_ok += 1
+
+    if samples_ok == 0:
+        logs.append("Nenhuma amostra com FASTA de plasmídeo válida foi processada.")
+
+    return samples_ok, files_total, logs
+
 # Barra de ações (async para Tools)
 st.divider()
 col1, col2 = st.columns([1, 1])
@@ -1296,6 +1373,68 @@ if st.session_state.get("tools_running", False):
 else:
     render_log_box_ns("tools", height=520)
 
+# ==================== MobSuite plasmids extraction UI ======================
+st.divider()
+st.subheader("MobSuite — extração organizada de plasmídeos (FASTA)")
+
+st.caption(
+    "Este utilitário copia os arquivos `plasmid_*.fasta` / `plasmid_*.fasta.gz` "
+    "de cada amostra (em `tools/mobsuite`) para uma pasta organizada por amostra."
+)
+
+selected_samples = st.session_state.get("bt_selected_samples", []) or []
+
+default_dest = ""
+if bt_outdir:
+    default_dest = os.path.join(bt_outdir, "plasmids_mobsuite")
+
+col_m1, col_m2 = st.columns([2, 1])
+with col_m1:
+    mobsuite_dest = st.text_input(
+        "Pasta de destino",
+        value=st.session_state.get("bt_mobsuite_dest", default_dest),
+        key="bt_mobsuite_dest",
+        help="Será criada se não existir. Dentro dela haverá uma subpasta por amostra.",
+    )
+with col_m2:
+    mobsuite_decompress = st.checkbox(
+        "Descompactar .gz para .fasta",
+        value=st.session_state.get("bt_mobsuite_decompress", False),
+        key="bt_mobsuite_decompress",
+        help="Se marcado, arquivos .fasta.gz serão descompactados para .fasta.",
+    )
+
+btn_extract_mobsuite = st.button(
+    "📂 Extrair plasmídeos do MobSuite",
+    disabled=not bt_outdir or not selected_samples,
+)
+
+if not bt_outdir:
+    st.info("Defina a *Pasta de resultados do Bactopia* acima para habilitar a extração.")
+elif not selected_samples:
+    st.info("Selecione ao menos uma amostra para extrair os plasmídeos.")
+
+if btn_extract_mobsuite:
+    with st.spinner("Extraindo plasmídeos do MobSuite..."):
+        n_samp, n_files, logs = extract_mobsuite_plasmids(
+            bt_outdir=bt_outdir,
+            samples=selected_samples,
+            dest_root=mobsuite_dest or None,
+            decompress_gz=mobsuite_decompress,
+        )
+
+    if n_files > 0:
+        st.success(f"Extração concluída: {n_samp} amostras processadas, {n_files} arquivos gerados/copiedos.")
+    else:
+        st.warning("Nenhum arquivo de plasmídeo foi encontrado/extraído. Veja o log abaixo.")
+
+    st.text_area(
+        "Log da extração (MobSuite)",
+        value="\n".join(logs) if logs else "Sem mensagens.",
+        height=200,
+    )
+
+# ========================= merged-results =========================
 st.divider()
 st.subheader("merged-results (runs recentes)")
 runs_root = pathlib.Path(bt_outdir) / "bactopia-runs" if bt_outdir else None

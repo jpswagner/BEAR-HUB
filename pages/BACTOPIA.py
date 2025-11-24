@@ -158,9 +158,9 @@ def render_presets_sidebar():
     st.selectbox("Carregar preset", ["(nenhum)"] + names, key="__preset_to_load")
     st.text_input("Salvar como (nome do preset)", key="__preset_save_name", placeholder="ex.: meu_preset")
     st.markdown('<div id="presets-section">', unsafe_allow_html=True)
-    st.button("Aplicar", key="__btn_apply", on_click=_cb_stage_apply_preset, use_container_width=True)
-    st.button("Salvar atual", key="__btn_save", on_click=_cb_save_preset, use_container_width=True)
-    st.button("Excluir", key="__btn_delete", on_click=_cb_delete_preset, use_container_width=True)
+    st.button("Aplicar", key="__btn_apply", on_click=_cb_stage_apply_preset, width=True)
+    st.button("Salvar atual", key="__btn_save", on_click=_cb_save_preset, width=True)
+    st.button("Excluir", key="__btn_delete", on_click=_cb_delete_preset, width=True)
     st.markdown('</div>', unsafe_allow_html=True)
     if st.session_state.get("__preset_msg"):
         st.caption(st.session_state["__preset_msg"])
@@ -242,7 +242,7 @@ def path_picker(label: str, key: str, mode: str = "dir",
         except Exception:
             pass
     with col2:
-        if st.button("Explorar…", key=f"open_{key}", use_container_width=True):
+        if st.button("Explorar…", key=f"open_{key}", width=True):
             st.session_state[f"__open_{key}"] = True
             try:
                 hint = pathlib.Path(st.session_state.get(key) or start or os.getcwd())
@@ -743,7 +743,7 @@ if st.button("🔎 Escanear e montar FOFN", key="btn_scan_fofn"):
         try:
             import pandas as pd
             df = pd.DataFrame(res["rows"], columns=res["header"])
-            st.dataframe(df.head(1000), use_container_width=True)
+            st.dataframe(df.head(1000), width=True)
         except Exception:
             st.write("Total de linhas:", len(res["rows"]))
         st.info("Resumo de runtype: " + ", ".join([f"{k}={v}" for k,v in res["counts"].items()]))
