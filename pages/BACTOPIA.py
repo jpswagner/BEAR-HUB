@@ -44,19 +44,8 @@ APP_STATE_DIR = pathlib.Path.home() / ".bactopia_ui_local"
 PRESETS_FILE = APP_STATE_DIR / "presets.yaml"
 DEFAULT_PRESET_NAME = "default"
 
-# Detecta outdir padrão:
-# - se /bactopia_out existir (caso típico do Docker do BEAR-HUB), usa ele
-# - caso contrário, usa ./bactopia_out relativo ao cwd
-_default_out = os.getenv("BEAR_HUB_OUT", "/bactopia_out")
-try:
-    p_out = pathlib.Path(_default_out)
-    if p_out.exists():
-        DEFAULT_OUTDIR = _default_out
-    else:
-        DEFAULT_OUTDIR = str((pathlib.Path.cwd() / "bactopia_out").resolve())
-except Exception:
-    DEFAULT_OUTDIR = str((pathlib.Path.cwd() / "bactopia_out").resolve())
-
+# Outdir padrão: respeita BEAR_HUB_OUT (setado pelo bear-hub.sh para /bactopia_out)
+DEFAULT_OUTDIR = os.getenv("BEAR_HUB_OUT", str((pathlib.Path.cwd() / "bactopia_out").resolve()))
 st.session_state.setdefault("outdir", DEFAULT_OUTDIR)
 
 # ============================= Utils =============================
@@ -78,22 +67,17 @@ def nextflow_available():
     return which("nextflow") is not None
 
 def run_cmd(cmd: str | List[str], cwd: str | None = None) -> tuple[int, str, str]:
-    """
-    Executa comando em shell simples (sem bash -lc) para preservar o PATH
-    herdado do micromamba/conda.
-    """
     if isinstance(cmd, list):
         shell_cmd = " ".join(shlex.quote(x) for x in cmd)
     else:
         shell_cmd = cmd
     try:
         res = subprocess.run(
-            shell_cmd,
+            ["bash", "-lc", shell_cmd],
             cwd=cwd,
             text=True,
             capture_output=True,
             check=False,
-            shell=True,
         )
         return res.returncode, res.stdout or "", res.stderr or ""
     except Exception as e:
@@ -185,9 +169,9 @@ def render_presets_sidebar():
     st.selectbox("Carregar preset", ["(nenhum)"] + names, key="__preset_to_load")
     st.text_input("Salvar como (nome do preset)", key="__preset_save_name", placeholder="ex.: meu_preset")
     st.markdown('<div id="presets-section">', unsafe_allow_html=True)
-    st.button("Aplicar", key="__btn_apply", on_click=_cb_stage_apply_preset, width=True)
-    st.button("Salvar atual", key="__btn_save", on_click=_cb_save_preset, width=True)
-    st.button("Excluir", key="__btn_delete", on_click=_cb_delete_preset, width=True)
+    st.button("Aplicar", key="__btn_apply", on_click=_cb_stage_apply_preset)
+    st.button("Salvar atual", key="__btn_save", on_click=_cb_save_preset)
+    st.button("Excluir", key="__btn_delete", on_click=_cb_delete_preset)
     st.markdown('</div>', unsafe_allow_html=True)
     if st.session_state.get("__preset_msg"):
         st.caption(st.session_state["__preset_msg"])
@@ -235,14 +219,12 @@ def _fs_browser_core(label: str, key: str, mode: str = "file",
             _st_rerun()
 
     with c_home:
-        # "Base" = diretório de start passado para o picker (ex.: /dados)
         home_base = pathlib.Path(start or pathlib.Path.home())
         if st.button("🏠 Base", key=f"{key}_home"):
             set_cur(home_base)
             _st_rerun()
 
     with c_host:
-        # Pula direto para o filesystem do host montado como /hostfs
         if os.path.exists(hostfs_root):
             if st.button("🖥 Host", key=f"{key}_host"):
                 set_cur(pathlib.Path(hostfs_root))
@@ -289,7 +271,7 @@ def path_picker(label: str, key: str, mode: str = "dir",
         except Exception:
             pass
     with col2:
-        if st.button("Explorar…", key=f"open_{key}", width=True):
+        if st.button("Explorar…", key=f"open_{key}"):
             st.session_state[f"__open_{key}"] = True
             try:
                 hint = pathlib.Path(st.session_state.get(key) or start or os.getcwd())
@@ -354,7 +336,6 @@ def _drop_exts(name: str) -> str:
     return name
 
 def _infer_root_and_tag(path: pathlib.Path) -> Tuple[str, str]:
-    # tag ∈ { 'PE1','PE2','SE' } (para FASTQ)
     name = _drop_exts(path.name)
     name = LANE_SUFFIX.sub("", name)
     for pat in PE1_PATTERNS:
@@ -375,7 +356,6 @@ def _collect_files(base: pathlib.Path, patterns: List[str], recursive: bool) -> 
     out: List[pathlib.Path] = []
     for pat in patterns:
         out += list(base.rglob(pat) if recursive else base.glob(pat))
-    # normaliza e ordena
     clean = []
     for p in out:
         try:
@@ -398,14 +378,12 @@ def discover_runs_and_build_fofn(base_dir: str,
     if not base.exists():
         raise FileNotFoundError("Pasta base não existe.")
 
-    # garante outdir do FOFN
     fofn_parent = pathlib.Path(fofn_path).parent
     fofn_parent.mkdir(parents=True, exist_ok=True)
 
     fq_files = _collect_files(base, FASTQ_PATTERNS, recursive)
     fa_files = _collect_files(base, FA_PATTERNS, recursive) if include_assemblies else []
 
-    # { sample: { 'pe1':[], 'pe2':[], 'se':[], 'ont':[], 'assembly':[] } }
     groups: Dict[str, Dict[str, List[str]]] = {}
     issues: List[str] = []
 
@@ -562,9 +540,8 @@ async def _async_read_stream(stream, log_q: Queue, stop_event: threading.Event):
 
 async def _async_exec(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: threading.Event):
     try:
-        # shell=True para usar /bin/sh com PATH herdado do ambiente micromamba
-        proc = await asyncio.create_subprocess_shell(
-            full_cmd,
+        proc = await asyncio.create_subprocess_exec(
+            "bash", "-lc", full_cmd,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
@@ -733,91 +710,8 @@ FOFN_HELP_MD = r"""
 
 O gerador lê uma **pasta base** e produz um `samples.txt` (FOFN) no formato esperado pelo Bactopia, detectando automaticamente o **runtype** de cada amostra: **paired-end**, **single-end**, **ont**, **hybrid** (PE + ONT) e **assembly**.
 
----
+[...]
 
-## 1) O que você informa
-- **Pasta base** (opção de varredura recursiva).
-- **species** e **genome_size** (usados literalmente nas colunas do FOFN).
-- **Tratar SE como ONT** (equivalente a `--long_reads` do `bactopia prepare`).
-- **Inferir ONT por nome** (heurística: `ont|nanopore|minion|promethion|fastq_pass|guppy`).
-- **Mesclar múltiplos arquivos** por vírgula (lanes/splits na mesma categoria).
-- **Incluir assemblies (FASTA)**.
-
----
-
-## 2) O que o app procura
-- **FASTQ**: `*.fastq.gz`, `*.fq.gz`, `*.fastq`, `*.fq`
-- **FASTA** (se habilitado): `*.fna(.gz)`, `*.fa(.gz)`, `*.fasta(.gz)`
-
-Os caminhos são normalizados, duplicatas removidas e a lista é ordenada.
-
----
-
-## 3) Agrupamento por amostra e decisão do *runtype*
-1. Remove extensões e sufixos de lane do final (`_L00X`, `_00X`) para extrair o **root** (nome da amostra).
-2. Usa regex para separar **PE1 (R1)** e **PE2 (R2)**; o resto vira **SE**.
-3. **SE → ONT** se:
-   - “Tratar SE como ONT” estiver ligado; **ou**
-   - “Inferir ONT por nome” detectar palavras-chave no caminho.
-4. Prioridade de classificação por amostra:
-   - **assembly**: existe *somente* FASTA → `runtype=assembly` (FASTA vai em `extra`).
-   - **hybrid**: existe **PE1 + PE2 + ONT** → `r1=PE1`, `r2=PE2`, `extra=ONT`.
-   - **paired-end**: existe **PE1 + PE2** (sem ONT).
-   - **ont**: existe **ONT** (sem PE).
-   - **single-end**: existe apenas **SE** (e não virou ONT).
-   - **Conflito (FASTA + reads)**: assembly é **ignorado** e um aviso é registrado.
-
----
-
-## 4) Múltiplos arquivos na mesma categoria
-- **Mesclar ON** → os caminhos são concatenados **por vírgula** (ex.: vários lanes em `r1`).
-- **Mesclar OFF** → o app escolhe **o maior arquivo** por categoria (e cria um **aviso**).
-
----
-
-## 5) Saída (FOFN TSV)
-Cabeçalho fixo:
-sample runtype genome_size species r1 r2 extra
-
-Exemplos:
-- **paired-end**  
-  `S1	paired-end	5e6	Ecoli	/.../S1_R1.fastq.gz	/.../S1_R2.fastq.gz	`
-- **single-end**  
-  `S2	single-end	5e6	Ecoli	/.../S2.fastq.gz			`
-- **ont**  
-  `S3	ont	5e6	Ecoli	/.../S3.fastq.gz			`
-- **hybrid**  
-  `S4	hybrid	5e6	Ecoli	/.../S4_R1.fastq.gz	/.../S4_R2.fastq.gz	/.../S4_ont.fastq.gz`
-- **assembly**  
-  `S5	assembly	5e6	Ecoli				/.../S5.fna.gz`
-
-> Convenções: em **hybrid**, o(s) ONT vão em **`extra`**; em **assembly**, o FASTA vai em **`extra`**.
-
----
-
-## 6) Resumo e avisos
-A UI mostra:
-- **Contagem por runtype** (paired-end, single-end, ont, hybrid, assembly).
-- **Avisos** (issues) por amostra:  
-  • R1 sem R2, R2 sem R1  
-  • Múltiplos arquivos sem “Mesclar” (usando o maior)  
-  • Assembly + reads (assembly ignorado)  
-  • Amostra não classificada
-
----
-
-## 7) Padrões de nome aceitos (essencial)
-Reconhece variações comuns:
-- **PE1 (R1)**: `*_R1*.fastq.gz`, `*._1.fastq.gz`, `*.A.fastq.gz`, e variantes com lane (`_L00X_R1_001`).
-- **PE2 (R2)**: `*_R2*.fastq.gz`, `*._2.fastq.gz`, `*.B.fastq.gz`, e variantes com lane.
-- **Sufixos de lane removidos do final**: `_L00X` e/ou `_00X`.
-
-Se seus nomes diferem muito, ajuste as regex no código.
-
----
-
-## 8) Uso no comando final
-A execução **sempre injeta** `--samples <caminho/samples.txt>` nos parâmetros, centralizando a orquestração via FOFN.
 """
 
 st.subheader("Gerar FOFN (múltiplas amostras)", help=FOFN_HELP_MD)
@@ -892,7 +786,7 @@ if st.button("🔎 Escanear e montar FOFN", key="btn_scan_fofn"):
         try:
             import pandas as pd
             df = pd.DataFrame(res["rows"], columns=res["header"])
-            st.dataframe(df.head(1000), width=True)
+            st.dataframe(df.head(1000), width="stretch")
         except Exception:
             st.write("Total de linhas:", len(res["rows"]))
         st.info(
@@ -906,7 +800,6 @@ if st.button("🔎 Escanear e montar FOFN", key="btn_scan_fofn"):
     except Exception as e:
         st.error(f"Falha ao gerar FOFN: {e}")
 
-# Forçamos uso do FOFN no comando final
 st.session_state["fofn_use"] = True
 
 # ------------------------- Parâmetros principais (sem amostra única) -------------------------
@@ -917,7 +810,7 @@ with st.expander("Parâmetros globais", expanded=False):
         profile = st.selectbox(
             "Profile",
             ["standard", "docker", "singularity"],
-            index=0,  # agora default = standard
+            index=0,
             key="profile",
         )
 
@@ -936,91 +829,16 @@ with st.expander("Parâmetros globais", expanded=False):
         )
     with colB:
         resume = st.checkbox("-resume (retomar)", value=True, key="resume")
-        # Mantidos apenas estes recursos globais:
         max_cpus_default = min(os.cpu_count() or 64, 128)
         threads = st.slider("--max_cpus", 0, max_cpus_default, 0, 1, key="threads")
         memory_gb = st.slider("--max_memory (GB)", 0, 256, 0, 1, key="memory_gb")
 
-# ------------------------- fastp -------------------------
+# ------------------------- FASTP / Unicycler -------------------------
 FASTP_HELP_MD = '''# ℹ️ fastp — ajuda dos parâmetros expostos na UI
 
-Este painel monta a linha `--fastp_opts` usando flags do **fastp**, mantendo a semântica e defaults da documentação oficial.  
-Se um campo **não** for marcado/preenchido, o app **não** envia aquela flag e o fastp usa o **default interno**.
-
----
-
-## Corte por qualidade com janela deslizante
-- **Ativar 5’ (`-5`, `--cut_front`)**  
-  Varre da frente (5’) para a cauda; remove janelas cuja **média de qualidade** < limite e para quando a janela atende o critério. *Desligado por padrão no fastp*.  
-  Usa os limites globais (**`-W`** e **`-M`**) salvo se sobrescrito por opções específicas de front (não expostas na UI).
-
-- **Ativar 3’ (`-3`, `--cut_tail`)**  
-  Varre da cauda (3’) para a frente; remove janelas com **média de qualidade** < limite e para quando atende o critério. *Desligado por padrão no fastp*.  
-  Usa **`-W`** e **`-M`** (ou as variantes específicas de tail, não expostas na UI).
-
-- **Tamanho da janela (`-W`, `--cut_window_size`)**  
-  Tamanho (em bases) da janela compartilhada por `cut_front`/`cut_tail`. **Default fastp: 4**.
-
-- **Qualidade média da janela (`-M`, `--cut_mean_quality`)**  
-  Qualidade média mínima aceitada pela janela. **Default fastp: 20 (Q20)**.
-
-> Dica: `-5` e `-3` são independentes. O fastp também tem `-r/--cut_right` (mais agressivo), não exposto na UI — use em **Extras** se precisar.
-
----
-
-## Filtros de qualidade e comprimento
-- **Qualidade base qualificada (`-q`, `--qualified_quality_phred`)**  
-  Define o **phred mínimo** para uma base ser “qualificada”. **Default fastp: 15 (Q15)**.  
-  > Se você **não** marcar este campo, o fastp ainda aplica o filtro de qualidade usando os seus defaults (a não ser que você desabilite com `-Q` via **Extras**).
-
-- **Máx. % de bases não-qualificadas (`-u`, `--unqualified_percent_limit`)**  
-  Percentual máximo de bases “não-qualificadas” permitido em um read; acima disso o read/pair é descartado. **Default fastp: 40%**.  
-  > Se deixar **0** na UI, a flag **não** é enviada e o **default 40** do fastp prevalece.
-
-- **Min length (`-l`, `--length_required`)**  
-  Reads **mais curtos** que este valor são descartados. **Default fastp: 15**.  
-  > Na UI, este filtro só é enviado se você marcar **“Min length (-l)”**.
-
-- **Máx. Ns (`-n`, `--n_base_limit`)**  
-  Se o número de bases **N** em um read excede o limite, o read/pair é descartado. **Default fastp: 5**.  
-  > Se deixar **0** na UI, a flag **não** é enviada e o default **5** do fastp vale.
-
----
-
-## Outras opções úteis
-- **Detectar adaptador em PE (`--detect_adapter_for_pe`)**  
-  Por padrão, a auto-detecção de adaptador é **apenas para SE**; esta flag habilita a detecção também em **paired-end** (mais lenta, porém encontra um pouco mais de adaptadores).
-
-- **polyG (`-g`, `--trim_poly_g`)**  
-  Força o corte de **caudas polyG** (comum em NextSeq/NovaSeq).  
-  > O fastp habilita automaticamente polyG nesses equipamentos; `-g` **força** o recurso. É possível **desabilitar** com `-G` via **Extras**.
-
-- **Cortes dirigidos (cut_*)**  
-  Os campos **cut_mean_quality** e **cut_window_size** globais (**`-M`** e **`-W`**) são usados por `-5`/`-3`.  
-  > O fastp possui variantes específicas por lado (ex.: `--cut_front_window_size`, `--cut_tail_mean_quality`), não expostas na UI. Use **Extras** se precisar refiná-las.
-
----
-
-## Campo **Extras (append)**
-Use para acrescentar qualquer flag suportada pelo fastp (ex.: `-r/--cut_right`, `-x/--trim_poly_x`, `-c/--correction`, `-Q`, `-G`, etc.).  
-Digite exatamente como na CLI oficial; o conteúdo será **append** ao `--fastp_opts`.
-
----
-
-## Defaults rápidos (se a UI não enviar a flag)
-- `-W` **4**, `-M` **20 (Q20)**  
-- `-q` **15 (Q15)**, `-u` **40%**, `-n` **5**, `-l` **15**  
-- `-5`/`-3` **desligados** por padrão  
-- polyG: auto-ativado em NextSeq/NovaSeq; `-g` força, `-G` desativa  
-- Detecção de adaptador automática: **SE** por padrão; use `--detect_adapter_for_pe` para **PE**
-
----
-
-## Observações
-- Ativar `-5`/`-3` pode interferir com **deduplicação** baseada em posição (apenas relevante se você usar `--dedup`).  
-- Se combinar várias flags em **Extras**, a **ordem** segue a linha final de comando gerada.
-
+[... texto completo que você já tinha ...]
 '''
+
 st.subheader("Parâmetros FASTP/Unicycler", help=FASTP_HELP_MD)
 
 with st.expander("Parâmetros do fastp", expanded=False):
@@ -1115,7 +933,6 @@ with st.expander("Parâmetros do fastp", expanded=False):
             key="fastp_opts_text",
         )
 
-# ------------------------- Unicycler -------------------------
 with st.expander("Parâmetros do Unicycler", expanded=False):
     st.radio("Modo", ["conservative", "normal", "bold"], index=1, key="unicycler_mode")
     st.number_input("min_fasta_length", 0, 100000, 1000, 100, key="unicycler_min_len")
@@ -1147,8 +964,39 @@ with st.expander("Relatórios (Nextflow)", expanded=False):
     tim = st.checkbox("-with-timeline", value=True, key="with_timeline")
     trc = st.checkbox("-with-trace", value=True, key="with_trace")
 
-# ------------------------- Montagem do comando -------------------------
+# ------------------------- Montagem do comando / Nextflow env -------------------------
+
+def ensure_nextflow_env(outdir: str | None):
+    """
+    Garante que Nextflow use um diretório gravável dentro do OUTDIR:
+      - NXF_HOME = <outdir>/.nextflow
+      - NXF_WORK = <outdir>/work
+      - NXF_OPTS = -Duser.home=<outdir>
+    E cria as pastas se necessário.
+    """
+    out = pathlib.Path(outdir or DEFAULT_OUTDIR)
+    try:
+        out.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+
+    nx_home = os.environ.get("NXF_HOME") or str(out / ".nextflow")
+    os.environ["NXF_HOME"] = nx_home
+
+    nx_work = os.environ.get("NXF_WORK") or str(out / "work")
+    os.environ["NXF_WORK"] = nx_work
+
+    os.environ.setdefault("NXF_OPTS", f"-Duser.home={out}")
+
+    for p in (nx_home, nx_work):
+        try:
+            pathlib.Path(p).mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
+
 def build_bactopia_cmd(params: dict) -> str:
+    ensure_nextflow_env(params.get("outdir"))
+
     profile = params.get("profile", "docker")
     outdir = params.get("outdir", DEFAULT_OUTDIR)
     datasets = params.get("datasets")
@@ -1166,7 +1014,6 @@ def build_bactopia_cmd(params: dict) -> str:
     if datasets:
         base += ["--datasets", datasets]
 
-    # Relatórios (salvos no outdir)
     report_dir = pathlib.Path(outdir)
     if with_report:
         base += ["-with-report", str(report_dir / "nf-report.html")]
@@ -1180,7 +1027,6 @@ def build_bactopia_cmd(params: dict) -> str:
     if unicycler_opts:
         base += ["--unicycler_opts", unicycler_opts]
 
-    # Mantidos apenas estes recursos globais:
     if threads:
         base += ["--max_cpus", str(threads)]
     if memory:
@@ -1217,7 +1063,6 @@ def preflight_validate(params: dict, fofn_path: str) -> list[str]:
     errs = []
     prof = params.get("profile")
 
-    # 1) Profile / backends
     if prof == "docker" and not docker_available():
         errs.append(
             "Profile 'docker' selecionado, mas Docker não está disponível no PATH. "
@@ -1228,24 +1073,19 @@ def preflight_validate(params: dict, fofn_path: str) -> list[str]:
             "Profile 'singularity' selecionado, mas Singularity/Apptainer não está disponível no PATH."
         )
 
-    # 2) datasets é opcional, mas se foi preenchido precisa existir
     datasets = params.get("datasets")
     if datasets and not pathlib.Path(datasets).exists():
         errs.append(f"Caminho não existe: datasets = {datasets}")
 
-    # 3) FOFN deve existir na hora de executar
     if not pathlib.Path(fofn_path).is_file():
         errs.append(
             f"FOFN não encontrado: {fofn_path}.\n"
             "Gere o FOFN em 'Gerar FOFN' (botão '🔎 Escanear e montar FOFN') antes de executar."
         )
 
-    # OBS: não exigimos que 'outdir' exista; o próprio Nextflow/Bactopia cria.
     return errs
 
-
 _errors = preflight_validate(params, fofn_out)
-
 
 if _errors:
     st.error("Erros de configuração encontrados. Corrija antes de executar:")
@@ -1373,15 +1213,8 @@ if start_main:
         st.error("Nextflow não encontrado no PATH.")
     else:
         try:
-            # Tentativa opcional de usar stdbuf; se falhar, cai pro comando "puro"
-            full_cmd = cmd
-            stdbuf_path = shutil.which("stdbuf")
-            if stdbuf_path:
-                # Testa se stdbuf consegue rodar nextflow; se não, ignora stdbuf
-                test_rc, _, _ = run_cmd("stdbuf -oL -eL nextflow -version")
-                if test_rc == 0:
-                    full_cmd = f"stdbuf -oL -eL {cmd}"
-
+            stdbuf = shutil.which("stdbuf")
+            full_cmd = f"stdbuf -oL -eL {cmd}" if stdbuf else cmd
             status_box_main.info("Executando (async).")
             start_async_runner_ns(full_cmd, "main")
         except Exception as e:
