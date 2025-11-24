@@ -67,4 +67,8 @@ docker run --rm -it \
   -v "$DATA_DIR":/dados \
   -v "$OUT_DIR":/bactopia_out \
   -v /:/hostfs:ro \
+  -e BEAR_HUB_DATA=/dados \
+  -e BEAR_HUB_OUT=/bactopia_out \
+  -e NXF_HOME=/bactopia_out/.nextflow \
+  -e NXF_WORK=/bactopia_out/work \
   "$IMAGE"
