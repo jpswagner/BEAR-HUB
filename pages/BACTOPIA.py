@@ -46,17 +46,22 @@ APP_STATE_DIR = pathlib.Path.home() / ".bactopia_ui_local"
 PRESETS_FILE = APP_STATE_DIR / "presets.yaml"
 DEFAULT_PRESET_NAME = "default"
 
+# Raiz do app e base padrão de trabalho
+APP_ROOT = pathlib.Path(__file__).resolve().parent
+
+# Base padrão:
+# - se BEAR_HUB_BASEDIR estiver definido: usa ele
+# - caso contrário: diretório atual de onde o usuário chamou ./run_bear.sh
+BASE_DIR = pathlib.Path(os.getenv("BEAR_HUB_BASEDIR", os.getcwd())).expanduser().resolve()
+
 # Outdir padrão:
-# - se BEAR_HUB_OUTDIR estiver definido (run_bear.sh): usa ele
-# - se /bactopia_out existir (modo Docker antigo): usa /bactopia_out
-# - caso contrário: ./bactopia_out dentro do diretório atual
+# - se BEAR_HUB_OUTDIR estiver definido: usa ele
+# - caso contrário: BASE_DIR / "bactopia_out"
 env_out = os.getenv("BEAR_HUB_OUTDIR")
 if env_out:
     DEFAULT_OUTDIR = str(pathlib.Path(env_out).expanduser().resolve())
-elif pathlib.Path("/bactopia_out").exists():
-    DEFAULT_OUTDIR = str(pathlib.Path("/bactopia_out").resolve())
 else:
-    DEFAULT_OUTDIR = str((pathlib.Path.cwd() / "bactopia_out").resolve())
+    DEFAULT_OUTDIR = str((BASE_DIR / "bactopia_out").resolve())
 
 st.session_state.setdefault("outdir", DEFAULT_OUTDIR)
 
@@ -66,9 +71,10 @@ def ensure_nxf_home() -> str | None:
     """
     Garante que exista um NXF_HOME gravável, para evitar problemas de cache.
     Preferência:
-      1) $BEAR_HUB_OUTDIR/.nextflow
-      2) $DEFAULT_OUTDIR/.nextflow
-      3) $HOME/.nextflow
+      1) $BEAR_HUB_OUTDIR/.nextflow (se definido)
+      2) $BEAR_HUB_BASEDIR/.nextflow (se definido)
+      3) DEFAULT_OUTDIR/.nextflow
+      4) $HOME/.nextflow
     """
     existing = os.environ.get("NXF_HOME")
     if existing:
@@ -78,11 +84,11 @@ def ensure_nxf_home() -> str | None:
             pass
         return existing
 
-    base_env = os.getenv("BEAR_HUB_OUTDIR")
+    base_env = os.getenv("BEAR_HUB_OUTDIR") or os.getenv("BEAR_HUB_BASEDIR")
     if base_env:
-        base = pathlib.Path(base_env).resolve()
+        base = pathlib.Path(base_env).expanduser().resolve()
     else:
-        base = pathlib.Path(DEFAULT_OUTDIR).resolve()
+        base = pathlib.Path(DEFAULT_OUTDIR).expanduser().resolve()
 
     nxf_home_path = base / ".nextflow"
     try:
@@ -849,7 +855,8 @@ Se estiver desativado, o gerador escolhe apenas o **maior** arquivo de cada grup
 st.subheader("Gerar FOFN (múltiplas amostras)", help=FOFN_HELP_MD)
 
 with st.expander("Gerar FOFN", expanded=False):
-    base_default = os.getenv("BEAR_HUB_DATA", "/dados")
+    # Base padrão: variável BEAR_HUB_DATA (se existir) ou BASE_DIR
+    base_default = os.getenv("BEAR_HUB_DATA", str(BASE_DIR))
     base_dir = path_picker(
         "Pasta base de FASTQs/FASTAs",
         key="fofn_base",
@@ -1121,7 +1128,8 @@ with st.expander("Relatórios (Nextflow)", expanded=False):
 # ------------------------- Montagem do comando -------------------------
 
 def build_bactopia_cmd(params: dict) -> str:
-    profile = params.get("profile", "docker")
+    # Para instalação local com conda, o default deve ser 'standard'
+    profile = params.get("profile") or "standard"
     outdir = params.get("outdir", DEFAULT_OUTDIR)
     datasets = params.get("datasets")
     fastp_opts = params.get("fastp_opts")
