@@ -2,274 +2,239 @@
 <img width="480" height="480" alt="Gemini_Generated_Image_dr7x8bdr7x8bdr7x" src="https://github.com/user-attachments/assets/6d23dc4b-fc4d-4fa7-9b2a-e55adb623598" />
 </p>
 
-# BEAR-HUB (Bacterial Epidemiology & AMR Reporter - HUB) — EM DESENVOLVIMENTO
+# 🐻 BEAR-HUB  
+**Bacterial Epidemiology & AMR Reporter — HUB** - (EM DESENVOLVIMENTO)
 
-Interface simples e opinativa em **Streamlit** para orquestrar ferramentas de bioinformática:
+BEAR-HUB é uma interface simples em **Streamlit** para orquestrar pipelines de epidemiologia bacteriana e resistência antimicrobiana:
 
-- **Bactopia** (pipeline e Tools) via **Nextflow**
-- **PORT** (assemblies Nanopore/Illumina) via Nextflow
+- **Bactopia** (pipeline principal com geração automática de FOFN)
+- **Ferramentas Bactopia (`--wf`)** em amostras já concluídas  
+- **PORT** (suporte a assemblies híbridos / Nanopore + Illumina – em desenvolvimento)
 
----
-
-# Guia de Instalação — BEAR-HUB (via Docker)
-
-O BEAR-HUB foi pensado para rodar **inteiro dentro de um container Docker**, sem precisar configurar Python, Nextflow ou Bactopia diretamente no host.
-
-A imagem Docker contém:
-
-- Python + Streamlit + dependências do app  
-- Nextflow + Java  
-- Bactopia  
-- (Opcional) PORT clonado dentro da imagem  
+O objetivo é ter um ponto único para rodar análises reprodutíveis usando **Nextflow + Bactopia**, com uma interface gráfica leve.
 
 ---
 
-## 1. Pré-requisitos
+## 🔧 1. Requisitos
 
-No host, você precisa ter:
+Por enquanto o BEAR-HUB é pensado para **Linux** (testado em Ubuntu-like).  
+Funciona bem também em **WSL2** no Windows, desde que os requisitos abaixo sejam atendidos.
 
-- **Linux x86_64**  
-- **Git**
-- **Docker** instalado e funcionando  
-  - Linux (recomendado)  
-  - ou Windows/macOS com **Docker Desktop**
+Você vai precisar de:
 
-Verifique se o Docker está disponível:
+- [x] **Conda** (Miniconda, Anaconda ou Mambaforge)
+- [x] Acesso à internet (para instalar pacotes e, se necessário, baixar datasets do Bactopia)
+- [x] Espaço em disco (vários GB se for rodar Bactopia com muitas amostras)
+- [ ] (Opcional, mas recomendado para Bactopia)  
+      **Docker** ou **Apptainer/Singularity** como engine de container
 
-```bash
-docker --version
-```
-Se der erro, instale e/ou configure o Docker antes de continuar.
+> 💡 Por enquanto o **método recomendado e suportado oficialmente** é a instalação **local via conda**, usando o script `install_bear.sh`.  
+> O modo via Docker da aplicação inteira foi descontinuado.
 
-💡 Se quiser rodar docker sem sudo, adicione seu usuário ao grupo docker:
+---
 
+## 🚀 2. Instalação rápida (via conda) — *recomendado*
 
-```bash
-sudo usermod -aG docker "$USER"
-newgrp docker   # ou faça logout/login
-```
-2. Clonar o repositório
+### 2.1. Clonar o repositório
 
 ```bash
 git clone https://github.com/jpswagner/BEAR-HUB.git
 cd BEAR-HUB
 ```
 
-3. Primeira execução (build + subir o app)
-O repositório inclui um script que:
-
-Garante a existência dos diretórios padrão no host:
-
-~/BEAR_DATA → dados de entrada (FASTQs, assemblies, etc.)
-
-~/BEAR_OUT → resultados (saídas do Bactopia/PORT)
-
-Verifica se o Docker está disponível.
-
-Constrói a imagem bear-hub (se ainda não existir).
-
-Sobe o container mapeando portas e volumes e inicia o app Streamlit.
-
-Primeira execução:
-
+2.2. Deixar os scripts executáveis
 
 ```bash
-chmod +x bear-hub.sh
-./bear-hub.sh
+chmod +x install_bear.sh run_bear.sh
 ```
 
-Saída esperada (exemplo):
+2.3. Rodar o instalador
+O script abaixo vai:
 
-text
+Criar (ou reaproveitar) o ambiente conda chamado bear-hub
 
-== BEAR-HUB ==
-Dados de entrada (host): /home/usuario/BEAR_DATA
-Resultados saída (host): /home/usuario/BEAR_OUT
+Instalar:
 
-Abrindo em: http://localhost:8501
-Na primeira vez, o Docker vai baixar a imagem base e instalar as dependências (leva alguns minutos).
+python (3.11)
 
-4. Acessar a interface web
-Com o container rodando, abra o navegador em:
+openjdk=11
 
-text
+nextflow
 
-http://localhost:8501
-A partir daí você pode:
+bactopia
 
-Selecionar FASTQs/assemblies na pasta mapeada (ver seção abaixo).
+git e pip
 
-Gerar o FOFN (samples.txt) a partir dos FASTQs/FASTA.
-
-Rodar o Bactopia a partir da interface.
-
-Acompanhar o log do Nextflow em tempo real.
-
-Ver os resultados no diretório de saída mapeado.
-
-5. Diretórios de dados e resultados
-O script bear-hub.sh monta, por padrão, os seguintes volumes:
-
+Instalar as dependências Python do app via requirements.txt (Streamlit etc.)
 
 ```bash
--v "$BEAR_DATA":/dados \
--v "$BEAR_OUT":/bactopia_out \
--v /:/hostfs:ro
+./install_bear.sh
 ```
 
-Ou seja, dentro do container você terá:
+Se tudo der certo, você verá algo como:
 
-/dados → diretório de entradas
+```text
+Copiar código
+OK! Ambiente 'bear-hub' pronto.
+Para rodar o app, use:  ./run_bear.sh
+```
 
-por padrão, mapeado para ~/BEAR_DATA no host
+📌 Observação
+A primeira vez pode demorar um pouco, porque o conda precisa baixar vários pacotes de bioconda/conda-forge.
 
-/bactopia_out → diretório de saídas
-
-por padrão, mapeado para ~/BEAR_OUT no host
-
-/hostfs → raiz do host em modo somente leitura (uso avançado)
-
-Fluxo recomendado (mais simples)
-No host, crie (se ainda não existirem):
-
+▶️ 3. Como rodar o BEAR-HUB
+Depois da instalação:
 
 ```bash
-mkdir -p ~/BEAR_DATA ~/BEAR_OUT
+./run_bear.sh
 ```
 
-Copie ou mova seus FASTQs/assemblies para ~/BEAR_DATA:
+Esse script:
+
+Usa o ambiente conda bear-hub
+
+Executa o Streamlit com o arquivo principal BEAR-HUB.py
+
+No terminal você verá algo como:
+
+```text
+Copiar código
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8501
+Abra o navegador e visite o endereço indicado (geralmente http://localhost:8501).
+```
+
+💡 Alternativa manual (se quiser):
 
 ```bash
-cp /mnt/HD/joao/031125_bactopia/*.fastq.gz ~/BEAR_DATA/
+conda activate bear-hub
+streamlit run BEAR-HUB.py
 ```
 
-Rode o BEAR-HUB:
+🧬 4. Organização geral do app
+Ao abrir o BEAR-HUB, você verá uma tela inicial com algumas informações de ambiente
+(SO, Nextflow, Docker/Apptainer detectado ou não) e links para as páginas:
 
+4.1. Página Bactopia — Pipeline Principal
+Gera um FOFN automaticamente a partir de uma pasta com FASTQs
+
+Monta o comando do Bactopia (Nextflow) com as opções selecionadas
+
+Executa o pipeline de forma assíncrona, salvando resultados em:
+
+```text
+./bactopia_out/
+```
+
+Nessa pasta, cada amostra vai gerar um diretório próprio, por exemplo:
+
+```text
+Copiar código
+bactopia_out/
+  ├── 1228_S4_L001
+  ├── 1862_S3_L001
+  ├── 1236_S5_L001
+  └── ...
+```
+
+4.2. Página Ferramentas Bactopia
+Usa as amostras já concluídas em bactopia_out/
+
+Permite rodar workflows oficiais via --wf, como:
+
+amrfinderplus
+
+rgi
+
+abricate
+
+mlst
+
+mobsuite
+
+pangenome
+
+mashtree
+
+Envia cada ferramenta como um job Nextflow separado, reaproveitando o output do Bactopia principal.
+
+4.3. Página PORT (em desenvolvimento)
+Integração com o pipeline PORT para investigações de plasmídeos e outbreaks (assemblies long/short read, híbridos, etc.)
+
+A interface segue o mesmo padrão: seleção de assemblies de entrada + parâmetros essenciais.
+
+📁 5. Pastas padrão
+Por padrão, o BEAR-HUB usa:
+
+./bactopia_out/ — saída principal do Bactopia e das ferramentas (--wf)
+
+Outras pastas relacionadas ao Bactopia/Nextflow podem aparecer, como:
+
+work/ (trabalho interno do Nextflow)
+
+bactopia_out/bactopia-runs/ (metadata de runs)
+
+Pastas externas que você configurar, como BEAR_DATA / BEAR_OUT, se estiver usando perfis personalizados
+
+Você pode ajustar caminhos dentro da interface ou, se desejar fine-tuning, mexer na configuração do Bactopia (profiles, datasets, etc.) fora do app.
+
+📦 6. Bactopia, datasets e containers
+O BEAR-HUB não instala datasets do Bactopia automaticamente
+— ele só chama o comando bactopia com os parâmetros que você escolhe.
+
+Na primeira execução de um pipeline, o Bactopia pode:
+
+Baixar datasets oficiais (vários GB), OU
+
+Pedir um caminho de datasets já existentes
+
+Para detalhes, consulte a documentação oficial do Bactopia.
+
+Sobre containers:
+
+O Bactopia normalmente é executado via Docker ou Apptainer/Singularity
+
+O BEAR-HUB apenas verifica se algum engine está disponível no PATH e deixa o Nextflow/Bactopia cuidarem do resto
+
+👉 Mesmo que o app em si não esteja rodando em Docker,
+as ferramentas de bioinformática podem sim ser executadas em containers via Bactopia/Nextflow.
+
+❓ 7. Problemas comuns
+conda: command not found
+→ Instale Miniconda/Mambaforge, feche e reabra o terminal, depois rode novamente:
 
 ```bash
-./bear-hub.sh
+./install_bear.sh
+Streamlit abre mas não encontro as páginas
+→ Verifique se a estrutura está assim:
 ```
 
-No app, use /dados como “Pasta base de FASTQs/FASTAs” no gerador de FOFN.
-
-6. Acesso do Docker aos arquivos do host
-
-6.1. Por que algumas pastas aparecem vazias?
-Mesmo com /hostfs montado, algumas pastas podem aparecer vazias ou inacessíveis no explorador de arquivos do app. Isso normalmente acontece porque:
-
-O container roda como um usuário não-root (mambauser).
-
-O Docker respeita as permissões do host:
-
-Se o seu usuário no host não consegue ler aquela pasta, o container também não vai conseguir.
-
-Se o disco foi montado com permissões restritivas, o container pode “ver” o diretório mas não listar arquivos.
-
-6.2. Garantindo que o BEAR-HUB consiga ver seus dados
-Há duas formas principais de trabalhar:
-
-🔹 Opção A — Usar apenas BEAR_DATA (recomendado)
-Coloque seus dados de entrada dentro de BEAR_DATA (por padrão ~/BEAR_DATA):
-
-
-```bash
-mkdir -p ~/BEAR_DATA
-cp /mnt/HD/joao/031125_bactopia/*.fastq.gz ~/BEAR_DATA/
-./bear-hub.sh
+```text
+Copiar código
+BEAR-HUB/
+  BEAR-HUB.py
+  pages/
+    BACTOPIA.py
+    BACTOPIA-TOOLS.py
+    PORT.py
+    TEST.py
+(as páginas precisam estar dentro da pasta pages/)
 ```
 
-No app, use /dados como base para o FOFN.
+Bactopia reclamando de datasets / profiles
+→ Ajuste as configurações do Bactopia (datasets/profile) diretamente no seu ambiente,
+depois volte ao BEAR-HUB e rode novamente.
 
-🔹 Opção B — Apontar BEAR_DATA diretamente para o disco/pasta onde já estão os dados
-Se seus dados já estão, por exemplo, em:
+🤝 8. Contribuição
+Sugestões, issues e PRs são bem-vindos!
+O foco do BEAR-HUB é ser:
 
+🧪 Prático para rotina de laboratório
 
-/mnt/HD/joao/031125_bactopia
+🧬 Opinativo, mas flexível o suficiente para diferentes fluxos
 
+🐻 Amigável para quem quer usar Bactopia/Nextflow sem decorar todos os comandos
 
-você pode rodar assim:
-
-
-```bash
-BEAR_DATA=/mnt/HD/joao/031125_bactopia \
-BEAR_OUT=$HOME/BEAR_OUT \
-./bear-hub.sh
-```
-Dentro do container isso vira:
-
-/dados -> /mnt/HD/joao/031125_bactopia  (no host)
-No app, basta escolher /dados (ou navegar a partir dele) como “Pasta base de FASTQs/FASTAs”.
-
-🔹 Opção C — Usar /hostfs (avançado)
-O diretório /hostfs é a raiz do host montada em modo somente leitura.
-Você pode navegar por ele como se estivesse na raiz:
-
-/hostfs/mnt/HD/joao/...
-
-/hostfs/home/usuario/...
-
-Essa abordagem exige que as permissões no host permitam leitura para o usuário que o Docker está usando.
-
-6.3. Ajustando permissões no host
-Se uma pasta aparece vazia no app, mas você vê arquivos via ls no host, pode ser questão de permissões para outros usuários/grupos.
-
-Uma solução “larga” (use com cuidado) é:
-
-
-```bash
-sudo chmod -R a+rX /mnt/HD/joao
-```
-
-Isso garante leitura e permissão de entrar nas pastas para todos os usuários.
-Se quiser algo mais restrito, use grupos (ex.: criar um grupo que tem acesso ao HD e adicionar o usuário que roda o Docker a esse grupo).
-
-7. Personalizar diretórios de entrada/saída
-Você pode mudar os diretórios de entrada (BEAR_DATA) e saída (BEAR_OUT) no host sem editar o script, apenas usando variáveis de ambiente:
-
-```bash
-
-BEAR_DATA=/caminho/para/meus_fastqs \
-BEAR_OUT=/caminho/para/meus_resultados \
-./bear-hub.sh
-```
-BEAR_DATA → mapeado para /dados dentro do container.
-
-BEAR_OUT → mapeado para /bactopia_out dentro do container.
-
-8. Atualizar o BEAR-HUB
-Para atualizar o app para a última versão do repositório:
-
-
-```bash
-cd BEAR-HUB
-git pull origin main
-./bear-hub.sh
-```
-Se o Dockerfile tiver mudado, você pode forçar um rebuild da imagem:
-
-
-```bash
-./bear-hub.sh --rebuild
-```
-
-9. Problemas comuns
-9.1. “Docker não encontrado no PATH”
-Mensagem típica:
-
-
-Erro: 'docker' não encontrado no PATH.
-Instale Docker antes de rodar o BEAR-HUB.
-Instale o Docker (ou Docker Desktop).
-
-Verifique com docker --version.
-
-Se estiver usando Linux com sudo, teste sudo docker ps.
-
-9.2. Pastas vazias no explorador do app
-Verifique se você consegue listar os arquivos no host (ls /mnt/HD/joao/...).
-
-Use a opção B (apontar BEAR_DATA para a pasta real dos dados).
-
-Ajuste permissões com chmod ou grupos, se necessário.
-
-Qualquer contribuição, issue ou sugestão de melhoria é bem-vinda no repositório 🙂
+📜 9. Licença
+(Defina aqui a licença do projeto, por exemplo MIT, GPL, etc.)

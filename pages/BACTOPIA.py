@@ -9,8 +9,9 @@
 #     - assembly (FASTA)
 # • Sem “amostra única” (toda execução via --samples)
 # • Mantidos apenas --max_cpus e --max_memory (removidos -name e -work-dir)
-# • Validação pré-execução, execução assíncrona com tail dos logs, limpeza de execuções
+# • Execução assíncrona com tail dos logs, limpeza de execuções
 # • Relatórios Nextflow opcionais (-with-report/-with-timeline/-with-trace)
+# • Ajustes de NXF_HOME e diretório .nextflow (para evitar erro history.lock)
 # ---------------------------------------------------------------------
 
 import os
@@ -20,7 +21,6 @@ import yaml
 import pathlib
 import subprocess
 import re
-import shutil
 import asyncio
 import html
 import threading
@@ -35,55 +35,110 @@ import streamlit.components.v1 as components
 # ============================= Config inicial =============================
 st.set_page_config(page_title="Bactopia UI", layout="wide")
 
+
 def _st_rerun():
     fn = getattr(st, "rerun", None) or getattr(st, "experimental_rerun", None)
     if fn:
         fn()
+
 
 APP_STATE_DIR = pathlib.Path.home() / ".bactopia_ui_local"
 PRESETS_FILE = APP_STATE_DIR / "presets.yaml"
 DEFAULT_PRESET_NAME = "default"
 
 # Outdir padrão:
-# - fora do Docker: cwd/bactopia_out
-# - dentro do BEAR-HUB: /bactopia_out (volume mapeado pelo bear-hub.sh)
-if pathlib.Path("/bactopia_out").exists():
+# - se BEAR_HUB_OUTDIR estiver definido (run_bear.sh): usa ele
+# - se /bactopia_out existir (modo Docker antigo): usa /bactopia_out
+# - caso contrário: ./bactopia_out dentro do diretório atual
+env_out = os.getenv("BEAR_HUB_OUTDIR")
+if env_out:
+    DEFAULT_OUTDIR = str(pathlib.Path(env_out).expanduser().resolve())
+elif pathlib.Path("/bactopia_out").exists():
     DEFAULT_OUTDIR = str(pathlib.Path("/bactopia_out").resolve())
 else:
     DEFAULT_OUTDIR = str((pathlib.Path.cwd() / "bactopia_out").resolve())
 
 st.session_state.setdefault("outdir", DEFAULT_OUTDIR)
 
-# ================== Nextflow: NXF_HOME em área gravável (bootstrap simples) ==================
-# Esse bloco só garante que exista ALGUM NXF_HOME; o ajuste fino é feito por ensure_nextflow_env().
-if "NXF_HOME" not in os.environ:
-    if pathlib.Path("/bactopia_out").exists():
-        nxf_home_boot = pathlib.Path("/bactopia_out/.nextflow")
+
+# ===================== Nextflow: garantir NXF_HOME gravável =====================
+def ensure_nxf_home() -> str | None:
+    """
+    Garante que exista um NXF_HOME gravável, para evitar problemas de cache.
+    Preferência:
+      1) $BEAR_HUB_OUTDIR/.nextflow
+      2) $DEFAULT_OUTDIR/.nextflow
+      3) $HOME/.nextflow
+    """
+    existing = os.environ.get("NXF_HOME")
+    if existing:
+        try:
+            pathlib.Path(existing).mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
+        return existing
+
+    base_env = os.getenv("BEAR_HUB_OUTDIR")
+    if base_env:
+        base = pathlib.Path(base_env).resolve()
     else:
-        nxf_home_boot = pathlib.Path.home() / ".nextflow"
-    os.environ["NXF_HOME"] = str(nxf_home_boot)
+        base = pathlib.Path(DEFAULT_OUTDIR).resolve()
+
+    nxf_home_path = base / ".nextflow"
     try:
-        nxf_home_boot.mkdir(parents=True, exist_ok=True)
-    except Exception as e:
-        print(f"[WARN] Não foi possível criar NXF_HOME inicial={nxf_home_boot}: {e}")
+        nxf_home_path.mkdir(parents=True, exist_ok=True)
+        os.environ["NXF_HOME"] = str(nxf_home_path)
+        return str(nxf_home_path)
+    except Exception:
+        try:
+            home_nxf = pathlib.Path.home() / ".nextflow"
+            home_nxf.mkdir(parents=True, exist_ok=True)
+            os.environ["NXF_HOME"] = str(home_nxf)
+            return str(home_nxf)
+        except Exception:
+            return None
+
+
+def ensure_project_nxf_dir(base: str | pathlib.Path | None = None) -> str | None:
+    """
+    Garante que exista um diretório .nextflow no "projeto" (onde o nextflow
+    é executado), para evitar o erro:
+       ERROR ~ .nextflow/history.lock (No such file or directory)
+    """
+    try:
+        base_path = pathlib.Path(base) if base is not None else pathlib.Path.cwd()
+        proj_nxf = base_path / ".nextflow"
+        proj_nxf.mkdir(parents=True, exist_ok=True)
+        return str(proj_nxf)
+    except Exception:
+        return None
+
+
+# Garante NXF_HOME já na carga do módulo
+ensure_nxf_home()
 
 # ============================= Utils =============================
 
 def ensure_state_dir():
     APP_STATE_DIR.mkdir(parents=True, exist_ok=True)
 
+
 def which(cmd: str):
     from shutil import which as _which
     return _which(cmd)
 
+
 def docker_available():
     return which("docker") is not None
+
 
 def singularity_available():
     return which("singularity") is not None or which("apptainer") is not None
 
+
 def nextflow_available():
     return which("nextflow") is not None
+
 
 def run_cmd(cmd: str | List[str], cwd: str | None = None) -> tuple[int, str, str]:
     if isinstance(cmd, list):
@@ -101,46 +156,6 @@ def run_cmd(cmd: str | List[str], cwd: str | None = None) -> tuple[int, str, str
         return res.returncode, res.stdout or "", res.stderr or ""
     except Exception as e:
         return 1, "", f"Falha ao executar: {e}"
-
-# ================== Nextflow env consistente (HOME / NXF_HOME / NXF_WORK) ==================
-
-def ensure_nextflow_env(outdir: str | None) -> dict:
-    """
-    Garante que Nextflow use um diretório gravável dentro do OUTDIR:
-      - HOME     = <outdir>
-      - NXF_HOME = <outdir>/.nextflow
-      - NXF_WORK = <outdir>/work
-      - NXF_OPTS = -Duser.home=<outdir>
-    Cria as pastas se necessário e devolve um dict com esses valores.
-    """
-    out = pathlib.Path(outdir or DEFAULT_OUTDIR).resolve()
-    try:
-        out.mkdir(parents=True, exist_ok=True)
-    except Exception:
-        pass
-
-    home = out
-    nxf_home = home / ".nextflow"
-    nxf_work = home / "work"
-
-    # Ajusta env do processo Python (herdado pelos subprocessos)
-    os.environ["HOME"] = str(home)
-    os.environ["NXF_HOME"] = str(nxf_home)
-    os.environ["NXF_WORK"] = str(nxf_work)
-    os.environ["NXF_OPTS"] = f"-Duser.home={home}"
-
-    for p in (nxf_home, nxf_work):
-        try:
-            p.mkdir(parents=True, exist_ok=True)
-        except Exception:
-            pass
-
-    return {
-        "HOME": str(home),
-        "NXF_HOME": str(nxf_home),
-        "NXF_WORK": str(nxf_work),
-        "NXF_OPTS": os.environ["NXF_OPTS"],
-    }
 
 # ============================= Presets =============================
 
@@ -161,6 +176,7 @@ PRESET_KEYS_ALLOWLIST = {
     "extra_params", "with_report", "with_timeline", "with_trace",
 }
 
+
 def load_presets():
     ensure_state_dir()
     if PRESETS_FILE.exists():
@@ -172,10 +188,12 @@ def load_presets():
             return {}
     return {}
 
+
 def save_presets(presets: dict):
     ensure_state_dir()
     with open(PRESETS_FILE, "w", encoding="utf-8") as fh:
         yaml.safe_dump(presets, fh, sort_keys=True, allow_unicode=True)
+
 
 def _snapshot_current_state() -> dict:
     snap = {}
@@ -184,16 +202,19 @@ def _snapshot_current_state() -> dict:
             snap[k] = st.session_state[k]
     return snap
 
+
 def _apply_dict_to_state(values: dict):
     for k, v in (values or {}).items():
         if k in PRESET_KEYS_ALLOWLIST:
             st.session_state[k] = v
+
 
 def apply_preset_before_widgets():
     pending = st.session_state.pop("__pending_preset_values", None)
     if pending:
         _apply_dict_to_state(pending)
         st.session_state["__preset_msg"] = st.session_state.get("__preset_msg") or "Preset aplicado."
+
 
 def _cb_stage_apply_preset():
     name = st.session_state.get("__preset_to_load")
@@ -203,6 +224,7 @@ def _cb_stage_apply_preset():
     st.session_state["__pending_preset_values"] = presets.get(name, {})
     st.session_state["__preset_msg"] = f"Preset preparado: {name} (aplicado neste reload)"
 
+
 def _cb_save_preset():
     name = (st.session_state.get("__preset_save_name") or "").strip() or DEFAULT_PRESET_NAME
     name = re.sub(r"\s+", "_", name)
@@ -210,6 +232,7 @@ def _cb_save_preset():
     presets[name] = _snapshot_current_state()
     save_presets(presets)
     st.session_state["__preset_msg"] = f"Preset salvo: {name}"
+
 
 def _cb_delete_preset():
     name = st.session_state.get("__preset_to_load")
@@ -220,6 +243,7 @@ def _cb_delete_preset():
         del presets[name]
         save_presets(presets)
         st.session_state["__preset_msg"] = f"Preset excluído: {name}"
+
 
 def render_presets_sidebar():
     st.header("Presets")
@@ -235,12 +259,14 @@ def render_presets_sidebar():
     if st.session_state.get("__preset_msg"):
         st.caption(st.session_state["__preset_msg"])
 
+
 apply_preset_before_widgets()
 
 # ============================= Explorador (inline + pop-up) =============================
 
 def _safe_id(s: str) -> str:
     return hashlib.md5(s.encode("utf-8")).hexdigest()[:10]
+
 
 def _list_dir(cur: pathlib.Path) -> tuple[list[pathlib.Path], list[pathlib.Path]]:
     try:
@@ -252,6 +278,7 @@ def _list_dir(cur: pathlib.Path) -> tuple[list[pathlib.Path], list[pathlib.Path]
     dirs.sort(key=lambda p: p.name.lower())
     files.sort(key=lambda p: p.name.lower())
     return dirs, files
+
 
 def _fs_browser_core(label: str, key: str, mode: str = "file",
                      start: str | None = None, patterns: list[str] | None = None):
@@ -314,6 +341,7 @@ def _fs_browser_core(label: str, key: str, mode: str = "file",
                 st.session_state[key] = str(f.resolve())
                 st.session_state[f"__open_{key}"] = False
                 _st_rerun()
+
 
 def path_picker(label: str, key: str, mode: str = "dir",
                 start: str | None = None, patterns: list[str] | None = None, help: str | None = None):
@@ -386,11 +414,13 @@ PE2_PATTERNS = [
 ]
 LANE_SUFFIX = re.compile(r"(_L\d{3,4})?(_\d{3})?$", re.IGNORECASE)
 
+
 def _drop_exts(name: str) -> str:
     for ext in [".fastq.gz", ".fq.gz", ".fastq", ".fq", ".fna.gz", ".fa.gz", ".fasta.gz", ".fna", ".fa", ".fasta"]:
         if name.endswith(ext):
             return name[: -len(ext)]
     return name
+
 
 def _infer_root_and_tag(path: pathlib.Path) -> Tuple[str, str]:
     name = _drop_exts(path.name)
@@ -405,9 +435,11 @@ def _infer_root_and_tag(path: pathlib.Path) -> Tuple[str, str]:
             return m.group("root"), "PE2"
     return name, "SE"
 
+
 def _is_probably_ont(p: pathlib.Path) -> bool:
     s = str(p.as_posix()).lower()
     return any(x in s for x in ["ont", "nanopore", "minion", "promethion", "fastq_pass", "guppy"])
+
 
 def _collect_files(base: pathlib.Path, patterns: List[str], recursive: bool) -> List[pathlib.Path]:
     out: List[pathlib.Path] = []
@@ -421,6 +453,7 @@ def _collect_files(base: pathlib.Path, patterns: List[str], recursive: bool) -> 
         except Exception:
             pass
     return sorted(set(clean))
+
 
 def discover_runs_and_build_fofn(base_dir: str,
                                  recursive: bool,
@@ -534,6 +567,7 @@ def discover_runs_and_build_fofn(base_dir: str,
                 runtype = "ont"
                 r1 = _join_or_pick(ont)
                 r2 = ""
+                extra = ""
             else:
                 runtype = "single-end"
                 r1 = _join_or_pick(se)
@@ -569,8 +603,10 @@ def discover_runs_and_build_fofn(base_dir: str,
 
 ANSI_ESCAPE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
+
 def _strip_ansi(s: str) -> str:
     return ANSI_ESCAPE.sub("", s)
+
 
 def _normalize_linebreaks(chunk: str) -> list[str]:
     if not chunk:
@@ -582,6 +618,7 @@ def _normalize_linebreaks(chunk: str) -> list[str]:
     parts = [p.rstrip() for p in chunk.split("\n") if p.strip() != ""]
     return parts
 
+
 async def _async_read_stream(stream, log_q: Queue, stop_event: threading.Event):
     while True:
         line = await stream.readline()
@@ -592,6 +629,7 @@ async def _async_read_stream(stream, log_q: Queue, stop_event: threading.Event):
             log_q.put(sub)
         if stop_event.is_set():
             break
+
 
 async def _async_exec(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: threading.Event):
     try:
@@ -626,6 +664,7 @@ async def _async_exec(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: 
     rc = await proc.wait()
     status_q.put(("rc", rc))
 
+
 def _thread_entry(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: threading.Event):
     loop = asyncio.new_event_loop()
     try:
@@ -633,6 +672,7 @@ def _thread_entry(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: thre
         loop.run_until_complete(_async_exec(full_cmd, log_q, status_q, stop_event))
     finally:
         loop.close()
+
 
 def start_async_runner_ns(full_cmd: str, ns: str):
     log_q = Queue()
@@ -651,10 +691,12 @@ def start_async_runner_ns(full_cmd: str, ns: str):
     st.session_state[f"{ns}_thread"] = th
     st.session_state[f"{ns}_live_log"] = []
 
+
 def request_stop_ns(ns: str):
     ev = st.session_state.get(f"{ns}_stop_event")
     if ev and not ev.is_set():
         ev.set()
+
 
 def drain_log_queue_ns(ns: str, tail_limit: int = 200, max_pull: int = 500):
     q: Queue = st.session_state.get(f"{ns}_log_q")
@@ -672,6 +714,7 @@ def drain_log_queue_ns(ns: str, tail_limit: int = 200, max_pull: int = 500):
     if len(buf) > tail_limit:
         buf[:] = buf[-tail_limit:]
     st.session_state[f"{ns}_live_log"] = buf
+
 
 def render_log_box_ns(ns: str, height: int = 560):
     lines = st.session_state.get(f"{ns}_live_log", [])
@@ -691,6 +734,7 @@ def render_log_box_ns(ns: str, height: int = 560):
         height=height,
         scrolling=False,
     )
+
 
 def check_status_and_finalize_ns(outdir: str, ns: str, status_box, report_zone):
     sq: Queue = st.session_state.get(f"{ns}_status_q")
@@ -732,7 +776,12 @@ with st.sidebar:
         f"Docker: {'✅' if docker_ok else '❌'} | "
         f"Singularity/Apptainer: {'✅' if sing_ok else '❌'}"
     )
-    st.caption("Prefira perfis docker/singularity para isolar dependências.")
+    st.caption(
+        "Em instalações locais com conda, use o profile 'standard'. "
+        "Perfis 'docker' e 'singularity' são opcionais e só funcionam se "
+        "Docker ou Singularity/Apptainer estiverem instalados."
+    )
+
     st.divider()
     render_presets_sidebar()
 
@@ -763,24 +812,56 @@ st.title("🧬 Bactopia UI")
 FOFN_HELP_MD = r"""
 # ℹ️ Gerador de FOFN — como funciona
 
-O gerador lê uma **pasta base** e produz um `samples.txt` (FOFN) no formato esperado pelo Bactopia, detectando automaticamente o **runtype** de cada amostra: **paired-end**, **single-end**, **ont**, **hybrid** (PE + ONT) e **assembly**.
+O gerador lê uma **pasta base** e produz um `samples.txt` (FOFN) no formato esperado pelo Bactopia,
+detectando automaticamente o **runtype** de cada amostra: **paired-end**, **single-end**, **ont**,
+**hybrid** (PE + ONT) e **assembly**.
 
-[...]
+- Ele percorre a pasta (e opcionalmente subpastas) atrás de:
+  - FASTQ/FASTQ.GZ (`*.fastq.gz`, `*.fq.gz`, `*.fastq`, `*.fq`)
+  - FASTA (`*.fa`, `*.fna`, `*.fasta`, e versões `.gz`) — se a opção "Incluir assemblies" estiver marcada.
+- Tenta agrupar arquivos por "root" de nome (antes de R1/R2, lane, etc.).
+- Identifica:
+  - `R1` / `R2` por padrões comuns de nomenclatura (R1/R2, _1/_2, A/B, etc.).
+  - Leituras longas (ONT) por:
+    - Heurística de nome (ont|nanopore|minion|promethion|fastq_pass|guppy) **ou**
+    - Opção "Tratar SE como ONT".
 
+O FOFN gerado tem colunas:
+
+`sample  runtype  genome_size  species  r1  r2  extra`
+
+- `sample`: nome da amostra (root inferido).
+- `runtype`: um de `paired-end`, `single-end`, `ont`, `hybrid`, `assembly`.
+- `genome_size` e `species`: copiados dos campos "genome_size" e "species".
+- `r1`, `r2`, `extra`:
+  - Para `paired-end`: `r1` = fastq(s) R1, `r2` = fastq(s) R2.
+  - Para `single-end`: `r1` = fastq(s) SE.
+  - Para `ont`: `r1` = fastq(s) ONT.
+  - Para `hybrid`: `r1` = PE R1, `r2` = PE R2, `extra` = fastq(s) ONT.
+  - Para `assembly`: `extra` = caminho do FASTA.
+
+Se "Mesclar múltiplos arquivos por vírgula" estiver **ativado**, múltiplos arquivos de uma mesma
+categoria (por ex. vários R1) são combinados num único campo, separados por vírgula (como o Bactopia espera).
+
+Se estiver desativado, o gerador escolhe apenas o **maior** arquivo de cada grupo, e avisa sobre isso no resumo.
 """
 
 st.subheader("Gerar FOFN (múltiplas amostras)", help=FOFN_HELP_MD)
 
 with st.expander("Gerar FOFN", expanded=False):
-
     base_default = os.getenv("BEAR_HUB_DATA", "/dados")
     base_dir = path_picker(
         "Pasta base de FASTQs/FASTAs",
         key="fofn_base",
         mode="dir",
         start=base_default,
-        help="Se estiver rodando via Docker, o sistema do host está em /hostfs (ex.: /hostfs/mnt/HD/...).",
+        help=(
+            "Na instalação local com conda, use caminhos normais (ex.: /mnt/HD/...). "
+            "Se estiver rodando via Docker, o sistema do host pode estar montado em /hostfs "
+            "(ex.: /hostfs/mnt/HD/...)."
+        ),
     )
+
     recursive = st.checkbox("Incluir subpastas", value=True, key="fofn_recursive")
 
     cA, cB, cC = st.columns(3)
@@ -889,10 +970,28 @@ with st.expander("Parâmetros globais", expanded=False):
         memory_gb = st.slider("--max_memory (GB)", 0, 256, 0, 1, key="memory_gb")
 
 # ------------------------- FASTP / Unicycler -------------------------
-FASTP_HELP_MD = '''# ℹ️ fastp — ajuda dos parâmetros expostos na UI
+FASTP_HELP_MD = """
+# ℹ️ fastp — ajuda dos parâmetros expostos na UI
 
-[... texto completo que você já tinha ...]
-'''
+Esta aba constrói a string `--fastp_opts` usada pelo Bactopia. Principais opções:
+
+- `-3` : ativa trimming na extremidade 3' (final da leitura).
+- `-5` : ativa trimming na extremidade 5' (início da leitura).
+- `-M <int>` : média mínima de qualidade da janela de trimming.
+- `-W <int>` : tamanho da janela para cálculo de média de qualidade.
+- `-q <int>` : qualidade mínima para uma base ser considerada "boa".
+- `-l <int>` : tamanho mínimo da leitura após trimming.
+- `-n <int>` : máximo de bases 'N' permitidas na leitura.
+- `-u <int>` : porcentagem máxima de bases abaixo de qualidade.
+- `--cut_front` / `--cut_tail` : ativa cortes dinâmicos no início/fim.
+- `--cut_mean_quality <int>` : qualidade mínima na janela de corte.
+- `--cut_window_size <int>` : tamanho da janela para os cortes dinâmicos.
+- `--detect_adapter_for_pe` : detecção automática de adaptadores em PE.
+- `-g` : ativa detecção e remoção de polyG.
+
+O campo "Extra (append)" permite adicionar qualquer flag suportada pelo fastp
+que não esteja mapeada diretamente na interface.
+"""
 
 st.subheader("Parâmetros FASTP/Unicycler", help=FASTP_HELP_MD)
 
@@ -1011,7 +1110,7 @@ extra_params_input = st.text_input(
     key="extra_params",
 )
 computed_extra = extra_params_input
-if st.session_state.get("fofn_use") and 'fofn_out' in locals() and fofn_out:
+if st.session_state.get("fofn_use") and "fofn_out" in locals() and fofn_out:
     computed_extra = (computed_extra + f" --samples {shlex.quote(fofn_out)}").strip()
 
 with st.expander("Relatórios (Nextflow)", expanded=False):
@@ -1019,12 +1118,9 @@ with st.expander("Relatórios (Nextflow)", expanded=False):
     tim = st.checkbox("-with-timeline", value=True, key="with_timeline")
     trc = st.checkbox("-with-trace", value=True, key="with_trace")
 
-# ------------------------- Montagem do comando / Nextflow env -------------------------
+# ------------------------- Montagem do comando -------------------------
 
 def build_bactopia_cmd(params: dict) -> str:
-    # Garante HOME/NXF_HOME/NXF_WORK/NXF_OPTS consistentes e graváveis
-    nx_env = ensure_nextflow_env(params.get("outdir"))
-
     profile = params.get("profile", "docker")
     outdir = params.get("outdir", DEFAULT_OUTDIR)
     datasets = params.get("datasets")
@@ -1038,22 +1134,21 @@ def build_bactopia_cmd(params: dict) -> str:
     with_timeline = params.get("with_timeline")
     with_trace = params.get("with_trace")
 
-    # Prefixo de ambiente inline: HOME=... NXF_HOME=... NXF_WORK=... NXF_OPTS=...
-    env_prefix: List[str] = []
-    for k in ("HOME", "NXF_HOME", "NXF_WORK", "NXF_OPTS"):
-        v = nx_env.get(k)
-        if v:
-            env_prefix.append(f"{k}={v}")
+    # Garante que o outdir exista e tenha seu próprio .nextflow/
+    outdir_path = pathlib.Path(outdir).expanduser().resolve()
+    outdir_path.mkdir(parents=True, exist_ok=True)
+    ensure_project_nxf_dir(outdir_path)
+    ensure_nxf_home()
 
-    base: List[str] = env_prefix + [
+    base: List[str] = [
         "nextflow", "run", "bactopia/bactopia",
         "-profile", profile,
-        "--outdir", outdir,
+        "--outdir", str(outdir_path),
     ]
     if datasets:
         base += ["--datasets", datasets]
 
-    report_dir = pathlib.Path(outdir)
+    report_dir = outdir_path
     if with_report:
         base += ["-with-report", str(report_dir / "nf-report.html")]
     if with_timeline:
@@ -1076,7 +1171,11 @@ def build_bactopia_cmd(params: dict) -> str:
     if extra:
         base += shlex.split(extra)
 
-    return " ".join(shlex.quote(x) for x in base)
+    nf_cmd = " ".join(shlex.quote(x) for x in base)
+    # Executa o nextflow a partir do outdir, para que .nextflow/history fique lá
+    full_cmd = f"cd {shlex.quote(str(outdir_path))} && {nf_cmd}"
+    return full_cmd
+
 
 params = {
     "profile": st.session_state.get("profile"),
@@ -1096,20 +1195,22 @@ cmd = build_bactopia_cmd(params)
 
 st.caption(f"Profile: {params['profile']} | Outdir: {params['outdir']}")
 st.caption(
-    f"NXF_HOME: {os.environ.get('NXF_HOME')} | NXF_WORK: {os.environ.get('NXF_WORK')} | HOME: {os.environ.get('HOME')}"
+    f"HOME={os.environ.get('HOME')} | "
+    f"NXF_HOME={os.environ.get('NXF_HOME', '(não definido)')}"
 )
 st.code(cmd, language="bash")
 
 # ------------------------- Validação pré-execução -------------------------
 def preflight_validate(params: dict, fofn_path: str) -> list[str]:
-    errs = []
+    errs: list[str] = []
     prof = params.get("profile")
 
     if prof == "docker" and not docker_available():
         errs.append(
             "Profile 'docker' selecionado, mas Docker não está disponível no PATH. "
-            "Dentro do container do BEAR-HUB, prefira o profile 'standard'."
+            "Na instalação local com conda, use normalmente o profile 'standard'."
         )
+
     if prof == "singularity" and not singularity_available():
         errs.append(
             "Profile 'singularity' selecionado, mas Singularity/Apptainer não está disponível no PATH."
@@ -1126,6 +1227,7 @@ def preflight_validate(params: dict, fofn_path: str) -> list[str]:
         )
 
     return errs
+
 
 _errors = preflight_validate(params, fofn_out)
 
@@ -1172,10 +1274,11 @@ if clean_clicked:
         request_stop_ns("main")
         time.sleep(0.8)
 
-    launch_dir = pathlib.Path.cwd()
-
-    # Garante o mesmo ambiente de NXF_HOME/HOME usado nas execuções
-    ensure_nextflow_env(params.get("outdir", DEFAULT_OUTDIR))
+    # Limpeza/logs a partir do mesmo outdir usado nas execuções
+    launch_dir = pathlib.Path(st.session_state.get("outdir", DEFAULT_OUTDIR)).expanduser().resolve()
+    launch_dir.mkdir(parents=True, exist_ok=True)
+    ensure_project_nxf_dir(launch_dir)
+    ensure_nxf_home()
 
     if not nextflow_available():
         st.error("Nextflow não encontrado no PATH.")
@@ -1258,8 +1361,8 @@ if start_main:
         st.error("Nextflow não encontrado no PATH.")
     else:
         try:
-            stdbuf = shutil.which("stdbuf")
-            full_cmd = f"stdbuf -oL -eL {cmd}" if stdbuf else cmd
+            # sem stdbuf: usamos o cmd exatamente como montado em build_bactopia_cmd
+            full_cmd = cmd
             status_box_main.info("Executando (async).")
             start_async_runner_ns(full_cmd, "main")
         except Exception as e:
