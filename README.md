@@ -74,7 +74,6 @@ Instalar as dependências Python do app via requirements.txt (Streamlit etc.)
 Se tudo der certo, você verá algo como:
 
 ```text
-Copiar código
 OK! Ambiente 'bear-hub' pronto.
 Para rodar o app, use:  ./run_bear.sh
 ```
@@ -98,7 +97,6 @@ Executa o Streamlit com o arquivo principal BEAR-HUB.py
 No terminal você verá algo como:
 
 ```text
-Copiar código
   You can now view your Streamlit app in your browser.
 
   Local URL: http://localhost:8501
@@ -130,7 +128,6 @@ Executa o pipeline de forma assíncrona, salvando resultados em:
 Nessa pasta, cada amostra vai gerar um diretório próprio, por exemplo:
 
 ```text
-Copiar código
 bactopia_out/
   ├── 1228_S4_L001
   ├── 1862_S3_L001
