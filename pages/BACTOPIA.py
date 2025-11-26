@@ -12,6 +12,7 @@
 # • Execução assíncrona com tail dos logs, limpeza de execuções
 # • Relatórios Nextflow opcionais (-with-report/-with-timeline/-with-trace)
 # • Ajustes de NXF_HOME e diretório .nextflow (para evitar erro history.lock)
+# • Integração com BACTOPIA_ENV_PREFIX (Nextflow do ambiente 'bactopia')
 # ---------------------------------------------------------------------
 
 import os
@@ -65,6 +66,19 @@ else:
 
 st.session_state.setdefault("outdir", DEFAULT_OUTDIR)
 
+# ============================= Bactopia / Nextflow (env prefix) =============================
+
+BACTOPIA_ENV_PREFIX = os.environ.get("BACTOPIA_ENV_PREFIX")
+BACTOPIA_NEXTFLOW_BIN: str | None = None
+
+if BACTOPIA_ENV_PREFIX:
+    try:
+        _bact_env = pathlib.Path(BACTOPIA_ENV_PREFIX).expanduser().resolve()
+        _cand_nf = _bact_env / "bin" / "nextflow"
+        if _cand_nf.is_file() and os.access(_cand_nf, os.X_OK):
+            BACTOPIA_NEXTFLOW_BIN = str(_cand_nf)
+    except Exception:
+        BACTOPIA_NEXTFLOW_BIN = None
 
 # ===================== Nextflow: garantir NXF_HOME gravável =====================
 def ensure_nxf_home() -> str | None:
@@ -142,7 +156,18 @@ def singularity_available():
     return which("singularity") is not None or which("apptainer") is not None
 
 
+def get_nextflow_bin() -> str:
+    """
+    Retorna o binário do Nextflow a ser utilizado:
+    - se BACTOPIA_ENV_PREFIX estiver definido e contiver bin/nextflow, usa esse;
+    - caso contrário, usa 'nextflow' (PATH do sistema).
+    """
+    return BACTOPIA_NEXTFLOW_BIN or "nextflow"
+
+
 def nextflow_available():
+    if BACTOPIA_NEXTFLOW_BIN:
+        return True
     return which("nextflow") is not None
 
 
@@ -787,6 +812,11 @@ with st.sidebar:
         "Perfis 'docker' e 'singularity' são opcionais e só funcionam se "
         "Docker ou Singularity/Apptainer estiverem instalados."
     )
+    if nf_ok:
+        if BACTOPIA_NEXTFLOW_BIN:
+            st.caption(f"Nextflow via ambiente Bactopia: `{BACTOPIA_NEXTFLOW_BIN}`")
+        else:
+            st.caption("Nextflow encontrado via PATH do sistema.")
 
     st.divider()
     render_presets_sidebar()
@@ -1148,8 +1178,10 @@ def build_bactopia_cmd(params: dict) -> str:
     ensure_project_nxf_dir(outdir_path)
     ensure_nxf_home()
 
+    nf_bin = get_nextflow_bin()
+
     base: List[str] = [
-        "nextflow", "run", "bactopia/bactopia",
+        nf_bin, "run", "bactopia/bactopia",
         "-profile", profile,
         "--outdir", str(outdir_path),
     ]
@@ -1205,6 +1237,9 @@ st.caption(f"Profile: {params['profile']} | Outdir: {params['outdir']}")
 st.caption(
     f"HOME={os.environ.get('HOME')} | "
     f"NXF_HOME={os.environ.get('NXF_HOME', '(não definido)')}"
+)
+st.caption(
+    f"BACTOPIA_ENV_PREFIX={os.environ.get('BACTOPIA_ENV_PREFIX', '(não definido)')}"
 )
 st.code(cmd, language="bash")
 
@@ -1289,14 +1324,15 @@ if clean_clicked:
     ensure_nxf_home()
 
     if not nextflow_available():
-        st.error("Nextflow não encontrado no PATH.")
+        st.error("Nextflow não encontrado (nem no PATH, nem em BACTOPIA_ENV_PREFIX).")
     else:
         all_runs = st.session_state.get("clean_all_runs", False)
         keep_logs = st.session_state.get("clean_keep_logs", False)
 
         try:
+            nf_bin = get_nextflow_bin()
             log_res = subprocess.run(
-                ["nextflow", "log", "-q"],
+                [nf_bin, "log", "-q"],
                 cwd=str(launch_dir),
                 text=True,
                 capture_output=True,
@@ -1317,7 +1353,7 @@ if clean_clicked:
                 failures = []
                 cleaned = 0
                 for rn in targets:
-                    cmdc = ["nextflow", "clean", "-f"] + (["-k"] if keep_logs else []) + [rn]
+                    cmdc = [nf_bin, "clean", "-f"] + (["-k"] if keep_logs else []) + [rn]
                     st.code(" ".join(shlex.quote(x) for x in cmdc), language="bash")
                     res = subprocess.run(
                         cmdc,
@@ -1366,7 +1402,7 @@ if start_main:
     if _errors:
         st.error("Execução bloqueada pelas validações acima.")
     elif not nextflow_available():
-        st.error("Nextflow não encontrado no PATH.")
+        st.error("Nextflow não encontrado (nem no PATH, nem em BACTOPIA_ENV_PREFIX).")
     else:
         try:
             # sem stdbuf: usamos o cmd exatamente como montado em build_bactopia_cmd

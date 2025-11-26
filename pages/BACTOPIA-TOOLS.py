@@ -1,7 +1,8 @@
 # app_bactopia_tools.py — Bactopia UI Local (Ferramentas oficiais via --wf)
 # ---------------------------------------------------------------------
-# Execução:  streamlit run app_bactopia_tools.py
+# Execução (isolado):  streamlit run app_bactopia_tools.py
 # Requisitos: streamlit>=1.30; Nextflow + (Docker|Apptainer)
+# No BEAR-HUB, este arquivo é usado como página.
 # ---------------------------------------------------------------------
 
 import os
@@ -30,7 +31,8 @@ def _st_rerun():
         fn()
 
 APP_STATE_DIR = pathlib.Path.home() / ".bactopia_ui_local"
-DEFAULT_OUTDIR = str((pathlib.Path.cwd() / "bactopia_out").resolve())
+# Alinhado com o BEAR-HUB: ~/BEAR_DATA/bactopia_out
+DEFAULT_OUTDIR = str((pathlib.Path.home() / "BEAR_DATA" / "bactopia_out").resolve())
 
 # ============================= Helps (popovers) =============================
 def help_popover(label: str, text: str):
@@ -136,7 +138,7 @@ HELP["scoary_snpdists"] = """
 **Scoary & SNP-dists**
 - **`--traits`**: CSV/TSV com fenótipos (nomes de amostra **idênticos** aos do pangenome).
 - **`--p_value_cutoff`** / **`--correction`** / **`--start_col`**: controles de significância/parse.
-- **`--permute`**: ativa permutações (mais lento).
+- **`--permute`**: ativa permutações aleatórias dos fenótipos (mais lento, útil para significância empírica).
 - **`--csv` (SNP-dists)**: exporta matriz em CSV além do TSV padrão.
 """
 
@@ -869,6 +871,12 @@ if st.session_state.get("bt_run_pangenome"):
             value=st.session_state.get("bt_scoary_start_col", ""),
             key="bt_scoary_start_col",
         )
+    # Novo checkbox para --permute (já usado no comando)
+    st.checkbox(
+        "Scoary: --permute (permutar fenótipos)",
+        value=st.session_state.get("bt_scoary_permute", False),
+        key="bt_scoary_permute",
+    )
     st.checkbox("SNP-dists: --csv", value=st.session_state.get("bt_snpdists_csv", False), key="bt_snpdists_csv")
 
 # --- Mashtree ---

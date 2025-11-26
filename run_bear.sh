@@ -1,38 +1,54 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ENV_NAME="bear-hub"
-THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MAIN_APP="BEAR-HUB.py"
+# Descobre a pasta onde o script está (raiz do BEAR-HUB)
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-echo "== BEAR-HUB :: iniciando interface web =="
+echo "==============================="
+echo "  BEAR-HUB - Launcher"
+echo "==============================="
+echo "ROOT_DIR: ${ROOT_DIR}"
 
-# 1) Verifica se conda existe
-if ! command -v conda >/dev/null 2>&1; then
-  echo "Erro: 'conda' não encontrado no PATH."
-  echo "Ative/instale Miniconda/Conda e rode novamente."
+# Carrega configuração gerada pelo install_bear.sh (se existir)
+if [[ -f "${ROOT_DIR}/.bear-hub.env" ]]; then
+  echo "Carregando configuração de ${ROOT_DIR}/.bear-hub.env"
+  # shellcheck disable=SC1090
+  source "${ROOT_DIR}/.bear-hub.env"
+else
+  echo "AVISO: ${ROOT_DIR}/.bear-hub.env não encontrado."
+  echo "       Execute primeiro:  ./install_bear.sh"
+fi
+
+# Arquivo principal do Streamlit
+APP_FILE="${ROOT_DIR}/BEAR-HUB.py"
+
+if [[ ! -f "${APP_FILE}" ]]; then
+  echo "ERRO: arquivo principal do app não encontrado: ${APP_FILE}"
+  echo "Verifique se o repositório está completo e se o nome do arquivo é BEAR-HUB.py"
   exit 1
 fi
 
-# 2) Verifica se o ambiente já existe
-if ! conda env list | awk '{print $1}' | grep -Fxq "$ENV_NAME"; then
-  echo "Erro: ambiente '$ENV_NAME' não encontrado."
-  echo "Rode primeiro:  ./install_bear.sh"
+# Escolhe se vai usar mamba ou conda para rodar o app
+RUNNER=""
+if command -v mamba >/dev/null 2>&1; then
+  RUNNER="mamba"
+elif command -v conda >/dev/null 2>&1; then
+  RUNNER="conda"
+else
+  echo "ERRO: nem 'mamba' nem 'conda' encontrados no PATH."
+  echo "Certifique-se que o Miniconda está instalado e no PATH."
   exit 1
 fi
 
-# 3) Outdir padrão *no próprio repositório* (sem /opt)
-export BEAR_HUB_OUTDIR="${BEAR_HUB_OUTDIR:-"$THIS_DIR/bactopia_out"}"
-mkdir -p "$BEAR_HUB_OUTDIR"
+echo "Usando: ${RUNNER} run -n bear-hub ..."
+echo "Se precisar, você pode passar opções do Streamlit, ex.:"
+echo "  ./run_bear.sh --server.port 8502"
+echo
 
-# 4) Porta do Streamlit (mudar com: PORT=8502 ./run_bear.sh)
-PORT="${PORT:-8501}"
+cd "${ROOT_DIR}"
 
-echo "[info] Vou abrir o BEAR-HUB em: http://localhost:${PORT}"
-
-cd "$THIS_DIR"
-
-# 5) Roda o Streamlit dentro do env, chamando explicitamente o Python do conda
-conda run -n "$ENV_NAME" python -m streamlit run "$MAIN_APP" \
-  --server.port "$PORT" \
-  --server.address 0.0.0.0
+# IMPORTANTE:
+# - 'source .bear-hub.env' já ajustou PATH (incluindo o bin do ambiente bactopia)
+# - '${RUNNER} run -n bear-hub' cria um processo dentro do env bear-hub,
+#   preservando esse PATH estendido, então o app ainda enxerga 'nextflow', 'bactopia', etc.
+exec "${RUNNER}" run -n bear-hub streamlit run "${APP_FILE}" "$@"
