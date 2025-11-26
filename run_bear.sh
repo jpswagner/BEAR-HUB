@@ -21,18 +21,18 @@ if ! conda env list | awk '{print $1}' | grep -Fxq "$ENV_NAME"; then
   exit 1
 fi
 
-# 3) Define outdir padrão (na própria pasta do projeto, gravável pelo usuário)
+# 3) Outdir padrão *no próprio repositório* (sem /opt)
 export BEAR_HUB_OUTDIR="${BEAR_HUB_OUTDIR:-"$THIS_DIR/bactopia_out"}"
 mkdir -p "$BEAR_HUB_OUTDIR"
 
-# 4) Porta do Streamlit (pode mudar com: PORT=8502 ./run_bear.sh)
+# 4) Porta do Streamlit (mudar com: PORT=8502 ./run_bear.sh)
 PORT="${PORT:-8501}"
 
 echo "[info] Vou abrir o BEAR-HUB em: http://localhost:${PORT}"
 
 cd "$THIS_DIR"
 
-# 5) Roda o Streamlit dentro do ambiente conda, apontando para BEAR-HUB.py
-conda run -n "$ENV_NAME" streamlit run "$MAIN_APP" \
+# 5) Roda o Streamlit dentro do env, chamando explicitamente o Python do conda
+conda run -n "$ENV_NAME" python -m streamlit run "$MAIN_APP" \
   --server.port "$PORT" \
   --server.address 0.0.0.0
