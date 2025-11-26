@@ -1,94 +1,134 @@
-cd ~/BEAR-HUB
-
-cat > install_bear.sh << 'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 
-ENV_NAME="bear-hub"
-THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+echo "==============================="
+echo "  Instalador BEAR-HUB (local)"
+echo "==============================="
 
-echo "== BEAR-HUB :: instalação local com conda =="
+# ----------------- Configuração básica -----------------
+CONDA_ENV_NAME="bear-hub"
 
-# 1) Verifica se conda está disponível
+# Diretório onde está o repositório (raiz do app)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BEAR_ROOT="$SCRIPT_DIR"
+
+# Diretório para dados do BEAR (pode mudar se quiser)
+BEAR_DATA="${HOME}/BEAR_DATA"
+BACTOPIA_DL="${BEAR_DATA}/bactopia-downloads"
+
+echo "BEAR_ROOT:  $BEAR_ROOT"
+echo "BEAR_DATA:  $BEAR_DATA"
+echo "Bactopia DL: $BACTOPIA_DL"
+echo
+
+mkdir -p "$BEAR_DATA" "$BACTOPIA_DL"
+
+# ----------------- Verifica Conda -----------------
 if ! command -v conda >/dev/null 2>&1; then
   echo "ERRO: 'conda' não encontrado no PATH."
-  echo "Instale Miniconda/Conda primeiro e depois rode:  ./install_bear.sh"
+  echo "Instale Miniconda/Anaconda e depois rode novamente:  ./install_bear.sh"
   exit 1
 fi
 
-# Evita plugins (mamba, etc) atrapalhando
-export CONDA_NO_PLUGINS=true
+CONDA_BASE="$(conda info --base)"
+# habilita 'conda activate' dentro do script
+# shellcheck source=/dev/null
+source "${CONDA_BASE}/etc/profile.d/conda.sh"
 
-# 2) Descobre o prefixo base da instalação
-BASE_PREFIX="$(conda info --base | tail -n 1)"
-echo "[debug] BASE_PREFIX=$BASE_PREFIX"
-
-echo "[info] Verificando se o ambiente '$ENV_NAME' já existe..."
-if conda env list | awk '{print $1}' | grep -Fxq "$ENV_NAME"; then
-  echo "[info] Ambiente '$ENV_NAME' já existe. Vou garantir os pacotes essenciais."
-  conda install -y -n "$ENV_NAME" \
-    -c conda-forge -c bioconda -c defaults \
-    python=3.11 \
-    openjdk=11 \
-    nextflow \
-    bactopia \
-    git \
-    pip
+# ----------------- Cria/ativa env do BEAR-HUB -----------------
+if ! conda env list | awk '{print $1}' | grep -qx "$CONDA_ENV_NAME"; then
+  echo "==> Criando environment Conda '${CONDA_ENV_NAME}'..."
+  conda create -y -n "$CONDA_ENV_NAME" python=3.11
 else
-  echo "[info] Ambiente '$ENV_NAME' não existe. Vou criá-lo."
-  conda create -y -n "$ENV_NAME" \
-    -c conda-forge -c bioconda -c defaults \
-    python=3.11 \
-    openjdk=11 \
-    nextflow \
-    bactopia \
-    git \
-    pip
+  echo "==> Environment Conda '${CONDA_ENV_NAME}' já existe, reutilizando..."
 fi
 
-echo "[info] Instalando dependências Python do app (Streamlit etc) dentro de '$ENV_NAME'..."
-if [[ -f "$THIS_DIR/requirements.txt" ]]; then
-  conda run -n "$ENV_NAME" python -m pip install --no-cache-dir -r "$THIS_DIR/requirements.txt"
+echo "==> Ativando environment '${CONDA_ENV_NAME}'..."
+conda activate "$CONDA_ENV_NAME"
+
+# ----------------- Instala mamba (se não existir) -----------------
+if ! command -v mamba >/dev/null 2>&1; then
+  echo "==> Instalando mamba dentro do env '${CONDA_ENV_NAME}'..."
+  conda install -y mamba
 else
-  echo "[aviso] requirements.txt não encontrado em $THIS_DIR/requirements.txt; pulando 'pip install'."
+  echo "==> mamba já está instalado."
 fi
 
-# 3) Calcula o prefixo do ambiente
-ENV_PREFIX="${BASE_PREFIX}/envs/${ENV_NAME}"
-echo "[debug] ENV_PREFIX=$ENV_PREFIX"
+# ----------------- Instala Bactopia -----------------
+echo "==> Instalando Bactopia (via mamba, pode demorar)..."
+mamba install -y -c conda-forge -c bioconda bactopia
 
-# 4) Cria wrapper de 'conda' DENTRO do ambiente, pra remover --mkdir
-if [[ -x "$ENV_PREFIX/bin/conda" ]]; then
-  if [[ ! -x "$ENV_PREFIX/bin/conda.real" ]]; then
-    echo "[info] Criando wrapper de 'conda' só dentro do ambiente '$ENV_NAME' (remoção de --mkdir)..."
-    mv "$ENV_PREFIX/bin/conda" "$ENV_PREFIX/bin/conda.real"
-    cat > "$ENV_PREFIX/bin/conda" << 'EOF_CONDA_WRAPPER'
-#!/usr/bin/env bash
-REAL_CONDA="$(dirname "$0")/conda.real"
-
-args=()
-for a in "$@"; do
-  if [ "$a" = "--mkdir" ]; then
-    # Versões novas do conda não suportam mais --mkdir; simplesmente ignoramos
-    continue
-  fi
-  args+=("$a")
-done
-
-exec "$REAL_CONDA" "${args[@]}"
-EOF_CONDA_WRAPPER
-    chmod +x "$ENV_PREFIX/bin/conda"
-  else
-    echo "[info] Wrapper de 'conda' já existe em $ENV_PREFIX/bin/conda.real – não vou sobrescrever."
-  fi
+# ----------------- Dependências Python do app -----------------
+if [ -f "${BEAR_ROOT}/requirements.txt" ]; then
+  echo "==> Instalando dependências Python do BEAR-HUB (requirements.txt)..."
+  pip install -r "${BEAR_ROOT}/requirements.txt"
 else
-  echo "[aviso] Não encontrei $ENV_PREFIX/bin/conda;"
-  echo "        Se os ambientes ficam em outro lugar, ajuste ENV_PREFIX dentro do install_bear.sh."
+  echo "==> Nenhum requirements.txt encontrado; pulando instalação de deps Python."
 fi
+
+# ----------------- Configura NXF_CONDA_EXE e diretório de download -----------------
+MAMBA_BIN="$(command -v mamba)"
 
 echo
-echo "OK! Ambiente '$ENV_NAME' configurado."
-echo "Para rodar o BEAR-HUB, use:  ./run_bear.sh"
+echo "==> Configurando variáveis de ambiente no ~/.bashrc"
+echo "   - NXF_CONDA_EXE=$MAMBA_BIN"
+echo "   - BEAR_BACTOPIA_DOWNLOAD_DIR=$BACTOPIA_DL"
+
+{
+  echo ""
+  echo "# >>> Configuração BEAR-HUB / Bactopia >>>"
+  echo "export NXF_CONDA_EXE=\"$MAMBA_BIN\""
+  echo "export BEAR_BACTOPIA_DOWNLOAD_DIR=\"$BACTOPIA_DL\""
+  echo "# <<< Fim da configuração BEAR-HUB / Bactopia <<<"
+} >> "${HOME}/.bashrc"
+
+# Também exporta para a sessão atual, para o download abaixo
+export NXF_CONDA_EXE="$MAMBA_BIN"
+export BEAR_BACTOPIA_DOWNLOAD_DIR="$BACTOPIA_DL"
+
+# ----------------- Pré-download do Bactopia -----------------
+echo
+echo "==> Rodando 'bactopia download' (pode demorar bastante na primeira vez)..."
+bactopia download \
+  --conda \
+  --bactopia \
+  --tools \
+  --outdir "$BACTOPIA_DL" \
+  --force
+
+echo
+echo "==> Criando script de execução ${BEAR_ROOT}/run_bear.sh"
+
+cat > "${BEAR_ROOT}/run_bear.sh" <<EOF
+#!/usr/bin/env bash
+set -euo pipefail
+
+CONDA_BASE="${CONDA_BASE}"
+
+# habilita conda
+# shellcheck source=/dev/null
+source "\${CONDA_BASE}/etc/profile.d/conda.sh"
+
+conda activate "$CONDA_ENV_NAME"
+
+export NXF_CONDA_EXE="$MAMBA_BIN"
+export BEAR_BACTOPIA_DOWNLOAD_DIR="$BACTOPIA_DL"
+
+cd "$BEAR_ROOT"
+streamlit run app.py
 EOF
 
-chmod +x install_bear.sh
+chmod +x "${BEAR_ROOT}/run_bear.sh"
+
+echo
+echo "==============================="
+echo "  Instalação concluída!"
+echo "==============================="
+echo
+echo "Antes de rodar o BEAR-HUB:"
+echo "  - Abra um NOVO terminal (ou rode: 'source ~/.bashrc')"
+echo
+echo "Para iniciar o app:"
+echo "  cd \"$BEAR_ROOT\""
+echo "  ./run_bear.sh"
+echo
