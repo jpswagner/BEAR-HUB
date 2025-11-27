@@ -13,6 +13,7 @@
 # • Relatórios Nextflow opcionais (-with-report/-with-timeline/-with-trace)
 # • Ajustes de NXF_HOME e diretório .nextflow (para evitar erro history.lock)
 # • Integração com BACTOPIA_ENV_PREFIX (Nextflow do ambiente 'bactopia')
+# • Integração automática com ~/.bear-hub.env (se não tiver sido “sourced”)
 # ---------------------------------------------------------------------
 
 import os
@@ -46,6 +47,64 @@ def _st_rerun():
 APP_STATE_DIR = pathlib.Path.home() / ".bactopia_ui_local"
 PRESETS_FILE = APP_STATE_DIR / "presets.yaml"
 DEFAULT_PRESET_NAME = "default"
+
+
+def bootstrap_bear_env_from_file():
+    """
+    Se o usuário não deu 'source .bear-hub.env' antes de rodar o Streamlit,
+    tenta carregar esse arquivo e popular variáveis importantes:
+      - BEAR_HUB_ROOT
+      - BEAR_HUB_BASEDIR (se não existir)
+      - BACTOPIA_ENV_PREFIX
+      - NXF_CONDA_EXE
+    Só define a variável se ela ainda não existir em os.environ.
+    """
+    # Se já temos BACTOPIA_ENV_PREFIX, assumimos que o ambiente já foi preparado
+    if os.environ.get("BACTOPIA_ENV_PREFIX"):
+        return
+
+    candidates: list[pathlib.Path] = []
+
+    # Se já tiver BEAR_HUB_ROOT, usa ele pra achar .bear-hub.env
+    env_root = os.environ.get("BEAR_HUB_ROOT")
+    if env_root:
+        candidates.append(pathlib.Path(env_root).expanduser() / ".bear-hub.env")
+
+    # Fallback para ~/BEAR-HUB/.bear-hub.env (padrão do install_bear.sh)
+    candidates.append(pathlib.Path.home() / "BEAR-HUB" / ".bear-hub.env")
+
+    for cfg in candidates:
+        try:
+            if not cfg.is_file():
+                continue
+            with cfg.open("r", encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
+                    m = re.match(r'export\s+([A-Za-z_][A-Za-z0-9_]*)=(.*)', line)
+                    if not m:
+                        continue
+                    var, value = m.group(1), m.group(2).strip()
+                    # remove aspas simples ou duplas se a linha for export VAR="..."
+                    if ((value.startswith('"') and value.endswith('"'))
+                            or (value.startswith("'") and value.endswith("'"))):
+                        value = value[1:-1]
+                    if var and value and var not in os.environ:
+                        os.environ[var] = value
+            break
+        except Exception:
+            # Se der erro na leitura, tenta próximo candidate
+            continue
+
+    # Se BEAR_HUB_ROOT foi definido via arquivo, mas BEAR_HUB_BASEDIR não,
+    # usamos BEAR_HUB_ROOT como base padrão.
+    if os.environ.get("BEAR_HUB_ROOT") and not os.environ.get("BEAR_HUB_BASEDIR"):
+        os.environ["BEAR_HUB_BASEDIR"] = os.environ["BEAR_HUB_ROOT"]
+
+
+# tenta carregar .bear-hub.env logo no início
+bootstrap_bear_env_from_file()
 
 # Raiz do app e base padrão de trabalho
 APP_ROOT = pathlib.Path(__file__).resolve().parent
@@ -817,6 +876,33 @@ with st.sidebar:
             st.caption(f"Nextflow via ambiente Bactopia: `{BACTOPIA_NEXTFLOW_BIN}`")
         else:
             st.caption("Nextflow encontrado via PATH do sistema.")
+
+    if BACTOPIA_ENV_PREFIX:
+        st.caption(f"BACTOPIA_ENV_PREFIX: `{BACTOPIA_ENV_PREFIX}`")
+    else:
+        st.warning(
+            "BACTOPIA_ENV_PREFIX não definido. "
+            "O app vai usar o 'nextflow' do sistema. "
+            "Se você instalou via install_bear.sh, confira se .bear-hub.env foi criado.",
+            icon="⚠️",
+        )
+
+    solver = os.environ.get("NXF_CONDA_EXE")
+    if solver:
+        st.caption(f"NXF_CONDA_EXE: `{solver}`")
+        if not os.path.exists(solver):
+            st.warning(
+                "NXF_CONDA_EXE aponta para um binário inexistente. "
+                "Verifique se o ambiente 'bactopia' foi criado pelo install_bear.sh.",
+                icon="⚠️",
+            )
+    else:
+        st.warning(
+            "NXF_CONDA_EXE não está definido. Nextflow pode tentar usar o 'conda' do sistema "
+            "e falhar com '--mkdir'. "
+            "Recomendo rodar o install_bear.sh e/ou 'source ~/.bear-hub.env' antes do Streamlit.",
+            icon="⚠️",
+        )
 
     st.divider()
     render_presets_sidebar()

@@ -11,14 +11,14 @@ echo "ROOT_DIR: ${ROOT_DIR}"
 mkdir -p "${ROOT_DIR}"
 
 # ---------------------------------------------------------
-# Detectar mamba/conda
+# Detectar mamba/conda no host
 # ---------------------------------------------------------
 MAMBA_BIN=""
 CONDA_BIN=""
 
 if command -v mamba >/dev/null 2>&1; then
     MAMBA_BIN="$(command -v mamba)"
-    echo "Usando mamba para criar ambientes."
+    echo "mamba encontrado em: ${MAMBA_BIN}"
 fi
 
 if command -v conda >/dev/null 2>&1; then
@@ -31,8 +31,12 @@ if [[ -z "${MAMBA_BIN}" && -z "${CONDA_BIN}" ]]; then
 fi
 
 # Vamos usar:
-# - mamba para *criar* ambientes (se existir)
-# - SEMPRE conda para listar ambientes (env list), porque mamba está bugado aí.
+# - mamba (se existir) para criar ambientes (mais rápido)
+# - conda como fallback pra criação de ambientes
+# Mais adiante, NXF_CONDA_EXE vai apontar pra um 'mamba' dentro do próprio env do Bactopia.
+
+# Variável que vamos usar depois pra NXF_CONDA_EXE
+NXF_SOLVER_BIN=""
 
 # ---------------------------------------------------------
 # Função para pegar o prefixo de um ambiente pelo nome
@@ -109,12 +113,14 @@ BACTOPIA_PREFIX="$(get_env_prefix 'bactopia')"
 if [[ -n "${BACTOPIA_PREFIX}" ]]; then
     echo "Ambiente 'bactopia' já existe em: ${BACTOPIA_PREFIX}"
 else
-    echo "Criando ambiente 'bactopia' com Bactopia..."
+    echo "Criando ambiente 'bactopia' com Bactopia + mamba (solver)..."
 
+    # Importante: sempre instalar 'mamba' dentro do env do Bactopia,
+    # assim podemos apontar NXF_CONDA_EXE para ${BACTOPIA_PREFIX}/bin/mamba
     if [[ -n "${MAMBA_BIN}" ]]; then
-        "${MAMBA_BIN}" create -y -n bactopia -c conda-forge -c bioconda bactopia
+        "${MAMBA_BIN}" create -y -n bactopia -c conda-forge -c bioconda bactopia mamba
     else
-        "${CONDA_BIN}" create -y -n bactopia -c conda-forge -c bioconda bactopia
+        "${CONDA_BIN}" create -y -n bactopia -c conda-forge -c bioconda bactopia mamba
     fi
 
     BACTOPIA_PREFIX="$(get_env_prefix 'bactopia')"
@@ -126,7 +132,44 @@ else
 fi
 
 # ---------------------------------------------------------
-# Salvar config para o app (prefixo do bactopia)
+# Configurar NXF_CONDA_EXE (solver usado pelo Nextflow/Bactopia)
+# ---------------------------------------------------------
+if [[ -n "${BACTOPIA_PREFIX}" ]]; then
+    echo
+    echo "Configurando solver para Nextflow (NXF_CONDA_EXE)..."
+
+    # Preferimos o mamba DENTRO do ambiente 'bactopia'
+    if [[ -x "${BACTOPIA_PREFIX}/bin/mamba" ]]; then
+        NXF_SOLVER_BIN="${BACTOPIA_PREFIX}/bin/mamba"
+    elif [[ -n "${MAMBA_BIN}" ]]; then
+        # fallback: mamba do host (se existir)
+        NXF_SOLVER_BIN="${MAMBA_BIN}"
+    else
+        NXF_SOLVER_BIN=""
+    fi
+
+    if [[ -n "${NXF_SOLVER_BIN}" ]]; then
+        echo "NXF_CONDA_EXE será definido como: ${NXF_SOLVER_BIN}"
+
+        # Hooks de ativação do conda para o ambiente 'bactopia'
+        mkdir -p "${BACTOPIA_PREFIX}/etc/conda/activate.d" "${BACTOPIA_PREFIX}/etc/conda/deactivate.d"
+
+        cat > "${BACTOPIA_PREFIX}/etc/conda/activate.d/bear-nxf-conda-exe.sh" <<EOF
+# Arquivo gerado pelo install_bear.sh - define solver Conda para Nextflow/Bactopia
+export NXF_CONDA_EXE="${NXF_SOLVER_BIN}"
+EOF
+
+        cat > "${BACTOPIA_PREFIX}/etc/conda/deactivate.d/bear-nxf-conda-exe.sh" <<'EOF'
+unset NXF_CONDA_EXE
+EOF
+    else
+        echo "AVISO: não foi possível determinar um binário 'mamba' para usar em NXF_CONDA_EXE."
+        echo "       Bactopia pode falhar ao criar ambientes (erro com '--mkdir')."
+    fi
+fi
+
+# ---------------------------------------------------------
+# Salvar config para o app (prefixo do bactopia + solver)
 # ---------------------------------------------------------
 echo
 echo "Localizando prefixo final do ambiente 'bactopia'..."
@@ -137,15 +180,22 @@ if [[ -n "${BACTOPIA_PREFIX}" ]]; then
     echo "Prefixo do ambiente 'bactopia': ${BACTOPIA_PREFIX}"
 
     CONFIG_FILE="${ROOT_DIR}/.bear-hub.env"
-    cat > "${CONFIG_FILE}" <<EOF
-# Arquivo gerado pelo install_bear.sh
-export BEAR_HUB_ROOT="${ROOT_DIR}"
-export BACTOPIA_ENV_PREFIX="${BACTOPIA_PREFIX}"
-EOF
+    {
+        echo "# Arquivo gerado pelo install_bear.sh"
+        echo "export BEAR_HUB_ROOT=\"${ROOT_DIR}\""
+        echo "export BACTOPIA_ENV_PREFIX=\"${BACTOPIA_PREFIX}\""
+        # Se descobrimos o solver, também colocamos aqui
+        if [[ -n "${NXF_SOLVER_BIN}" ]]; then
+            echo "export NXF_CONDA_EXE=\"${NXF_SOLVER_BIN}\""
+        fi
+    } > "${CONFIG_FILE}"
 
     echo "Config salva em: ${CONFIG_FILE}"
     echo "Para usar no shell, execute:"
     echo "  source \"${CONFIG_FILE}\""
+    echo
+    echo "Dica: se você tiver alguma linha antiga com 'NXF_CONDA_EXE=' no ~/.bashrc,"
+    echo "      considere removê-la para evitar conflitos com esta configuração."
 else
     echo "ERRO: não foi possível encontrar o prefixo do ambiente 'bactopia' via 'conda env list'."
     echo "Verifique manualmente com:"
