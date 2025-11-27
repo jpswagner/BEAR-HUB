@@ -16,6 +16,7 @@ import asyncio
 import html
 import threading
 import hashlib
+import fnmatch
 from typing import List
 from queue import Queue, Empty
 
@@ -39,7 +40,7 @@ def help_popover(label: str, text: str):
     with st.popover(label):
         st.markdown(text)
 
-def help_header(title_md: str, help_key: str, ratio=(4,1)):
+def help_header(title_md: str, help_key: str, ratio=(4, 1)):
     c1, c2 = st.columns(ratio)
     with c1:
         st.markdown(title_md)
@@ -183,6 +184,141 @@ HELP["plasmidfinder"] = """
 - **`--pf_threshold`**: identidade mínima (proporção; ex.: `0.9` = 90%) para considerar um *hit*.
 - Demais parâmetros seguem o padrão Bactopia Tools (`--outdir`, `--datasets`, etc.). Use “Extras PlasmidFinder” se precisar passar opções adicionais.
 """
+
+# ============================= Explorador (inline + pop-up) =============================
+
+def _safe_id(s: str) -> str:
+    return hashlib.md5(s.encode("utf-8")).hexdigest()[:10]
+
+
+def _list_dir(cur: pathlib.Path) -> tuple[list[pathlib.Path], list[pathlib.Path]]:
+    try:
+        entries = list(cur.iterdir())
+    except Exception:
+        entries = []
+    dirs = [p for p in entries if p.is_dir()]
+    files = [p for p in entries if p.is_file()]
+    dirs.sort(key=lambda p: p.name.lower())
+    files.sort(key=lambda p: p.name.lower())
+    return dirs, files
+
+
+def _fs_browser_core(label: str, key: str, mode: str = "file",
+                     start: str | None = None, patterns: list[str] | None = None):
+    base_start = start or st.session_state.get(key) or os.getcwd()
+    cur_key = f"__picker_cur__{key}"
+    try:
+        cur = pathlib.Path(st.session_state.get(cur_key, base_start)).expanduser().resolve()
+    except Exception:
+        cur = pathlib.Path(base_start).expanduser().resolve()
+
+    def set_cur(p: pathlib.Path):
+        st.session_state[cur_key] = str(p.expanduser().resolve())
+
+    hostfs_root = os.getenv("HOSTFS_ROOT", "/hostfs")
+
+    c_up, c_home, c_host, c_path, c_pick = st.columns([0.9, 0.9, 0.9, 6, 2])
+
+    with c_up:
+        if st.button("⬆️ Subir", key=f"{key}_up"):
+            parent = cur.parent if cur.parent != cur else cur
+            set_cur(parent)
+            _st_rerun()
+
+    with c_home:
+        home_base = pathlib.Path(start or pathlib.Path.home())
+        if st.button("🏠 Base", key=f"{key}_home"):
+            set_cur(home_base)
+            _st_rerun()
+
+    with c_host:
+        if os.path.exists(hostfs_root):
+            if st.button("🖥 Host", key=f"{key}_host"):
+                set_cur(pathlib.Path(hostfs_root))
+                _st_rerun()
+
+    with c_path:
+        st.caption(str(cur))
+
+    with c_pick:
+        if mode == "dir":
+            if st.button("Escolher", key=f"{key}_choose_dir"):
+                st.session_state[key] = str(cur)
+
+    dirs, files = _list_dir(cur)
+    st.markdown("**Pastas**")
+    dcols = st.columns(2)
+    for i, d in enumerate(dirs):
+        did = _safe_id(str(d))
+        if dcols[i % 2].button("📁 " + d.name, key=f"{key}_d_{did}"):
+            set_cur(d)
+            _st_rerun()
+
+    if mode == "file":
+        if patterns:
+            files = [f for f in files if any(fnmatch.fnmatch(f.name, pat) for pat in patterns)]
+        st.markdown("**Arquivos**")
+        for f in files:
+            fid = _safe_id(str(f))
+            if st.button("📄 " + f.name, key=f"{key}_f_{fid}"):
+                st.session_state[key] = str(f.resolve())
+                st.session_state[f"__open_{key}"] = False
+                _st_rerun()
+
+
+def path_picker(label: str, key: str, mode: str = "dir",
+                start: str | None = None, patterns: list[str] | None = None, help: str | None = None):
+    col1, col2 = st.columns([7, 2])
+    with col1:
+        val = st.text_input(label, value=st.session_state.get(key, start or ""), key=key, help=help)
+        try:
+            if val:
+                val_abs = str(pathlib.Path(val).expanduser().resolve())
+                if val_abs != val:
+                    st.session_state[key] = val_abs
+        except Exception:
+            pass
+    with col2:
+        if st.button("Explorar…", key=f"open_{key}"):
+            st.session_state[f"__open_{key}"] = True
+            try:
+                hint = pathlib.Path(st.session_state.get(key) or start or os.getcwd())
+                st.session_state[f"__picker_cur__{key}"] = str(
+                    (hint if hint.is_dir() else hint.parent).expanduser().resolve()
+                )
+            except Exception:
+                st.session_state[f"__picker_cur__{key}"] = str(
+                    pathlib.Path(start or os.getcwd()).expanduser().resolve()
+                )
+
+    if st.session_state.get(f"__open_{key}", False) and hasattr(st, "dialog"):
+        @st.dialog(label, width="large")
+        def _dlg():
+            _fs_browser_core(label, key, mode=mode, start=start, patterns=patterns)
+            c_ok, c_cancel = st.columns(2)
+            with c_ok:
+                if st.button("✅ Usar este caminho", key=f"use_{key}"):
+                    if mode == "dir":
+                        cur = pathlib.Path(st.session_state.get(f"__picker_cur__{key}", start or os.getcwd()))
+                        st.session_state[key] = str(cur.expanduser().resolve())
+                    st.session_state[f"__open_{key}"] = False
+                    _st_rerun()
+            with c_cancel:
+                if st.button("Cancelar", key=f"cancel_{key}"):
+                    st.session_state[f"__open_{key}"] = False
+                    _st_rerun()
+        _dlg()
+    elif st.session_state.get(f"__open_{key}", False):
+        st.info(f"{label} (modo inline)")
+        _fs_browser_core(label, key, mode=mode, start=start, patterns=patterns)
+        if st.button("✅ Usar este caminho", key=f"use_inline_{key}"):
+            if mode == "dir":
+                cur = pathlib.Path(st.session_state.get(f"__picker_cur__{key}", start or os.getcwd()))
+                st.session_state[key] = str(cur.expanduser().resolve())
+            st.session_state[f"__open_{key}"] = False
+            _st_rerun()
+
+    return st.session_state.get(key) or ""
 
 # ============================= Utils =============================
 def ensure_state_dir():
@@ -362,22 +498,71 @@ def discover_samples_from_outdir(outdir: str) -> List[str]:
     p = pathlib.Path(outdir)
     if not p.exists() or not p.is_dir():
         return []
-    samples = []
+    samples: List[str] = []
     for child in sorted(p.iterdir(), key=lambda x: x.name):
         if not child.is_dir():
             continue
-        if child.name.startswith("bactopia-") or child.name in {"bactopia-runs"}:
+        # Ignora diretórios administrativos
+        if child.name.startswith("bactopia-") or child.name in {"bactopia-runs", "work"}:
             continue
+        # Considera como amostra se tiver 'main' e/ou 'tools'
         if (child / "main").exists() or (child / "tools").exists():
             samples.append(child.name)
     return samples
 
-# input roots
-bt_outdir = st.text_input(
+# ===== Escolha da pasta de resultados (com explorer igual ao BACTOPIA.py) =====
+
+def _guess_bt_root_default() -> str:
+    """
+    Tenta adivinhar a pasta base do Bactopia com alguns candidatos:
+    1) outdir global do BEAR-HUB
+    2) outdir/bactopia_out
+    3) ~/BEAR_DATA/bactopia_out (fallback)
+    Escolhe o primeiro que tiver amostras detectáveis.
+    """
+    candidates: list[pathlib.Path] = []
+
+    global_outdir = st.session_state.get("outdir")
+    if global_outdir:
+        base = pathlib.Path(global_outdir).expanduser()
+        candidates.append(base)
+        candidates.append(base / "bactopia_out")
+
+    # fallback padrão
+    candidates.append(pathlib.Path.home() / "BEAR_DATA" / "bactopia_out")
+
+    for cand in candidates:
+        try:
+            cand = cand.expanduser().resolve()
+            if cand.exists() and cand.is_dir():
+                if discover_samples_from_outdir(str(cand)):
+                    return str(cand)
+        except Exception:
+            pass
+
+    # Se nada deu certo, usa o último fallback mesmo assim
+    return str((pathlib.Path.home() / "BEAR_DATA" / "bactopia_out").expanduser().resolve())
+
+
+bt_root_default = _guess_bt_root_default()
+
+# bt_outdir inicial só é definido aqui, assim não brigamos com o widget
+if "bt_outdir" not in st.session_state or not st.session_state["bt_outdir"]:
+    st.session_state["bt_outdir"] = bt_root_default
+
+bt_outdir = path_picker(
     "Pasta de resultados do Bactopia",
-    value=st.session_state.get("bt_outdir", st.session_state.get("outdir", DEFAULT_OUTDIR)),
     key="bt_outdir",
+    mode="dir",
+    start=bt_root_default,
+    help="Pasta que contém as pastas de amostras do Bactopia (uma por amostra).",
 )
+# se o usuário limpar o campo, volta pro default calculado
+bt_outdir = bt_outdir or bt_root_default
+bt_outdir = str(pathlib.Path(bt_outdir).expanduser().resolve())
+st.caption(f"Diretório atual: `{bt_outdir}`")
+
+# Descobre amostras dentro do bt_outdir atual
 samples = discover_samples_from_outdir(bt_outdir) if bt_outdir else []
 if samples:
     sel = st.multiselect(
@@ -871,7 +1056,6 @@ if st.session_state.get("bt_run_pangenome"):
             value=st.session_state.get("bt_scoary_start_col", ""),
             key="bt_scoary_start_col",
         )
-    # Novo checkbox para --permute (já usado no comando)
     st.checkbox(
         "Scoary: --permute (permutar fenótipos)",
         value=st.session_state.get("bt_scoary_permute", False),
@@ -1022,11 +1206,11 @@ if start_tools:
                 st.error("Selecione pelo menos uma amostra.")
             else:
                 include_file = write_include_file(bt_outdir, sel)
-                tools_to_run = []
+                tools_to_run: List[tuple[str, List[str]]] = []
 
                 # AMRFinderPlus
                 if st.session_state.get("bt_run_amrfinderplus"):
-                    extra = []
+                    extra: List[str] = []
                     if st.session_state.get("bt_amrfinderplus_plus"):
                         extra.append("--amrfinderplus_plus")
                     if st.session_state.get("bt_amrfinderplus_mutation_all"):
@@ -1122,7 +1306,7 @@ if start_tools:
 
                 # Pangenome
                 if st.session_state.get("bt_run_pangenome"):
-                    extra = []
+                    extra: List[str] = []
 
                     # Engine (Panaroo é o default nas versões recentes)
                     engine = st.session_state.get("bt_pangenome_engine", "Panaroo")
