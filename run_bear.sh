@@ -19,7 +19,18 @@ else
   echo "       Execute primeiro:  ./install_bear.sh"
 fi
 
-# Arquivo principal do Streamlit
+# Se BEAR_HUB_ROOT não veio do .env, define aqui
+export BEAR_HUB_ROOT="${BEAR_HUB_ROOT:-${ROOT_DIR}}"
+
+# Apenas para log: mostra bases padrão (se existirem)
+if [[ -n "${BEAR_HUB_BASEDIR:-}" ]]; then
+  echo "BEAR_HUB_BASEDIR (dados): ${BEAR_HUB_BASEDIR}"
+fi
+if [[ -n "${BEAR_HUB_OUTDIR:-}" ]]; then
+  echo "BEAR_HUB_OUTDIR (outdir): ${BEAR_HUB_OUTDIR}"
+fi
+
+# Arquivo principal do Streamlit (app multipage)
 APP_FILE="${ROOT_DIR}/BEAR-HUB.py"
 
 if [[ ! -f "${APP_FILE}" ]]; then
@@ -36,19 +47,31 @@ elif command -v conda >/dev/null 2>&1; then
   RUNNER="conda"
 else
   echo "ERRO: nem 'mamba' nem 'conda' encontrados no PATH."
-  echo "Certifique-se que o Miniconda está instalado e no PATH."
+  echo "Certifique-se que o Miniconda/Mamba está instalado e no PATH."
   exit 1
 fi
 
+# Verifica se o ambiente bear-hub existe (só pra dar erro mais amigável)
+if ! "${RUNNER}" env list 2>/dev/null | awk 'NF>=2 {print $1}' | grep -qx "bear-hub"; then
+  echo "ERRO: ambiente 'bear-hub' não encontrado pelo '${RUNNER} env list'."
+  echo "Execute primeiro o instalador:"
+  echo "  ./install_bear.sh"
+  exit 1
+fi
+
+echo
 echo "Usando: ${RUNNER} run -n bear-hub ..."
-echo "Se precisar, você pode passar opções do Streamlit, ex.:"
+echo "Se precisar, você pode passar opções do Streamlit, por exemplo:"
 echo "  ./run_bear.sh --server.port 8502"
+echo
+echo "Lembrete: o Bactopia será executado pelo app sempre com '-profile docker'."
 echo
 
 cd "${ROOT_DIR}"
 
 # IMPORTANTE:
-# - 'source .bear-hub.env' já ajustou PATH (incluindo o bin do ambiente bactopia)
+# - 'source .bear-hub.env' já ajustou variáveis (BEAR_HUB_ROOT, BEAR_HUB_BASEDIR, etc)
 # - '${RUNNER} run -n bear-hub' cria um processo dentro do env bear-hub,
-#   preservando esse PATH estendido, então o app ainda enxerga 'nextflow', 'bactopia', etc.
+#   preservando essas variáveis de ambiente, então o app consegue
+#   encontrar o Bactopia/Nextflow e a configuração do BEAR-HUB.
 exec "${RUNNER}" run -n bear-hub streamlit run "${APP_FILE}" "$@"

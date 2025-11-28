@@ -14,6 +14,7 @@
 # • Ajustes de NXF_HOME e diretório .nextflow (para evitar erro history.lock)
 # • Integração com BACTOPIA_ENV_PREFIX (Nextflow do ambiente 'bactopia')
 # • Integração automática com ~/.bear-hub.env (se não tiver sido “sourced”)
+# • Execução do Bactopia sempre com '-profile docker' (Docker obrigatório)
 # ---------------------------------------------------------------------
 
 import os
@@ -226,10 +227,6 @@ def which(cmd: str):
 
 def docker_available():
     return which("docker") is not None
-
-
-def singularity_available():
-    return which("singularity") is not None or which("apptainer") is not None
 
 
 def get_nextflow_bin() -> str:
@@ -877,49 +874,30 @@ with st.sidebar:
     st.header("Ambiente")
     nf_ok = nextflow_available()
     docker_ok = docker_available()
-    sing_ok = singularity_available()
     st.write(
         f"Nextflow: {'✅' if nf_ok else '❌'} | "
-        f"Docker: {'✅' if docker_ok else '❌'} | "
-        f"Singularity/Apptainer: {'✅' if sing_ok else '❌'}"
+        f"Docker: {'✅' if docker_ok else '❌'}"
     )
     st.caption(
-        "Em instalações locais com conda, use o profile 'standard'. "
-        "Perfis 'docker' e 'singularity' são opcionais e só funcionam se "
-        "Docker ou Singularity/Apptainer estiverem instalados."
+        "Este app executa o Bactopia **exclusivamente** com `-profile docker`.\n"
+        "É obrigatório ter o Docker instalado e acessível para o usuário que roda o Streamlit."
     )
-    if nf_ok:
+    if not nf_ok:
+        st.error("Nextflow não encontrado (nem no PATH, nem em BACTOPIA_ENV_PREFIX).", icon="⚠️")
+    else:
         if BACTOPIA_NEXTFLOW_BIN:
             st.caption(f"Nextflow via ambiente Bactopia: `{BACTOPIA_NEXTFLOW_BIN}`")
         else:
             st.caption("Nextflow encontrado via PATH do sistema.")
 
-    if BACTOPIA_ENV_PREFIX:
-        st.caption(f"BACTOPIA_ENV_PREFIX: `{BACTOPIA_ENV_PREFIX}`")
-    else:
-        st.warning(
-            "BACTOPIA_ENV_PREFIX não definido. "
-            "O app vai usar o 'nextflow' do sistema. "
-            "Se você instalou via install_bear.sh, confira se .bear-hub.env foi criado.",
+    if not docker_ok:
+        st.error(
+            "Docker não está disponível. Instale e habilite o Docker antes de rodar o Bactopia.",
             icon="⚠️",
         )
 
-    solver = os.environ.get("NXF_CONDA_EXE")
-    if solver:
-        st.caption(f"NXF_CONDA_EXE: `{solver}`")
-        if not os.path.exists(solver):
-            st.warning(
-                "NXF_CONDA_EXE aponta para um binário inexistente. "
-                "Verifique se o ambiente 'bactopia' foi criado pelo install_bear.sh.",
-                icon="⚠️",
-            )
-    else:
-        st.warning(
-            "NXF_CONDA_EXE não está definido. Nextflow pode tentar usar o 'conda' do sistema "
-            "e falhar com '--mkdir'. "
-            "Recomendo rodar o install_bear.sh e/ou 'source ~/.bear-hub.env' antes do Streamlit.",
-            icon="⚠️",
-        )
+    if BACTOPIA_ENV_PREFIX:
+        st.caption(f"BACTOPIA_ENV_PREFIX: `{BACTOPIA_ENV_PREFIX}`")
 
     st.divider()
     render_presets_sidebar()
@@ -1083,11 +1061,14 @@ st.subheader("Parâmetros principais")
 with st.expander("Parâmetros globais", expanded=False):
     colA, colB = st.columns(2)
     with colA:
-        profile = st.selectbox(
+        # Força sempre '-profile docker'
+        st.session_state["profile"] = "docker"
+        st.text_input(
             "Profile",
-            ["standard", "docker", "singularity"],
-            index=0,
+            value="docker",
             key="profile",
+            disabled=True,
+            help="Este app usa sempre '-profile docker' para o Bactopia.",
         )
 
         outdir = path_picker(
@@ -1261,8 +1242,8 @@ with st.expander("Relatórios (Nextflow)", expanded=False):
 # ------------------------- Montagem do comando -------------------------
 
 def build_bactopia_cmd(params: dict) -> str:
-    # Para instalação local com conda, o default deve ser 'standard'
-    profile = params.get("profile") or "standard"
+    # Este app força o uso de '-profile docker' (execução via containers)
+    profile = params.get("profile") or "docker"
     outdir = params.get("outdir", DEFAULT_OUTDIR)
     datasets = params.get("datasets")
     fastp_opts = params.get("fastp_opts")
@@ -1349,17 +1330,11 @@ st.code(cmd, language="bash")
 # ------------------------- Validação pré-execução -------------------------
 def preflight_validate(params: dict, fofn_path: str) -> list[str]:
     errs: list[str] = []
-    prof = params.get("profile")
 
-    if prof == "docker" and not docker_available():
+    if not docker_available():
         errs.append(
-            "Profile 'docker' selecionado, mas Docker não está disponível no PATH. "
-            "Na instalação local com conda, use normalmente o profile 'standard'."
-        )
-
-    if prof == "singularity" and not singularity_available():
-        errs.append(
-            "Profile 'singularity' selecionado, mas Singularity/Apptainer não está disponível no PATH."
+            "Docker não está disponível no PATH. "
+            "Este app executa o Bactopia apenas com '-profile docker', portanto o Docker é obrigatório."
         )
 
     datasets = params.get("datasets")
