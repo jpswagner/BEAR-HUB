@@ -57,10 +57,17 @@ def bootstrap_bear_env_from_file():
       - BEAR_HUB_BASEDIR (se não existir)
       - BACTOPIA_ENV_PREFIX
       - NXF_CONDA_EXE
-    Só define a variável se ela ainda não existir em os.environ.
+
+    Regras:
+      - Só pulamos o carregamento se BACTOPIA_ENV_PREFIX já existe E NXF_CONDA_EXE
+        aponta para um binário válido.
+      - Para NXF_CONDA_EXE, se a variável existir mas apontar para um caminho
+        inexistente, ela será sobrescrita pelo valor do .bear-hub.env.
+      - Para as demais variáveis, só definimos se ainda não existirem em os.environ.
     """
-    # Se já temos BACTOPIA_ENV_PREFIX, assumimos que o ambiente já foi preparado
-    if os.environ.get("BACTOPIA_ENV_PREFIX"):
+    # Se já temos BACTOPIA_ENV_PREFIX e um NXF_CONDA_EXE válido, assume ambiente pronto
+    solver = os.environ.get("NXF_CONDA_EXE")
+    if os.environ.get("BACTOPIA_ENV_PREFIX") and solver and os.path.exists(solver):
         return
 
     candidates: list[pathlib.Path] = []
@@ -90,8 +97,18 @@ def bootstrap_bear_env_from_file():
                     if ((value.startswith('"') and value.endswith('"'))
                             or (value.startswith("'") and value.endswith("'"))):
                         value = value[1:-1]
-                    if var and value and var not in os.environ:
-                        os.environ[var] = value
+                    if not var or not value:
+                        continue
+
+                    if var == "NXF_CONDA_EXE":
+                        # Se já existir mas apontar pra um caminho inválido, sobrescreve
+                        cur = os.environ.get("NXF_CONDA_EXE")
+                        if (not cur) or (cur and not os.path.exists(cur)):
+                            os.environ["NXF_CONDA_EXE"] = value
+                    else:
+                        # Outras variáveis só são definidas se ainda não existirem
+                        if var not in os.environ:
+                            os.environ[var] = value
             break
         except Exception:
             # Se der erro na leitura, tenta próximo candidate
