@@ -25,11 +25,14 @@ Você vai precisar de:
 - [x] **Conda** (Miniconda, Anaconda ou Mambaforge)
 - [x] Acesso à internet (para instalar pacotes e, se necessário, baixar datasets do Bactopia)
 - [x] Espaço em disco (vários GB se for rodar Bactopia com muitas amostras)
-- [ ] (Opcional, mas recomendado para Bactopia)  
-      **Docker** ou **Apptainer/Singularity** como engine de container
+- [x] **Docker** (recomendado e considerado o caminho “oficial” para rodar o Bactopia via BEAR-HUB)  
+- [ ] (Opcional) **Apptainer/Singularity** – para quem quiser adaptar perfis com Singularity
 
-> 💡 Por enquanto o **método recomendado e suportado oficialmente** é a instalação **local via conda**, usando o script `install_bear.sh`.  
-> O modo via Docker da aplicação inteira foi descontinuado.
+> 💡 Hoje a interface do Bactopia no BEAR-HUB é pensada para uso com **containers** (profile `docker`, e futuramente `singularity`).  
+> Execução “pura” via conda (`-profile standard`) é possível para usuários avançados, mas **não é o caminho suportado pelo instalador**.
+
+> 💡 O **método recomendado** para instalar o BEAR-HUB é via **conda**, usando o script `install_bear.sh`.  
+> O modo “tudo em Docker” da aplicação inteira foi descontinuado.
 
 ---
 
@@ -45,95 +48,130 @@ cd BEAR-HUB
 2.2. Deixar os scripts executáveis
 
 ```bash
+
 chmod +x install_bear.sh run_bear.sh
 ```
 
 2.3. Rodar o instalador
 O script abaixo vai:
 
-Criar (ou reaproveitar) o ambiente conda chamado bear-hub
+Criar (ou reaproveitar) um ambiente conda chamado bear-hub, contendo:
 
-Instalar:
+python 3.11
 
-python (3.11)
+streamlit
 
-openjdk=11
+pyyaml
+(outros pacotes Python usados pelo app podem ser instalados depois via pip ou ajustando o instalador/conjunto de dependências).
 
-nextflow
+Criar (ou reaproveitar) um ambiente conda chamado bactopia, contendo:
 
-bactopia
+o pacote bactopia (a partir de conda-forge + bioconda), que traz Nextflow/Java e dependências do pipeline.
 
-git e pip
+Detectar o prefixo real desses ambientes via conda env list.
 
-Instalar as dependências Python do app via requirements.txt (Streamlit etc.)
+Criar um arquivo de configuração ${HOME}/BEAR-HUB/.bear-hub.env com:
+
+BEAR_HUB_ROOT – apontando para ~/BEAR-HUB
+
+BACTOPIA_ENV_PREFIX – apontando para o prefixo do ambiente bactopia
+
+NXF_CONDA_EXE – apontando para o binário do mamba, se estiver disponível
+(para o Nextflow usar esse solver ao invés do conda puro).
 
 ```bash
+
 ./install_bear.sh
 ```
 
-Se tudo der certo, você verá algo como:
+Se tudo der certo, você verá mensagens indicando:
 
-```text
-OK! Ambiente 'bear-hub' pronto.
-Para rodar o app, use:  ./run_bear.sh
-```
+criação ou reaproveitamento de bear-hub
+
+criação ou reaproveitamento de bactopia
+
+gravação de ${HOME}/BEAR-HUB/.bear-hub.env com as variáveis acima
 
 📌 Observação
-A primeira vez pode demorar um pouco, porque o conda precisa baixar vários pacotes de bioconda/conda-forge.
+A primeira vez pode demorar um pouco, porque o conda precisa baixar vários pacotes de conda-forge e bioconda.
 
 ▶️ 3. Como rodar o BEAR-HUB
 Depois da instalação:
 
 ```bash
+
 ./run_bear.sh
 ```
 
 Esse script:
 
-Usa o ambiente conda bear-hub
+Descobre o diretório raiz do repositório (ROOT_DIR)
+
+Faz source "${ROOT_DIR}/.bear-hub.env" (se existir)
+
+Usa mamba run -n bear-hub ou conda run -n bear-hub (o que estiver disponível)
 
 Executa o Streamlit com o arquivo principal BEAR-HUB.py
 
 No terminal você verá algo como:
 
 ```text
+
   You can now view your Streamlit app in your browser.
 
   Local URL: http://localhost:8501
-Abra o navegador e visite o endereço indicado (geralmente http://localhost:8501).
 ```
+Abra o navegador e visite o endereço indicado (geralmente http://localhost:8501).
 
 💡 Alternativa manual (se quiser):
 
 ```bash
+
 conda activate bear-hub
+# (opcional, mas o app já tenta buscar esse arquivo sozinho)
+# source "${HOME}/BEAR-HUB/.bear-hub.env"
 streamlit run BEAR-HUB.py
 ```
 
+O próprio app tenta localizar o .bear-hub.env (via BEAR_HUB_ROOT ou ~/BEAR-HUB), então o uso de run_bear.sh é o caminho mais simples.
+
 🧬 4. Organização geral do app
-Ao abrir o BEAR-HUB, você verá uma tela inicial com algumas informações de ambiente
-(SO, Nextflow, Docker/Apptainer detectado ou não) e links para as páginas:
+Ao abrir o BEAR-HUB, você verá uma tela inicial com algumas informações de ambiente:
+
+SO
+
+Nextflow encontrado (via PATH ou via BACTOPIA_ENV_PREFIX/bin/nextflow)
+
+Docker/Apptainer detectados ou não
+
+E links para as páginas:
 
 4.1. Página Bactopia — Pipeline Principal
-Gera um FOFN automaticamente a partir de uma pasta com FASTQs
+Gera um FOFN (samples.txt) automaticamente a partir de uma pasta com FASTQs/FASTAs.
 
-Monta o comando do Bactopia (Nextflow) com as opções selecionadas
+Detecta automaticamente o runtype:
+
+paired-end, single-end, ont, hybrid, assembly.
+
+Monta o comando do Bactopia (Nextflow) com as opções selecionadas.
 
 Executa o pipeline de forma assíncrona, salvando resultados em:
 
 ```text
+
 ./bactopia_out/
 ```
-
 Nessa pasta, cada amostra vai gerar um diretório próprio, por exemplo:
 
 ```text
+
 bactopia_out/
   ├── 1228_S4_L001
   ├── 1862_S3_L001
   ├── 1236_S5_L001
   └── ...
 ```
+Por padrão, a documentação assume que você vai rodar o pipeline com profile docker, isto é, usando containers do Bactopia para cada processo.
 
 4.2. Página Ferramentas Bactopia
 Usa as amostras já concluídas em bactopia_out/
@@ -154,10 +192,12 @@ pangenome
 
 mashtree
 
+(entre outros)
+
 Envia cada ferramenta como um job Nextflow separado, reaproveitando o output do Bactopia principal.
 
 4.3. Página PORT (em desenvolvimento)
-Integração com o pipeline PORT para investigações de plasmídeos e outbreaks (assemblies long/short read, híbridos, etc.)
+Integração com o pipeline PORT para investigações de plasmídeos e outbreaks (assemblies long/short read, híbridos, etc.).
 
 A interface segue o mesmo padrão: seleção de assemblies de entrada + parâmetros essenciais.
 
@@ -172,17 +212,18 @@ work/ (trabalho interno do Nextflow)
 
 bactopia_out/bactopia-runs/ (metadata de runs)
 
-Pastas externas que você configurar, como BEAR_DATA / BEAR_OUT, se estiver usando perfis personalizados
+.nextflow/ (cache e histórico) – pode existir tanto em HOME quanto dentro da pasta de saída, dependendo da configuração
+
+Pastas externas que você configurar (como BEAR_DATA, BEAR_OUT etc.) podem ser usadas se você personalizar variáveis de ambiente e perfis.
 
 Você pode ajustar caminhos dentro da interface ou, se desejar fine-tuning, mexer na configuração do Bactopia (profiles, datasets, etc.) fora do app.
 
 📦 6. Bactopia, datasets e containers
-O BEAR-HUB não instala datasets do Bactopia automaticamente
-— ele só chama o comando bactopia com os parâmetros que você escolhe.
+O BEAR-HUB não instala datasets do Bactopia automaticamente — ele só chama o comando nextflow run bactopia/bactopia com os parâmetros que você escolhe.
 
 Na primeira execução de um pipeline, o Bactopia pode:
 
-Baixar datasets oficiais (vários GB), OU
+Baixar datasets oficiais (vários GB), ou
 
 Pedir um caminho de datasets já existentes
 
@@ -190,24 +231,35 @@ Para detalhes, consulte a documentação oficial do Bactopia.
 
 Sobre containers:
 
-O Bactopia normalmente é executado via Docker ou Apptainer/Singularity
+O Bactopia normalmente é executado via Docker ou Apptainer/Singularity.
 
-O BEAR-HUB apenas verifica se algum engine está disponível no PATH e deixa o Nextflow/Bactopia cuidarem do resto
+A interface do BEAR-HUB foi pensada para uso com containers:
 
-👉 Mesmo que o app em si não esteja rodando em Docker,
-as ferramentas de bioinformática podem sim ser executadas em containers via Bactopia/Nextflow.
+-profile docker (caminho recomendado/testado)
+
+-profile singularity (para quem tiver Apptainer/Singularity ajustado)
+
+Mesmo que o app em si não esteja rodando em Docker,
+as ferramentas de bioinformática podem ser executadas em containers via Bactopia/Nextflow.
+
+⚠️ O uso de -profile standard (conda puro) pode voltar a depender de criação de ambientes via conda/mamba dentro do pipeline
+e não é coberto pelo install_bear.sh. Se você quiser usar este modo, considere-o um cenário avançado.
 
 ❓ 7. Problemas comuns
 conda: command not found
+
 → Instale Miniconda/Mambaforge, feche e reabra o terminal, depois rode novamente:
 
 ```bash
+
 ./install_bear.sh
 Streamlit abre mas não encontro as páginas
-
 ```
+
 → Verifique se a estrutura está assim:
+
 ```text
+
 BEAR-HUB/
   BEAR-HUB.py
   pages/
@@ -215,14 +267,24 @@ BEAR-HUB/
     BACTOPIA-TOOLS.py
     PORT.py
     TEST.py
-
 ```
 (as páginas precisam estar dentro da pasta pages/)
 
 Bactopia reclamando de datasets / profiles
-→ Ajuste as configurações do Bactopia (datasets/profile) diretamente no seu ambiente,
-depois volte ao BEAR-HUB e rode novamente.
 
+→ Ajuste as configurações do Bactopia (datasets/profile) diretamente no seu ambiente,
+depois volte ao BEAR-HUB e rode novamente com o profile adequado (recomendado: docker).
+
+Docker não encontrado / permissão negada
+
+→ Verifique se o comando docker info funciona para o seu usuário.
+Em muitas distros, é necessário adicionar o usuário ao grupo docker e relogar:
+
+```bash
+
+sudo usermod -aG docker "$USER"
+# depois faça logout/login ou reinicie a sessão
+```
 🤝 8. Contribuição
 Sugestões, issues e PRs são bem-vindos!
 O foco do BEAR-HUB é ser:
@@ -234,9 +296,7 @@ O foco do BEAR-HUB é ser:
 🐻 Amigável para quem quer usar Bactopia/Nextflow sem decorar todos os comandos
 
 📜 9. Licença
-## Licença
-
-Este projeto é licenciado sob os termos da **MIT License**.
+Este projeto é licenciado sob os termos da MIT License.
 
 Copyright (c) 2025 João Pedro Stepan Wagner
 
