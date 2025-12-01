@@ -28,11 +28,9 @@ Você vai precisar de:
 - [x] **Docker** (recomendado e considerado o caminho “oficial” para rodar o Bactopia via BEAR-HUB)  
 - [ ] (Opcional) **Apptainer/Singularity** – para quem quiser adaptar perfis com Singularity
 
-> 💡 Hoje a interface do Bactopia no BEAR-HUB é pensada para uso com **containers** (profile `docker`, e futuramente `singularity`).  
-> Execução “pura” via conda (`-profile standard`) é possível para usuários avançados, mas **não é o caminho suportado pelo instalador**.
 
 > 💡 O **método recomendado** para instalar o BEAR-HUB é via **conda**, usando o script `install_bear.sh`.  
-> O modo “tudo em Docker” da aplicação inteira foi descontinuado.
+
 
 ---
 
@@ -147,7 +145,7 @@ Docker/Apptainer detectados ou não
 E links para as páginas:
 
 4.1. Página Bactopia — Pipeline Principal
-Gera um FOFN (samples.txt) automaticamente a partir de uma pasta com FASTQs/FASTAs.
+Gera um FOFN (samples.txt) automaticamente a partir de uma pasta com FASTQs/FASTAs (Pode ser selecionada uma pasta onde os fastqs estejam dentro de subpastas. É possível que os fastqs não estejam visiveis na pelo explorer do app, não se preocupe a criação do FOFN ainda funciona, em breve corrigiremos a visualização).
 
 Detecta automaticamente o runtype:
 
@@ -236,8 +234,6 @@ O Bactopia normalmente é executado via Docker ou Apptainer/Singularity.
 A interface do BEAR-HUB foi pensada para uso com containers:
 
 -profile docker (caminho recomendado/testado)
-
--profile singularity (para quem tiver Apptainer/Singularity ajustado)
 
 Mesmo que o app em si não esteja rodando em Docker,
 as ferramentas de bioinformática podem ser executadas em containers via Bactopia/Nextflow.

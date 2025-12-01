@@ -870,10 +870,20 @@ def check_status_and_finalize_ns(outdir: str, ns: str, status_box, report_zone):
     return finalized
 
 # ============================= Sidebar =============================
-ICON_PATH = APP_ROOT / "static" / "bear-hub-icon.png"
+# APP_ROOT já existe e é o diretório deste arquivo
+# descobrimos a raiz do projeto de forma segura
+if (APP_ROOT / "static").is_dir():
+    PROJECT_ROOT = APP_ROOT
+elif (APP_ROOT.parent / "static").is_dir():
+    PROJECT_ROOT = APP_ROOT.parent
+else:
+    PROJECT_ROOT = APP_ROOT  # fallback
+
+ICON_PATH = PROJECT_ROOT / "static" / "bear-hub-icon.png"
 
 with st.sidebar:
         # --- Logo + título no topo da sidebar ---
+    # --- Logo + título no topo da sidebar ---
     if ICON_PATH.is_file():
         col_logo, col_title = st.columns([1, 4])
         with col_logo:
