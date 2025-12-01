@@ -870,7 +870,21 @@ def check_status_and_finalize_ns(outdir: str, ns: str, status_box, report_zone):
     return finalized
 
 # ============================= Sidebar =============================
+ICON_PATH = APP_ROOT / "static" / "bear-hub-icon.png"
+
 with st.sidebar:
+        # --- Logo + título no topo da sidebar ---
+    if ICON_PATH.is_file():
+        col_logo, col_title = st.columns([1, 4])
+        with col_logo:
+            st.image(str(ICON_PATH), width=32)
+        with col_title:
+            st.markdown("**BEAR-HUB**")
+    else:
+        # fallback se o arquivo não existir
+        st.markdown("**🧬 BEAR-HUB**")
+
+    st.markdown("---")  # linha separadora
     st.header("Ambiente")
     nf_ok = nextflow_available()
     docker_ok = docker_available()
