@@ -25,7 +25,23 @@ if ! command -v docker >/dev/null 2>&1; then
     echo "BEAR-HUB executa o Bactopia sempre com '-profile docker',"
     echo "então é obrigatório ter o Docker instalado e acessível."
     echo
-    echo "Instale o Docker (ou rootless/docker desktop) e tente novamente."
+    echo "Instale o Docker e tente novamente."
+    echo
+    echo "Sugestão rápida para Ubuntu/Debian (como root ou com sudo):"
+    echo "  sudo apt-get update"
+    echo "  sudo apt-get install -y ca-certificates curl gnupg"
+    echo "  sudo install -m 0755 -d /etc/apt/keyrings"
+    echo "  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg"
+    echo "  echo \"deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \\\$(. /etc/os-release && echo \\\"\$VERSION_CODENAME\\\") stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null"
+    echo "  sudo apt-get update"
+    echo "  sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin"
+    echo
+    echo "Depois, adicione seu usuário ao grupo docker (opcional, mas recomendado):"
+    echo "  sudo usermod -aG docker \"\$USER\""
+    echo "  # faça logout/login da sessão para o grupo valer"
+    echo
+    echo "Para outras distros/OS, veja a documentação oficial:"
+    echo "  https://docs.docker.com/engine/install/"
     exit 1
 fi
 
@@ -52,7 +68,24 @@ fi
 if [[ -z "${MAMBA_BIN}" && -z "${CONDA_BIN}" ]]; then
     echo
     echo "ERRO: nem 'mamba' nem 'conda' encontrados no PATH."
-    echo "Instale Miniconda/Mamba e tente novamente."
+    echo "O BEAR-HUB usa ambientes conda para:"
+    echo "  - 'bear-hub' (UI em Streamlit)"
+    echo "  - 'bactopia' (pipeline Bactopia + Nextflow)"
+    echo
+    echo "Sugestão rápida para instalar Miniconda (Linux x86_64):"
+    echo "  cd \"\$HOME\""
+    echo "  curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda.sh"
+    echo "  bash miniconda.sh"
+    echo "  # siga o instalador interativo; ao final, feche e reabra o terminal"
+    echo
+    echo "Depois disso, verifique se o 'conda' está disponível:"
+    echo "  conda --version"
+    echo
+    echo "Opcional (recomendado) – instalar mamba no ambiente base:"
+    echo "  conda install -n base -c conda-forge mamba"
+    echo
+    echo "Documentação oficial do Miniconda:"
+    echo "  https://docs.conda.io/projects/miniconda/en/latest/"
     exit 1
 fi
 
@@ -203,9 +236,13 @@ if [[ -n "${BACTOPIA_PREFIX}" ]]; then
     echo "Para usar no shell atual, execute:"
     echo "  source \"${CONFIG_FILE}\""
     echo
-    echo "Depois disso, ative o ambiente da UI e rode o app, por exemplo:"
+    echo "Depois disso, você pode subir o app com o launcher:"
+    echo "  cd \"${ROOT_DIR}\""
+    echo "  ./run_bear.sh"
+    echo
+    echo "Ou manualmente, por exemplo:"
     echo "  conda activate bear-hub"
-    echo "  streamlit run app_bactopia_main.py"
+    echo "  streamlit run BEAR-HUB.py"
 else
     echo
     echo "ERRO: não foi possível encontrar o prefixo do ambiente 'bactopia' via 'conda env list'."
