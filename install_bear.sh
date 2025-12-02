@@ -4,7 +4,7 @@ set -euo pipefail
 echo "==============================="
 echo "  BEAR-HUB - Instalador"
 echo "  (modo local, Bactopia via Docker)"
-echo "==============================="
+echo "===============================""
 
 ROOT_DIR="${HOME}/BEAR-HUB"
 DATA_DIR="${ROOT_DIR}/data"
@@ -202,6 +202,27 @@ BACTOPIA_PREFIX="$(get_env_prefix 'bactopia')"
 
 if [[ -n "${BACTOPIA_PREFIX}" ]]; then
     echo "Prefixo do ambiente 'bactopia': ${BACTOPIA_PREFIX}"
+
+    # -----------------------------------------------------
+    # Garantir que o 'nextflow' exista dentro do ambiente
+    # -----------------------------------------------------
+    if [[ ! -x "${BACTOPIA_PREFIX}/bin/nextflow" ]]; then
+        echo
+        echo "nextflow não encontrado em '${BACTOPIA_PREFIX}/bin/nextflow'."
+        echo "Instalando nextflow dentro do ambiente 'bactopia'..."
+
+        if [[ -n "${MAMBA_BIN}" ]]; then
+            "${MAMBA_BIN}" install -y -n bactopia -c bioconda -c conda-forge nextflow
+        else
+            "${CONDA_BIN}" install -y -n bactopia -c bioconda -c conda-forge nextflow
+        fi
+
+        # Recarregar prefixo só por segurança (caso algo mude)
+        BACTOPIA_PREFIX="$(get_env_prefix 'bactopia')"
+        echo "nextflow instalado. Prefixo atualizado: ${BACTOPIA_PREFIX}"
+    else
+        echo "nextflow já encontrado em: ${BACTOPIA_PREFIX}/bin/nextflow"
+    fi
 
     # Solver de conda usado pelo Nextflow (só é relevante se algum profile usar conda;
     # como o BEAR-HUB força '-profile docker', isso fica mais como backup/compat).
