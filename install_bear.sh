@@ -4,7 +4,7 @@ set -euo pipefail
 echo "==============================="
 echo "  BEAR-HUB - Instalador"
 echo "  (modo local, Bactopia via Docker)"
-echo "===============================""
+echo "==============================="
 
 ROOT_DIR="${HOME}/BEAR-HUB"
 DATA_DIR="${ROOT_DIR}/data"
@@ -20,28 +20,33 @@ mkdir -p "${ROOT_DIR}" "${DATA_DIR}" "${OUT_DIR}"
 # Verificar Docker (obrigatório para Bactopia)
 # ---------------------------------------------------------
 if ! command -v docker >/dev/null 2>&1; then
-    echo
-    echo "ERRO: 'docker' não foi encontrado no PATH."
-    echo "BEAR-HUB executa o Bactopia sempre com '-profile docker',"
-    echo "então é obrigatório ter o Docker instalado e acessível."
-    echo
-    echo "Instale o Docker e tente novamente."
-    echo
-    echo "Sugestão rápida para Ubuntu/Debian (como root ou com sudo):"
-    echo "  sudo apt-get update"
-    echo "  sudo apt-get install -y ca-certificates curl gnupg"
-    echo "  sudo install -m 0755 -d /etc/apt/keyrings"
-    echo "  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg"
-    echo "  echo \"deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \\\$(. /etc/os-release && echo \\\"\$VERSION_CODENAME\\\") stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null"
-    echo "  sudo apt-get update"
-    echo "  sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin"
-    echo
-    echo "Depois, adicione seu usuário ao grupo docker (opcional, mas recomendado):"
-    echo "  sudo usermod -aG docker \"\$USER\""
-    echo "  # faça logout/login da sessão para o grupo valer"
-    echo
-    echo "Para outras distros/OS, veja a documentação oficial:"
-    echo "  https://docs.docker.com/engine/install/"
+    cat <<'EOF'
+
+ERRO: 'docker' não foi encontrado no PATH.
+BEAR-HUB executa o Bactopia sempre com '-profile docker',
+então é obrigatório ter o Docker instalado e acessível.
+
+Instale o Docker e tente novamente.
+
+Sugestão rápida para Ubuntu/Debian (como root ou com sudo):
+
+  sudo apt-get update
+  sudo apt-get install -y ca-certificates curl gnupg
+  sudo install -m 0755 -d /etc/apt/keyrings
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  sudo apt-get update
+  sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+Depois, adicione seu usuário ao grupo docker (opcional, mas recomendado):
+
+  sudo usermod -aG docker "$USER"
+  # faça logout/login da sessão para o grupo valer
+
+Para outras distros/OS, veja a documentação oficial:
+  https://docs.docker.com/engine/install/
+
+EOF
     exit 1
 fi
 
@@ -66,26 +71,32 @@ if command -v conda >/dev/null 2>&1; then
 fi
 
 if [[ -z "${MAMBA_BIN}" && -z "${CONDA_BIN}" ]]; then
-    echo
-    echo "ERRO: nem 'mamba' nem 'conda' encontrados no PATH."
-    echo "O BEAR-HUB usa ambientes conda para:"
-    echo "  - 'bear-hub' (UI em Streamlit)"
-    echo "  - 'bactopia' (pipeline Bactopia + Nextflow)"
-    echo
-    echo "Sugestão rápida para instalar Miniconda (Linux x86_64):"
-    echo "  cd \"\$HOME\""
-    echo "  curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda.sh"
-    echo "  bash miniconda.sh"
-    echo "  # siga o instalador interativo; ao final, feche e reabra o terminal"
-    echo
-    echo "Depois disso, verifique se o 'conda' está disponível:"
-    echo "  conda --version"
-    echo
-    echo "Opcional (recomendado) – instalar mamba no ambiente base:"
-    echo "  conda install -n base -c conda-forge mamba"
-    echo
-    echo "Documentação oficial do Miniconda:"
-    echo "  https://docs.conda.io/projects/miniconda/en/latest/"
+    cat <<'EOF'
+
+ERRO: nem 'mamba' nem 'conda' encontrados no PATH.
+O BEAR-HUB usa ambientes conda para:
+  - 'bear-hub' (UI em Streamlit)
+  - 'bactopia' (pipeline Bactopia + Nextflow)
+
+Sugestão rápida para instalar Miniconda (Linux x86_64):
+
+  cd "$HOME"
+  curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda.sh
+  bash miniconda.sh
+  # siga o instalador interativo; ao final, feche e reabra o terminal
+
+Depois disso, verifique se o 'conda' está disponível:
+
+  conda --version
+
+Opcional (recomendado) – instalar mamba no ambiente base:
+
+  conda install -n base -c conda-forge mamba
+
+Documentação oficial do Miniconda:
+  https://docs.conda.io/projects/miniconda/en/latest/
+
+EOF
     exit 1
 fi
 
@@ -209,23 +220,60 @@ if [[ -n "${BACTOPIA_PREFIX}" ]]; then
     if [[ ! -x "${BACTOPIA_PREFIX}/bin/nextflow" ]]; then
         echo
         echo "nextflow não encontrado em '${BACTOPIA_PREFIX}/bin/nextflow'."
-        echo "Instalando nextflow dentro do ambiente 'bactopia'..."
+        echo "Tentando instalar nextflow dentro do ambiente 'bactopia'..."
 
         if [[ -n "${MAMBA_BIN}" ]]; then
-            "${MAMBA_BIN}" install -y -n bactopia -c bioconda -c conda-forge nextflow
+            "${MAMBA_BIN}" install -y -n bactopia -c bioconda -c conda-forge nextflow || true
         else
-            "${CONDA_BIN}" install -y -n bactopia -c bioconda -c conda-forge nextflow
+            "${CONDA_BIN}" install -y -n bactopia -c bioconda -c conda-forge nextflow || true
         fi
 
         # Recarregar prefixo só por segurança (caso algo mude)
         BACTOPIA_PREFIX="$(get_env_prefix 'bactopia')"
-        echo "nextflow instalado. Prefixo atualizado: ${BACTOPIA_PREFIX}"
+
+        # Se ainda não apareceu, baixa via get.nextflow.io
+        if [[ ! -x "${BACTOPIA_PREFIX}/bin/nextflow" ]]; then
+            echo
+            echo "ATENÇÃO: 'nextflow' ainda não foi encontrado em '${BACTOPIA_PREFIX}/bin/nextflow'."
+            echo "Baixando nextflow pelo script oficial (get.nextflow.io)..."
+
+            mkdir -p "${BACTOPIA_PREFIX}/bin"
+
+            if command -v curl >/dev/null 2>&1; then
+                (
+                    cd "${BACTOPIA_PREFIX}/bin"
+                    curl -fsSL https://get.nextflow.io -o nextflow
+                )
+            elif command -v wget >/dev/null 2>&1; then
+                (
+                    cd "${BACTOPIA_PREFIX}/bin"
+                    wget -qO nextflow https://get.nextflow.io
+                )
+            else
+                echo
+                echo "ERRO: nem 'curl' nem 'wget' encontrados para baixar nextflow."
+                echo "Instale 'curl' ou 'wget' e rode novamente 'install_bear.sh',"
+                echo "ou instale manualmente o binário em '${BACTOPIA_PREFIX}/bin/nextflow'."
+                exit 1
+            fi
+
+            chmod +x "${BACTOPIA_PREFIX}/bin/nextflow"
+        fi
+
+        # Checagem final
+        if [[ -x "${BACTOPIA_PREFIX}/bin/nextflow" ]]; then
+            echo "nextflow disponível em: ${BACTOPIA_PREFIX}/bin/nextflow"
+        else
+            echo
+            echo "ERRO: não foi possível garantir um 'nextflow' utilizável."
+            echo "Verifique a instalação do ambiente 'bactopia' e rode o instalador novamente."
+            exit 1
+        fi
     else
         echo "nextflow já encontrado em: ${BACTOPIA_PREFIX}/bin/nextflow"
     fi
 
-    # Solver de conda usado pelo Nextflow (só é relevante se algum profile usar conda;
-    # como o BEAR-HUB força '-profile docker', isso fica mais como backup/compat).
+    # Solver de conda usado pelo Nextflow
     NXF_SOLVER=""
     if [[ -n "${MAMBA_BIN}" ]]; then
         NXF_SOLVER="${MAMBA_BIN}"
