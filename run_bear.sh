@@ -9,28 +9,26 @@ echo "  BEAR-HUB - Launcher"
 echo "==============================="
 echo "ROOT_DIR: ${ROOT_DIR}"
 
+CONFIG_FILE="${ROOT_DIR}/.bear-hub.env"
+
 # Carrega configuração gerada pelo install_bear.sh (se existir)
-if [[ -f "${ROOT_DIR}/.bear-hub.env" ]]; then
-  echo "Carregando configuração de ${ROOT_DIR}/.bear-hub.env"
+if [[ -f "${CONFIG_FILE}" ]]; then
+  echo "Carregando configuração de ${CONFIG_FILE}"
   # shellcheck disable=SC1090
-  source "${ROOT_DIR}/.bear-hub.env"
+  source "${CONFIG_FILE}"
+
+  if [[ -n "${BEAR_HUB_BASEDIR:-}" ]]; then
+    echo "BEAR_HUB_BASEDIR (dados): ${BEAR_HUB_BASEDIR}"
+  fi
+  if [[ -n "${BEAR_HUB_OUTDIR:-}" ]]; then
+    echo "BEAR_HUB_OUTDIR (outdir): ${BEAR_HUB_OUTDIR}"
+  fi
 else
-  echo "AVISO: ${ROOT_DIR}/.bear-hub.env não encontrado."
+  echo "AVISO: ${CONFIG_FILE} não encontrado."
   echo "       Execute primeiro:  ./install_bear.sh"
 fi
 
-# Se BEAR_HUB_ROOT não veio do .env, define aqui
-export BEAR_HUB_ROOT="${BEAR_HUB_ROOT:-${ROOT_DIR}}"
-
-# Apenas para log: mostra bases padrão (se existirem)
-if [[ -n "${BEAR_HUB_BASEDIR:-}" ]]; then
-  echo "BEAR_HUB_BASEDIR (dados): ${BEAR_HUB_BASEDIR}"
-fi
-if [[ -n "${BEAR_HUB_OUTDIR:-}" ]]; then
-  echo "BEAR_HUB_OUTDIR (outdir): ${BEAR_HUB_OUTDIR}"
-fi
-
-# Arquivo principal do Streamlit (app multipage)
+# Arquivo principal do Streamlit
 APP_FILE="${ROOT_DIR}/BEAR-HUB.py"
 
 if [[ ! -f "${APP_FILE}" ]]; then
@@ -51,27 +49,48 @@ else
   exit 1
 fi
 
-# Verifica se o ambiente bear-hub existe (só pra dar erro mais amigável)
-if ! "${RUNNER}" env list 2>/dev/null | awk 'NF>=2 {print $1}' | grep -qx "bear-hub"; then
-  echo "ERRO: ambiente 'bear-hub' não encontrado pelo '${RUNNER} env list'."
-  echo "Execute primeiro o instalador:"
-  echo "  ./install_bear.sh"
-  exit 1
+# ---------------------------------------------------------
+# Checagem AMIGÁVEL do ambiente 'bear-hub'
+#   - Usa conda env list se existir
+#   - Se não achar, só avisa e segue em frente
+# ---------------------------------------------------------
+ENV_LIST=""
+CHECK_TOOL=""
+
+if command -v conda >/dev/null 2>&1; then
+  CHECK_TOOL="conda"
+  ENV_LIST="$(conda env list 2>/dev/null || true)"
+elif command -v mamba >/dev/null 2>&1; then
+  CHECK_TOOL="mamba"
+  ENV_LIST="$(mamba env list 2>/dev/null || true)"
+fi
+
+if [[ -n "${ENV_LIST}" ]]; then
+  if printf '%s\n' "${ENV_LIST}" | grep -Eq '^[[:space:]]*bear-hub[[:space:]]'; then
+    echo "Ambiente 'bear-hub' encontrado via '${CHECK_TOOL} env list'."
+  else
+    echo "AVISO: ambiente 'bear-hub' não apareceu em '${CHECK_TOOL} env list'."
+    echo "Saída de '${CHECK_TOOL} env list':"
+    printf '%s\n' "${ENV_LIST}" | sed 's/^/  /'
+    echo
+    echo "Vou tentar rodar mesmo assim com:"
+    echo "  ${RUNNER} run -n bear-hub ..."
+  fi
+else
+  echo "AVISO: não consegui obter lista de ambientes via conda/mamba."
+  echo "Vou tentar rodar mesmo assim com:"
+  echo "  ${RUNNER} run -n bear-hub ..."
 fi
 
 echo
-echo "Usando: ${RUNNER} run -n bear-hub ..."
-echo "Se precisar, você pode passar opções do Streamlit, por exemplo:"
+echo "Usando: ${RUNNER} run -n bear-hub streamlit run ${APP_FILE}"
+echo "Você pode passar opções do Streamlit, por exemplo:"
 echo "  ./run_bear.sh --server.port 8502"
-echo
-echo "Lembrete: o Bactopia será executado pelo app sempre com '-profile docker'."
 echo
 
 cd "${ROOT_DIR}"
 
 # IMPORTANTE:
-# - 'source .bear-hub.env' já ajustou variáveis (BEAR_HUB_ROOT, BEAR_HUB_BASEDIR, etc)
-# - '${RUNNER} run -n bear-hub' cria um processo dentro do env bear-hub,
-#   preservando essas variáveis de ambiente, então o app consegue
-#   encontrar o Bactopia/Nextflow e a configuração do BEAR-HUB.
+# - '.bear-hub.env' já ajustou BEAR_HUB_ROOT/BASEDIR/OUTDIR etc.
+# - '${RUNNER} run -n bear-hub' cria o processo dentro do env bear-hub.
 exec "${RUNNER}" run -n bear-hub streamlit run "${APP_FILE}" "$@"
