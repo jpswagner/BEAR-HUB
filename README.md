@@ -90,10 +90,10 @@ criação ou reaproveitamento de bactopia
 
 gravação de ${HOME}/BEAR-HUB/.bear-hub.env com as variáveis acima
 
-📌 Observação
+## 📌 Observação
 A primeira vez pode demorar um pouco, porque o conda precisa baixar vários pacotes de conda-forge e bioconda.
 
-▶️ 3. Como rodar o BEAR-HUB
+## ▶️ 3. Como rodar o BEAR-HUB
 Depois da instalação:
 
 ```bash
@@ -133,7 +133,7 @@ streamlit run BEAR-HUB.py
 
 O próprio app tenta localizar o .bear-hub.env (via BEAR_HUB_ROOT ou ~/BEAR-HUB), então o uso de run_bear.sh é o caminho mais simples.
 
-🧬 4. Organização geral do app
+##🧬 4. Organização geral do app
 Ao abrir o BEAR-HUB, você verá uma tela inicial com algumas informações de ambiente:
 
 SO
@@ -199,10 +199,10 @@ Integração com o pipeline PORT para investigações de plasmídeos e outbreaks
 
 A interface segue o mesmo padrão: seleção de assemblies de entrada + parâmetros essenciais.
 
-📁 5. Pastas padrão
+##📁 5. Pastas padrão
 Por padrão, o BEAR-HUB usa:
 
-./bactopia_out/ — saída principal do Bactopia e das ferramentas (--wf)
+./BEAR-HUB/bactopia_out/ — saída principal do Bactopia e das ferramentas (--wf)
 
 Outras pastas relacionadas ao Bactopia/Nextflow podem aparecer, como:
 
@@ -216,7 +216,7 @@ Pastas externas que você configurar (como BEAR_DATA, BEAR_OUT etc.) podem ser u
 
 Você pode ajustar caminhos dentro da interface ou, se desejar fine-tuning, mexer na configuração do Bactopia (profiles, datasets, etc.) fora do app.
 
-📦 6. Bactopia, datasets e containers
+## 📦 6. Bactopia, datasets e containers
 O BEAR-HUB não instala datasets do Bactopia automaticamente — ele só chama o comando nextflow run bactopia/bactopia com os parâmetros que você escolhe.
 
 Na primeira execução de um pipeline, o Bactopia pode:
@@ -241,7 +241,66 @@ as ferramentas de bioinformática podem ser executadas em containers via Bactopi
 ⚠️ O uso de -profile standard (conda puro) pode voltar a depender de criação de ambientes via conda/mamba dentro do pipeline
 e não é coberto pelo install_bear.sh. Se você quiser usar este modo, considere-o um cenário avançado.
 
-❓ 7. Problemas comuns
+## 🔄 7. Como atualizar o BEAR-HUB (a partir do GitHub)
+
+Se você instalou o BEAR-HUB clonando este repositório:
+
+```bash
+cd /caminho/para/BEAR-HUB    # ex.: cd ~/BEAR-HUB
+git pull origin main         
+```
+
+Isso vai:
+
+baixar as alterações mais recentes do repositório (código do app, scripts, etc.)
+
+manter seus ambientes conda já criados (bear-hub e bactopia)
+
+Na maioria dos casos não é necessário recriar os ambientes.
+Mas se o README ou o install_bear.sh tiverem mudado dependências importantes, você pode rodar de novo:
+
+```bash
+
+cd /caminho/para/BEAR-HUB
+chmod +x install_bear.sh run_bear.sh
+./install_bear.sh
+```
+💡 O install_bear.sh é idempotente: ele só cria os ambientes conda se ainda não existirem
+e apenas atualiza o arquivo .bear-hub.env se necessário.
+
+## 🧹 8. Como desinstalar o BEAR-HUB (remoção completa)
+Se quiser remover o BEAR-HUB da sua máquina, os passos são:
+
+4.1. Parar o app
+Se o app estiver rodando (via run_bear.sh ou streamlit run), pare o processo
+(ctrl+C no terminal ou feche o terminal/janela).
+
+4.2. Remover ambientes conda
+Remova os ambientes criados pelo instalador:
+
+```bash
+
+conda remove -n bear-hub --all
+conda remove -n bactopia --all
+```
+Confirme quando o conda perguntar.
+
+4.3. Excluir pastas do BEAR-HUB e saídas do Bactopia
+Pasta do repositório (código do app):
+
+```bash
+rm -rf /caminho/para/BEAR-HUB   # ex.: rm -rf ~/BEAR-HUB
+```
+Pasta de saída padrão do Bactopia (se quiser liberar espaço):
+
+```bash
+rm -rf ~/BEAR-HUB/bactopia_out
+```
+⚠️ Isso apaga todos os resultados de execução do Bactopia (assemblies, relatórios, etc.).
+Faça backup antes se precisar desses arquivos.
+
+
+❓ 9. Problemas comuns
 conda: command not found
 
 → Instale Miniconda/Mambaforge, feche e reabra o terminal, depois rode novamente:
@@ -281,7 +340,7 @@ Em muitas distros, é necessário adicionar o usuário ao grupo docker e relogar
 sudo usermod -aG docker "$USER"
 # depois faça logout/login ou reinicie a sessão
 ```
-🤝 8. Contribuição
+🤝 10. Contribuição
 Sugestões, issues e PRs são bem-vindos!
 O foco do BEAR-HUB é ser:
 
@@ -291,7 +350,7 @@ O foco do BEAR-HUB é ser:
 
 🐻 Amigável para quem quer usar Bactopia/Nextflow sem decorar todos os comandos
 
-📜 9. Licença
+📜 11. Licença
 Este projeto é licenciado sob os termos da MIT License.
 
 Copyright (c) 2025 João Pedro Stepan Wagner
