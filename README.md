@@ -340,7 +340,7 @@ Em muitas distros, é necessário adicionar o usuário ao grupo docker e relogar
 sudo usermod -aG docker "$USER"
 # depois faça logout/login ou reinicie a sessão
 ```
-🤝 10. Contribuição
+## 🤝 10. Contribuição
 Sugestões, issues e PRs são bem-vindos!
 O foco do BEAR-HUB é ser:
 
@@ -350,7 +350,7 @@ O foco do BEAR-HUB é ser:
 
 🐻 Amigável para quem quer usar Bactopia/Nextflow sem decorar todos os comandos
 
-📜 11. Licença
+## 📜 11. Licença
 Este projeto é licenciado sob os termos da MIT License.
 
 Copyright (c) 2025 João Pedro Stepan Wagner
