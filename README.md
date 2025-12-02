@@ -280,8 +280,8 @@ Remova os ambientes criados pelo instalador:
 
 ```bash
 
-conda remove -n bear-hub --all
-conda remove -n bactopia --all
+conda remove -n bear-hub --all #ou mamba remove -n bear-hub --all
+conda remove -n bactopia --all #ou mamba remove -n bactopia
 ```
 Confirme quando o conda perguntar.
 
