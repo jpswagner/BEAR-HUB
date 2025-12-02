@@ -43,14 +43,14 @@ git clone https://github.com/jpswagner/BEAR-HUB.git
 cd BEAR-HUB
 ```
 
-2.2. Deixar os scripts executáveis
+### 2.2. Deixar os scripts executáveis
 
 ```bash
 
 chmod +x install_bear.sh run_bear.sh
 ```
 
-2.3. Rodar o instalador
+### 2.3. Rodar o instalador
 O script abaixo vai:
 
 Criar (ou reaproveitar) um ambiente conda chamado bear-hub, contendo:
@@ -133,7 +133,7 @@ streamlit run BEAR-HUB.py
 
 O próprio app tenta localizar o .bear-hub.env (via BEAR_HUB_ROOT ou ~/BEAR-HUB), então o uso de run_bear.sh é o caminho mais simples.
 
-##🧬 4. Organização geral do app
+## 🧬 4. Organização geral do app
 Ao abrir o BEAR-HUB, você verá uma tela inicial com algumas informações de ambiente:
 
 SO
@@ -144,7 +144,7 @@ Docker/Apptainer detectados ou não
 
 E links para as páginas:
 
-4.1. Página Bactopia — Pipeline Principal
+### 4.1. Página Bactopia — Pipeline Principal
 Gera um FOFN (samples.txt) automaticamente a partir de uma pasta com FASTQs/FASTAs (Pode ser selecionada uma pasta onde os fastqs estejam dentro de subpastas. É possível que os fastqs não estejam visiveis na pelo explorer do app, não se preocupe a criação do FOFN ainda funciona, em breve corrigiremos a visualização).
 
 Detecta automaticamente o runtype:
@@ -171,7 +171,7 @@ bactopia_out/
 ```
 Por padrão, a documentação assume que você vai rodar o pipeline com profile docker, isto é, usando containers do Bactopia para cada processo.
 
-4.2. Página Ferramentas Bactopia
+### 4.2. Página Ferramentas Bactopia
 Usa as amostras já concluídas em bactopia_out/
 
 Permite rodar workflows oficiais via --wf, como:
@@ -194,12 +194,12 @@ mashtree
 
 Envia cada ferramenta como um job Nextflow separado, reaproveitando o output do Bactopia principal.
 
-4.3. Página PORT (em desenvolvimento)
+### 4.3. Página PORT (em desenvolvimento)
 Integração com o pipeline PORT para investigações de plasmídeos e outbreaks (assemblies long/short read, híbridos, etc.).
 
 A interface segue o mesmo padrão: seleção de assemblies de entrada + parâmetros essenciais.
 
-##📁 5. Pastas padrão
+## 📁 5. Pastas padrão
 Por padrão, o BEAR-HUB usa:
 
 ./BEAR-HUB/bactopia_out/ — saída principal do Bactopia e das ferramentas (--wf)
@@ -271,11 +271,11 @@ e apenas atualiza o arquivo .bear-hub.env se necessário.
 ## 🧹 8. Como desinstalar o BEAR-HUB (remoção completa)
 Se quiser remover o BEAR-HUB da sua máquina, os passos são:
 
-4.1. Parar o app
+### 4.1. Parar o app
 Se o app estiver rodando (via run_bear.sh ou streamlit run), pare o processo
 (ctrl+C no terminal ou feche o terminal/janela).
 
-4.2. Remover ambientes conda
+### 4.2. Remover ambientes conda
 Remova os ambientes criados pelo instalador:
 
 ```bash
@@ -285,7 +285,7 @@ conda remove -n bactopia --all
 ```
 Confirme quando o conda perguntar.
 
-4.3. Excluir pastas do BEAR-HUB e saídas do Bactopia
+### 4.3. Excluir pastas do BEAR-HUB e saídas do Bactopia
 Pasta do repositório (código do app):
 
 ```bash
