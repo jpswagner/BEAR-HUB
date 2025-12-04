@@ -376,7 +376,7 @@ SOFTWARE.
 PT-BR
 
 ⚠️ Aviso sobre o Bactopia
-O BEAR-HUB não é uma modificação nem um fork oficial do Bactopia.
+O BEAR-HUB não é uma modificação nem um fork oficial do Bactopia (https://github.com/bactopia).
 Ele funciona apenas como uma camada de orquestração e interface gráfica para facilitar o uso do Bactopia e de outras ferramentas relacionadas.
 
 Todo o crédito pelo desenvolvimento do Bactopia pertence aos seus autores originais.
@@ -385,7 +385,7 @@ Este projeto não é endossado, mantido nem suportado oficialmente pelo time do 
 EN
 
 ⚠️ Notice about Bactopia
-BEAR-HUB is not an official modification or fork of Bactopia.
+BEAR-HUB is not an official modification or fork of Bactopia (https://github.com/bactopia).
 It only acts as an orchestration and user interface layer to make it easier to run Bactopia and related tools.
 
 All credit for the development of Bactopia belongs to its original authors.
