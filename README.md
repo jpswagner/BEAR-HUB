@@ -372,3 +372,21 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+PT-BR
+
+⚠️ Aviso sobre o Bactopia
+O BEAR-HUB não é uma modificação nem um fork oficial do Bactopia.
+Ele funciona apenas como uma camada de orquestração e interface gráfica para facilitar o uso do Bactopia e de outras ferramentas relacionadas.
+
+Todo o crédito pelo desenvolvimento do Bactopia pertence aos seus autores originais.
+Este projeto não é endossado, mantido nem suportado oficialmente pelo time do Bactopia, e qualquer problema ou bug nesta interface é de responsabilidade exclusiva dos desenvolvedores do BEAR-HUB.
+
+EN
+
+⚠️ Notice about Bactopia
+BEAR-HUB is not an official modification or fork of Bactopia.
+It only acts as an orchestration and user interface layer to make it easier to run Bactopia and related tools.
+
+All credit for the development of Bactopia belongs to its original authors.
+This project is not endorsed, maintained, or officially supported by the Bactopia team, and any issues or bugs in this interface are the sole responsibility of the BEAR-HUB developers.
