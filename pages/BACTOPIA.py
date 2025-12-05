@@ -1,20 +1,20 @@
-# app_bactopia_main.py — Bactopia UI Local (FOFN-first, multi-amostras)
+# BACTOPIA.py — Bactopia UI Local (FOFN-first, multi-sample)
 # ---------------------------------------------------------------------
-# • Interface Streamlit para orquestrar Bactopia (via Nextflow) SOMENTE via FOFN
-# • Gerador de FOFN com detecção automática de runtype:
+# • Streamlit interface to orchestrate Bactopia (via Nextflow) using FOFN only
+# • FOFN generator with automatic runtype detection:
 #     - paired-end (R1/R2)
 #     - single-end (SE)
 #     - ont (long reads)
-#     - hybrid (PE + ONT na mesma amostra)
+#     - hybrid (PE + ONT in the same sample)
 #     - assembly (FASTA)
-# • Sem “amostra única” (toda execução via --samples)
-# • Mantidos apenas --max_cpus e --max_memory (removidos -name e -work-dir)
-# • Execução assíncrona com tail dos logs, limpeza de execuções
-# • Relatórios Nextflow opcionais (-with-report/-with-timeline/-with-trace)
-# • Ajustes de NXF_HOME e diretório .nextflow (para evitar erro history.lock)
-# • Integração com BACTOPIA_ENV_PREFIX (Nextflow do ambiente 'bactopia')
-# • Integração automática com ~/.bear-hub.env (se não tiver sido “sourced”)
-# • Execução do Bactopia sempre com '-profile docker' (Docker obrigatório)
+# • No "single-sample" mode (all runs via --samples)
+# • Only keeps --max_cpus and --max_memory (no -name or -work-dir)
+# • Async execution with tailing logs and run cleaning
+# • Optional Nextflow reports (-with-report / -with-timeline / -with-trace)
+# • Safer NXF_HOME and .nextflow directory handling (avoid history.lock errors)
+# • Integration with BACTOPIA_ENV_PREFIX (Nextflow from 'bactopia' env)
+# • Automatic integration with ~/.bear-hub.env (if not already sourced)
+# • Always uses '-profile docker' (Docker is required)
 # ---------------------------------------------------------------------
 
 import os
@@ -35,9 +35,20 @@ from queue import Queue, Empty
 import streamlit as st
 import streamlit.components.v1 as components
 
-# ============================= Config inicial =============================
-st.set_page_config(page_title="Bactopia UI", layout="wide")
+# ============================= General config =============================
+st.set_page_config(page_title="BEAR-HUB — Bactopia", page_icon="🐻", layout="wide")
 
+APP_ROOT = pathlib.Path(__file__).resolve().parent
+
+# Discover project root safely (folder that holds /static)
+if (APP_ROOT / "static").is_dir():
+    PROJECT_ROOT = APP_ROOT
+elif (APP_ROOT.parent / "static").is_dir():
+    PROJECT_ROOT = APP_ROOT.parent
+else:
+    PROJECT_ROOT = APP_ROOT  # fallback
+
+# ============================= Basic helpers =============================
 
 def _st_rerun():
     fn = getattr(st, "rerun", None) or getattr(st, "experimental_rerun", None)
@@ -52,33 +63,33 @@ DEFAULT_PRESET_NAME = "default"
 
 def bootstrap_bear_env_from_file():
     """
-    Se o usuário não deu 'source .bear-hub.env' antes de rodar o Streamlit,
-    tenta carregar esse arquivo e popular variáveis importantes:
+    Try to load `.bear-hub.env` if the user didn't do `source .bear-hub.env`
+    before starting Streamlit. This file is used to populate environment variables:
       - BEAR_HUB_ROOT
-      - BEAR_HUB_BASEDIR (se não existir)
+      - BEAR_HUB_BASEDIR (if missing)
       - BACTOPIA_ENV_PREFIX
       - NXF_CONDA_EXE
 
-    Regras:
-      - Só pulamos o carregamento se BACTOPIA_ENV_PREFIX já existe E NXF_CONDA_EXE
-        aponta para um binário válido.
-      - Para NXF_CONDA_EXE, se a variável existir mas apontar para um caminho
-        inexistente, ela será sobrescrita pelo valor do .bear-hub.env.
-      - Para as demais variáveis, só definimos se ainda não existirem em os.environ.
+    Rules:
+      - We skip loading if BACTOPIA_ENV_PREFIX is already set AND NXF_CONDA_EXE
+        points to a valid binary.
+      - For NXF_CONDA_EXE: if it exists but points to a non-existing path,
+        it will be overwritten by the value from .bear-hub.env.
+      - For the other variables, we only set them if they don't exist in os.environ.
     """
-    # Se já temos BACTOPIA_ENV_PREFIX e um NXF_CONDA_EXE válido, assume ambiente pronto
+    # If we already have BACTOPIA_ENV_PREFIX and a valid NXF_CONDA_EXE, assume env is ready
     solver = os.environ.get("NXF_CONDA_EXE")
     if os.environ.get("BACTOPIA_ENV_PREFIX") and solver and os.path.exists(solver):
         return
 
     candidates: list[pathlib.Path] = []
 
-    # Se já tiver BEAR_HUB_ROOT, usa ele pra achar .bear-hub.env
+    # If BEAR_HUB_ROOT exists, use it to locate .bear-hub.env
     env_root = os.environ.get("BEAR_HUB_ROOT")
     if env_root:
         candidates.append(pathlib.Path(env_root).expanduser() / ".bear-hub.env")
 
-    # Fallback para ~/BEAR-HUB/.bear-hub.env (padrão do install_bear.sh)
+    # Fallback to ~/BEAR-HUB/.bear-hub.env (install_bear.sh default)
     candidates.append(pathlib.Path.home() / "BEAR-HUB" / ".bear-hub.env")
 
     for cfg in candidates:
@@ -94,7 +105,7 @@ def bootstrap_bear_env_from_file():
                     if not m:
                         continue
                     var, value = m.group(1), m.group(2).strip()
-                    # remove aspas simples ou duplas se a linha for export VAR="..."
+                    # remove quotes if the line is export VAR="..."
                     if ((value.startswith('"') and value.endswith('"'))
                             or (value.startswith("'") and value.endswith("'"))):
                         value = value[1:-1]
@@ -102,39 +113,33 @@ def bootstrap_bear_env_from_file():
                         continue
 
                     if var == "NXF_CONDA_EXE":
-                        # Se já existir mas apontar pra um caminho inválido, sobrescreve
                         cur = os.environ.get("NXF_CONDA_EXE")
                         if (not cur) or (cur and not os.path.exists(cur)):
                             os.environ["NXF_CONDA_EXE"] = value
                     else:
-                        # Outras variáveis só são definidas se ainda não existirem
                         if var not in os.environ:
                             os.environ[var] = value
             break
         except Exception:
-            # Se der erro na leitura, tenta próximo candidate
             continue
 
-    # Se BEAR_HUB_ROOT foi definido via arquivo, mas BEAR_HUB_BASEDIR não,
-    # usamos BEAR_HUB_ROOT como base padrão.
+    # If BEAR_HUB_ROOT was set via file but BEAR_HUB_BASEDIR was not,
+    # use BEAR_HUB_ROOT as the default base.
     if os.environ.get("BEAR_HUB_ROOT") and not os.environ.get("BEAR_HUB_BASEDIR"):
         os.environ["BEAR_HUB_BASEDIR"] = os.environ["BEAR_HUB_ROOT"]
 
 
-# tenta carregar .bear-hub.env logo no início
+# Attempt to load .bear-hub.env early
 bootstrap_bear_env_from_file()
 
-# Raiz do app e base padrão de trabalho
-APP_ROOT = pathlib.Path(__file__).resolve().parent
-
-# Base padrão:
-# - se BEAR_HUB_BASEDIR estiver definido: usa ele
-# - caso contrário: diretório atual de onde o usuário chamou ./run_bear.sh
+# Base working dir:
+# - if BEAR_HUB_BASEDIR is defined: use it
+# - otherwise: CWD (where ./run_bear.sh was called)
 BASE_DIR = pathlib.Path(os.getenv("BEAR_HUB_BASEDIR", os.getcwd())).expanduser().resolve()
 
-# Outdir padrão:
-# - se BEAR_HUB_OUTDIR estiver definido: usa ele
-# - caso contrário: BASE_DIR / "bactopia_out"
+# Default outdir:
+# - if BEAR_HUB_OUTDIR is defined: use it
+# - otherwise: BASE_DIR / "bactopia_out"
 env_out = os.getenv("BEAR_HUB_OUTDIR")
 if env_out:
     DEFAULT_OUTDIR = str(pathlib.Path(env_out).expanduser().resolve())
@@ -157,13 +162,15 @@ if BACTOPIA_ENV_PREFIX:
     except Exception:
         BACTOPIA_NEXTFLOW_BIN = None
 
-# ===================== Nextflow: garantir NXF_HOME gravável =====================
+
+# ===================== Nextflow: ensure writable NXF_HOME =====================
+
 def ensure_nxf_home() -> str | None:
     """
-    Garante que exista um NXF_HOME gravável, para evitar problemas de cache.
-    Preferência:
-      1) $BEAR_HUB_OUTDIR/.nextflow (se definido)
-      2) $BEAR_HUB_BASEDIR/.nextflow (se definido)
+    Ensure there is a writable NXF_HOME to avoid cache/history issues.
+    Preference:
+      1) $BEAR_HUB_OUTDIR/.nextflow (if set)
+      2) $BEAR_HUB_BASEDIR/.nextflow (if set)
       3) DEFAULT_OUTDIR/.nextflow
       4) $HOME/.nextflow
     """
@@ -198,8 +205,8 @@ def ensure_nxf_home() -> str | None:
 
 def ensure_project_nxf_dir(base: str | pathlib.Path | None = None) -> str | None:
     """
-    Garante que exista um diretório .nextflow no "projeto" (onde o nextflow
-    é executado), para evitar o erro:
+    Ensure there is a `.nextflow` directory where Nextflow is executed,
+    to avoid the error:
        ERROR ~ .nextflow/history.lock (No such file or directory)
     """
     try:
@@ -211,7 +218,7 @@ def ensure_project_nxf_dir(base: str | pathlib.Path | None = None) -> str | None
         return None
 
 
-# Garante NXF_HOME já na carga do módulo
+# Guarantee NXF_HOME on module load
 ensure_nxf_home()
 
 # ============================= Utils =============================
@@ -231,9 +238,9 @@ def docker_available():
 
 def get_nextflow_bin() -> str:
     """
-    Retorna o binário do Nextflow a ser utilizado:
-    - se BACTOPIA_ENV_PREFIX estiver definido e contiver bin/nextflow, usa esse;
-    - caso contrário, usa 'nextflow' (PATH do sistema).
+    Return the Nextflow binary to use:
+    - if BACTOPIA_ENV_PREFIX is set and has bin/nextflow, use that;
+    - otherwise, use 'nextflow' from system PATH.
     """
     return BACTOPIA_NEXTFLOW_BIN or "nextflow"
 
@@ -259,24 +266,24 @@ def run_cmd(cmd: str | List[str], cwd: str | None = None) -> tuple[int, str, str
         )
         return res.returncode, res.stdout or "", res.stderr or ""
     except Exception as e:
-        return 1, "", f"Falha ao executar: {e}"
+        return 1, "", f"Failed to execute: {e}"
 
 # ============================= Presets =============================
 
 PRESET_KEYS_ALLOWLIST = {
-    # Execução
+    # Execution
     "profile", "outdir", "datasets", "resume", "threads", "memory_gb",
     # FOFN generator
     "fofn_base", "fofn_recursive", "fofn_species", "fofn_gsize", "fofn_use",
     "fofn_long_reads", "fofn_infer_ont_by_name", "fofn_merge_multi", "fofn_include_assemblies",
-    # Ferramentas
+    # Tools
     "fastp_mode", "fastp_dash3", "fastp_M", "fastp_W", "fastp_opts_text",
     "fastp_enable_5prime", "fastp_q_enable", "fastp_q", "fastp_l_enable", "fastp_l",
     "fastp_n", "fastp_u", "fastp_cut_front", "fastp_cut_tail", "fastp_cut_meanq", "fastp_cut_win",
     "fastp_detect_adapter_pe", "fastp_poly_g", "fastp_extra",
     # Unicycler
     "unicycler_mode", "unicycler_min_len", "unicycler_extra",
-    # Params extras e relatórios
+    # Extra params and reports
     "extra_params", "with_report", "with_timeline", "with_trace",
 }
 
@@ -317,16 +324,16 @@ def apply_preset_before_widgets():
     pending = st.session_state.pop("__pending_preset_values", None)
     if pending:
         _apply_dict_to_state(pending)
-        st.session_state["__preset_msg"] = st.session_state.get("__preset_msg") or "Preset aplicado."
+        st.session_state["__preset_msg"] = st.session_state.get("__preset_msg") or "Preset applied."
 
 
 def _cb_stage_apply_preset():
     name = st.session_state.get("__preset_to_load")
-    if not name or name == "(nenhum)":
+    if not name or name == "(none)":
         return
     presets = load_presets()
     st.session_state["__pending_preset_values"] = presets.get(name, {})
-    st.session_state["__preset_msg"] = f"Preset preparado: {name} (aplicado neste reload)"
+    st.session_state["__preset_msg"] = f"Preset staged: {name} (applied on this reload)"
 
 
 def _cb_save_preset():
@@ -335,30 +342,34 @@ def _cb_save_preset():
     presets = load_presets()
     presets[name] = _snapshot_current_state()
     save_presets(presets)
-    st.session_state["__preset_msg"] = f"Preset salvo: {name}"
+    st.session_state["__preset_msg"] = f"Preset saved: {name}"
 
 
 def _cb_delete_preset():
     name = st.session_state.get("__preset_to_load")
-    if not name or name == "(nenhum)":
+    if not name or name == "(none)":
         return
     presets = load_presets()
     if name in presets:
         del presets[name]
         save_presets(presets)
-        st.session_state["__preset_msg"] = f"Preset excluído: {name}"
+        st.session_state["__preset_msg"] = f"Preset deleted: {name}"
 
 
 def render_presets_sidebar():
     st.header("Presets")
     presets = load_presets()
     names = sorted(presets.keys())
-    st.selectbox("Carregar preset", ["(nenhum)"] + names, key="__preset_to_load")
-    st.text_input("Salvar como (nome do preset)", key="__preset_save_name", placeholder="ex.: meu_preset")
+    st.selectbox("Load preset", ["(none)"] + names, key="__preset_to_load")
+    st.text_input(
+        "Save as (preset name)",
+        key="__preset_save_name",
+        placeholder="e.g., my_preset",
+    )
     st.markdown('<div id="presets-section">', unsafe_allow_html=True)
-    st.button("Aplicar", key="__btn_apply", on_click=_cb_stage_apply_preset)
-    st.button("Salvar atual", key="__btn_save", on_click=_cb_save_preset)
-    st.button("Excluir", key="__btn_delete", on_click=_cb_delete_preset)
+    st.button("Apply", key="__btn_apply", on_click=_cb_stage_apply_preset)
+    st.button("Save current", key="__btn_save", on_click=_cb_save_preset)
+    st.button("Delete", key="__btn_delete", on_click=_cb_delete_preset)
     st.markdown('</div>', unsafe_allow_html=True)
     if st.session_state.get("__preset_msg"):
         st.caption(st.session_state["__preset_msg"])
@@ -366,7 +377,7 @@ def render_presets_sidebar():
 
 apply_preset_before_widgets()
 
-# ============================= Explorador (inline + pop-up) =============================
+# ============================= File explorer (inline + pop-up) =============================
 
 def _safe_id(s: str) -> str:
     return hashlib.md5(s.encode("utf-8")).hexdigest()[:10]
@@ -401,14 +412,14 @@ def _fs_browser_core(label: str, key: str, mode: str = "file",
     c_up, c_home, c_host, c_path, c_pick = st.columns([0.9, 0.9, 0.9, 6, 2])
 
     with c_up:
-        if st.button("⬆️ Subir", key=f"{key}_up"):
+        if st.button("⬆️ Up", key=f"{key}_up"):
             parent = cur.parent if cur.parent != cur else cur
             set_cur(parent)
             _st_rerun()
 
     with c_home:
         home_base = pathlib.Path(start or pathlib.Path.home())
-        if st.button("🏠 Base", key=f"{key}_home"):
+        if st.button("🏠 Home", key=f"{key}_home"):
             set_cur(home_base)
             _st_rerun()
 
@@ -423,11 +434,11 @@ def _fs_browser_core(label: str, key: str, mode: str = "file",
 
     with c_pick:
         if mode == "dir":
-            if st.button("Escolher", key=f"{key}_choose_dir"):
+            if st.button("Choose", key=f"{key}_choose_dir"):
                 st.session_state[key] = str(cur)
 
     dirs, files = _list_dir(cur)
-    st.markdown("**Pastas**")
+    st.markdown("**Folders**")
     dcols = st.columns(2)
     for i, d in enumerate(dirs):
         did = _safe_id(str(d))
@@ -438,7 +449,7 @@ def _fs_browser_core(label: str, key: str, mode: str = "file",
     if mode == "file":
         if patterns:
             files = [f for f in files if any(fnmatch.fnmatch(f.name, pat) for pat in patterns)]
-        st.markdown("**Arquivos**")
+        st.markdown("**Files**")
         for f in files:
             fid = _safe_id(str(f))
             if st.button("📄 " + f.name, key=f"{key}_f_{fid}"):
@@ -460,7 +471,7 @@ def path_picker(label: str, key: str, mode: str = "dir",
         except Exception:
             pass
     with col2:
-        if st.button("Explorar…", key=f"open_{key}"):
+        if st.button("Browse…", key=f"open_{key}"):
             st.session_state[f"__open_{key}"] = True
             try:
                 hint = pathlib.Path(st.session_state.get(key) or start or os.getcwd())
@@ -478,21 +489,21 @@ def path_picker(label: str, key: str, mode: str = "dir",
             _fs_browser_core(label, key, mode=mode, start=start, patterns=patterns)
             c_ok, c_cancel = st.columns(2)
             with c_ok:
-                if st.button("✅ Usar este caminho", key=f"use_{key}"):
+                if st.button("✅ Use this path", key=f"use_{key}"):
                     if mode == "dir":
                         cur = pathlib.Path(st.session_state.get(f"__picker_cur__{key}", start or os.getcwd()))
                         st.session_state[key] = str(cur.expanduser().resolve())
                     st.session_state[f"__open_{key}"] = False
                     _st_rerun()
             with c_cancel:
-                if st.button("Cancelar", key=f"cancel_{key}"):
+                if st.button("Cancel", key=f"cancel_{key}"):
                     st.session_state[f"__open_{key}"] = False
                     _st_rerun()
         _dlg()
     elif st.session_state.get(f"__open_{key}", False):
-        st.info(f"{label} (modo inline)")
+        st.info(f"{label} (inline mode)")
         _fs_browser_core(label, key, mode=mode, start=start, patterns=patterns)
-        if st.button("✅ Usar este caminho", key=f"use_inline_{key}"):
+        if st.button("✅ Use this path", key=f"use_inline_{key}"):
             if mode == "dir":
                 cur = pathlib.Path(st.session_state.get(f"__picker_cur__{key}", start or os.getcwd()))
                 st.session_state[key] = str(cur.expanduser().resolve())
@@ -501,7 +512,7 @@ def path_picker(label: str, key: str, mode: str = "dir",
 
     return st.session_state.get(key) or ""
 
-# ============================= Descoberta / FOFN =============================
+# ============================= Discovery / FOFN =============================
 
 FASTQ_PATTERNS = ["*.fastq.gz", "*.fq.gz", "*.fastq", "*.fq"]
 FA_PATTERNS = ["*.fna.gz", "*.fa.gz", "*.fasta.gz", "*.fna", "*.fa", "*.fasta"]
@@ -570,7 +581,7 @@ def discover_runs_and_build_fofn(base_dir: str,
                                  include_assemblies: bool) -> dict:
     base = pathlib.Path(base_dir or ".")
     if not base.exists():
-        raise FileNotFoundError("Pasta base não existe.")
+        raise FileNotFoundError("Base folder does not exist.")
 
     fofn_parent = pathlib.Path(fofn_path).parent
     fofn_parent.mkdir(parents=True, exist_ok=True)
@@ -626,9 +637,9 @@ def discover_runs_and_build_fofn(base_dir: str,
         fa = parts["assembly"]
 
         if pe1 and not pe2:
-            issues.append(f"{sample}: R1 encontrado sem R2.")
+            issues.append(f"{sample}: R1 found without R2.")
         if pe2 and not pe1:
-            issues.append(f"{sample}: R2 encontrado sem R1.")
+            issues.append(f"{sample}: R2 found without R1.")
 
         if fa and not (pe1 or pe2 or se or ont):
             runtype = "assembly"
@@ -656,7 +667,10 @@ def discover_runs_and_build_fofn(base_dir: str,
             r2 = ""
             extra = ""
         elif fa and (pe1 or pe2 or se or ont):
-            issues.append(f"{sample}: FASTA e FASTQ presentes; ignorando assembly no FOFN (use somente um).")
+            issues.append(
+                f"{sample}: FASTA and FASTQ detected; ignoring assembly in FOFN "
+                "(use only one type per sample)."
+            )
             if pe1 and pe2 and ont:
                 runtype = "hybrid"
                 r1 = _join_or_pick(pe1)
@@ -677,7 +691,7 @@ def discover_runs_and_build_fofn(base_dir: str,
                 r1 = _join_or_pick(se)
                 r2 = ""
         else:
-            issues.append(f"{sample}: não foi possível classificar (arquivos ausentes?).")
+            issues.append(f"{sample}: could not classify sample (missing files?).")
             continue
 
         counts[runtype] = counts.get(runtype, 0) + 1
@@ -686,8 +700,8 @@ def discover_runs_and_build_fofn(base_dir: str,
         for label, arr in [("PE1", pe1), ("PE2", pe2), ("ONT", ont), ("SE", se)]:
             if len(arr) > 1 and not merge_multi:
                 issues.append(
-                    f"{sample}: múltiplos arquivos em {label}; usando o maior. "
-                    "Ative 'Mesclar' para concatenar por vírgula."
+                    f"{sample}: multiple files under {label}; using the largest file. "
+                    "Enable 'Merge' to concatenate them with commas."
                 )
 
     with open(fofn_path, "w", encoding="utf-8") as fh:
@@ -703,7 +717,7 @@ def discover_runs_and_build_fofn(base_dir: str,
         "fofn_path": fofn_path,
     }
 
-# ============================= Runner Async =============================
+# ============================= Async runner =============================
 
 ANSI_ESCAPE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
@@ -743,7 +757,7 @@ async def _async_exec(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: 
             stderr=asyncio.subprocess.PIPE,
         )
     except Exception as e:
-        status_q.put(("error", f"Falha ao iniciar processo: {e}"))
+        status_q.put(("error", f"Failed to start process: {e}"))
         return
     t_out = asyncio.create_task(_async_read_stream(proc.stdout, log_q, stop_event))
     t_err = asyncio.create_task(_async_read_stream(proc.stderr, log_q, stop_event))
@@ -864,38 +878,18 @@ def check_status_and_finalize_ns(outdir: str, ns: str, status_box, report_zone):
         st.session_state[f"{ns}_thread"] = None
         st.session_state[f"{ns}_stop_event"] = None
         if rc == 0:
-            status_box.success("Concluído com sucesso.")
+            status_box.success("Finished successfully.")
         else:
-            status_box.error(msg or f"Execução terminou com código {rc}. Veja o log abaixo.")
+            status_box.error(msg or f"Run finished with code {rc}. See the log below.")
     return finalized
 
 # ============================= Sidebar =============================
-# APP_ROOT já existe e é o diretório deste arquivo
-# descobrimos a raiz do projeto de forma segura
-if (APP_ROOT / "static").is_dir():
-    PROJECT_ROOT = APP_ROOT
-elif (APP_ROOT.parent / "static").is_dir():
-    PROJECT_ROOT = APP_ROOT.parent
-else:
-    PROJECT_ROOT = APP_ROOT  # fallback
 
 ICON_PATH = PROJECT_ROOT / "static" / "bear-hub-icon.png"
 
 with st.sidebar:
-        # --- Logo + título no topo da sidebar ---
-    # --- Logo + título no topo da sidebar ---
-    if ICON_PATH.is_file():
-        col_logo, col_title = st.columns([1, 4])
-        with col_logo:
-            st.image(str(ICON_PATH), width=32)
-        with col_title:
-            st.markdown("**BEAR-HUB**")
-    else:
-        # fallback se o arquivo não existir
-        st.markdown("**🧬 BEAR-HUB**")
-
-    st.markdown("---")  # linha separadora
-    st.header("Ambiente")
+    st.markdown("---")
+    st.header("Environment")
     nf_ok = nextflow_available()
     docker_ok = docker_available()
     st.write(
@@ -903,20 +897,20 @@ with st.sidebar:
         f"Docker: {'✅' if docker_ok else '❌'}"
     )
     st.caption(
-        "Este app executa o Bactopia **exclusivamente** com `-profile docker`.\n"
-        "É obrigatório ter o Docker instalado e acessível para o usuário que roda o Streamlit."
+        "This app runs Bactopia **exclusively** with `-profile docker`.\n"
+        "Docker must be installed and accessible to the user running Streamlit."
     )
     if not nf_ok:
-        st.error("Nextflow não encontrado (nem no PATH, nem em BACTOPIA_ENV_PREFIX).", icon="⚠️")
+        st.error("Nextflow not found (neither in PATH nor in BACTOPIA_ENV_PREFIX).", icon="⚠️")
     else:
         if BACTOPIA_NEXTFLOW_BIN:
-            st.caption(f"Nextflow via ambiente Bactopia: `{BACTOPIA_NEXTFLOW_BIN}`")
+            st.caption(f"Nextflow via Bactopia env: `{BACTOPIA_NEXTFLOW_BIN}`")
         else:
-            st.caption("Nextflow encontrado via PATH do sistema.")
+            st.caption("Nextflow found via system PATH.")
 
     if not docker_ok:
         st.error(
-            "Docker não está disponível. Instale e habilite o Docker antes de rodar o Bactopia.",
+            "Docker is not available. Install and enable Docker before running Bactopia.",
             icon="⚠️",
         )
 
@@ -946,108 +940,117 @@ button[kind="secondary"] span, button[kind="secondary"] div { white-space: nowra
     unsafe_allow_html=True,
 )
 
-# ============================= Página =============================
-st.title("🧬 Bactopia UI")
+# ============================= Page header =============================
 
-# ------------------------- FOFN (múltiplas amostras) -------------------------
+ICON_PATH_BACTOPIA = PROJECT_ROOT / "static" / "bear-bactopia-icon.png"
+
+if ICON_PATH_BACTOPIA.is_file():
+    st.image(str(ICON_PATH_BACTOPIA), width=500)
+else:
+    st.title("🧬 Bactopia UI")
+
+# ============================= FOFN (multi-sample) =============================
+
 FOFN_HELP_MD = r"""
-# ℹ️ Gerador de FOFN — como funciona
+# ℹ️ FOFN generator — how it works
 
-O gerador lê uma **pasta base** e produz um `samples.txt` (FOFN) no formato esperado pelo Bactopia,
-detectando automaticamente o **runtype** de cada amostra: **paired-end**, **single-end**, **ont**,
-**hybrid** (PE + ONT) e **assembly**.
+The generator scans a **base folder** and produces a `samples.txt` (FOFN) in the format
+expected by Bactopia, automatically detecting the **runtype** of each sample:
+**paired-end**, **single-end**, **ont**, **hybrid** (PE + ONT), and **assembly**.
 
-- Ele percorre a pasta (e opcionalmente subpastas) atrás de:
+- It traverses the folder (and optionally subfolders) looking for:
   - FASTQ/FASTQ.GZ (`*.fastq.gz`, `*.fq.gz`, `*.fastq`, `*.fq`)
-  - FASTA (`*.fa`, `*.fna`, `*.fasta`, e versões `.gz`) — se a opção "Incluir assemblies" estiver marcada.
-- Tenta agrupar arquivos por "root" de nome (antes de R1/R2, lane, etc.).
-- Identifica:
-  - `R1` / `R2` por padrões comuns de nomenclatura (R1/R2, _1/_2, A/B, etc.).
-  - Leituras longas (ONT) por:
-    - Heurística de nome (ont|nanopore|minion|promethion|fastq_pass|guppy) **ou**
-    - Opção "Tratar SE como ONT".
+  - FASTA (`*.fa`, `*.fna`, `*.fasta`, and `.gz` variants) — if "Include assemblies" is enabled.
+- It tries to group files by a root name (before R1/R2, lane, etc.).
+- It identifies:
+  - `R1` / `R2` using common naming patterns (R1/R2, _1/_2, A/B, etc.).
+  - Long reads (ONT) either by:
+    - name heuristics (ont|nanopore|minion|promethion|fastq_pass|guppy) **or**
+    - "Treat SE as ONT" option.
 
-O FOFN gerado tem colunas:
+The generated FOFN has columns:
 
 `sample  runtype  genome_size  species  r1  r2  extra`
 
-- `sample`: nome da amostra (root inferido).
-- `runtype`: um de `paired-end`, `single-end`, `ont`, `hybrid`, `assembly`.
-- `genome_size` e `species`: copiados dos campos "genome_size" e "species".
+- `sample`: sample name (inferred root).
+- `runtype`: one of `paired-end`, `single-end`, `ont`, `hybrid`, `assembly`.
+- `genome_size` and `species`: copied from the corresponding fields in the UI.
 - `r1`, `r2`, `extra`:
-  - Para `paired-end`: `r1` = fastq(s) R1, `r2` = fastq(s) R2.
-  - Para `single-end`: `r1` = fastq(s) SE.
-  - Para `ont`: `r1` = fastq(s) ONT.
-  - Para `hybrid`: `r1` = PE R1, `r2` = PE R2, `extra` = fastq(s) ONT.
-  - Para `assembly`: `extra` = caminho do FASTA.
+  - `paired-end`: `r1` = R1 fastq(s), `r2` = R2 fastq(s).
+  - `single-end`: `r1` = SE fastq(s).
+  - `ont`: `r1` = ONT fastq(s).
+  - `hybrid`: `r1` = PE R1, `r2` = PE R2, `extra` = ONT fastq(s).
+  - `assembly`: `extra` = FASTA path.
 
-Se "Mesclar múltiplos arquivos por vírgula" estiver **ativado**, múltiplos arquivos de uma mesma
-categoria (por ex. vários R1) são combinados num único campo, separados por vírgula (como o Bactopia espera).
+If **"Merge multiple files with commas"** is enabled, multiple files in the same
+category (e.g. multiple R1) are concatenated into a single field separated by commas
+(as Bactopia expects).
 
-Se estiver desativado, o gerador escolhe apenas o **maior** arquivo de cada grupo, e avisa sobre isso no resumo.
+If it is disabled, the generator picks only the **largest** file per group and
+adds a warning about this in the summary.
 """
 
-st.subheader("Gerar FOFN (múltiplas amostras)", help=FOFN_HELP_MD)
+st.subheader("Generate FOFN (multiple samples)", help=FOFN_HELP_MD)
 
-with st.expander("Gerar FOFN", expanded=False):
-    # Base padrão: variável BEAR_HUB_DATA (se existir) ou BASE_DIR
+with st.expander("Generate FOFN", expanded=False):
+    # Default base: BEAR_HUB_DATA (if any) or BASE_DIR
     base_default = os.getenv("BEAR_HUB_DATA", str(BASE_DIR))
     base_dir = path_picker(
-        "Pasta base de FASTQs/FASTAs",
+        "Base folder with FASTQs/FASTAs",
         key="fofn_base",
         mode="dir",
         start=base_default,
         help=(
-            "Na instalação local com conda, use caminhos normais (ex.: /mnt/HD/...). "
-            "Se estiver rodando via Docker, o sistema do host pode estar montado em /hostfs "
-            "(ex.: /hostfs/mnt/HD/...)."
+            "In local conda installs, use normal paths (e.g., /mnt/HD/...). "
+            "If running inside Docker, your host filesystem may be mounted under /hostfs "
+            "(e.g., /hostfs/mnt/HD/...)."
         ),
     )
 
-    recursive = st.checkbox("Incluir subpastas", value=True, key="fofn_recursive")
+    recursive = st.checkbox("Include subfolders", value=True, key="fofn_recursive")
 
     cA, cB, cC = st.columns(3)
     with cA:
         species_in = st.text_input(
-            "species (opcional)",
+            "species (optional)",
             value=st.session_state.get("fofn_species", "UNKNOWN_SPECIES"),
             key="fofn_species",
         )
     with cB:
         gsize_in = st.text_input(
-            "genome_size (opcional)",
+            "genome_size (optional)",
             value=st.session_state.get("fofn_gsize", "0"),
             key="fofn_gsize",
         )
     with cC:
-        st.checkbox("Incluir assemblies (FASTA)", value=True, key="fofn_include_assemblies")
+        st.checkbox("Include assemblies (FASTA)", value=True, key="fofn_include_assemblies")
 
     c1, c2, c3 = st.columns(3)
     with c1:
         st.checkbox(
-            "Tratar SE como ONT (long reads)",
+            "Treat SE as ONT (long reads)",
             value=False,
             key="fofn_long_reads",
-            help="Equivalente ao --long_reads do 'bactopia prepare'.",
+            help="Equivalent to --long_reads from 'bactopia prepare'.",
         )
     with c2:
         st.checkbox(
-            "Heurística: inferir ONT por nome (ont|nanopore|...)",
+            "Heuristic: infer ONT by name (ont|nanopore|...)",
             value=True,
             key="fofn_infer_ont_by_name",
         )
     with c3:
         st.checkbox(
-            "Mesclar múltiplos arquivos por vírgula",
+            "Merge multiple files with commas",
             value=True,
             key="fofn_merge_multi",
-            help="Se desmarcado, será usado apenas o maior arquivo por categoria (PE1/PE2/ONT/SE).",
+            help="If disabled, only the largest file per category (PE1/PE2/ONT/SE) is used.",
         )
 
     fofn_out = str((pathlib.Path(st.session_state.get("outdir", DEFAULT_OUTDIR)) / "samples.txt").resolve())
-    st.caption(f"FOFN será salvo/atualizado em: `{fofn_out}`")
+    st.caption(f"FOFN will be saved/updated at: `{fofn_out}`")
 
-if st.button("🔎 Escanear e montar FOFN", key="btn_scan_fofn"):
+if st.button("🔎 Scan base folder and build FOFN", key="btn_scan_fofn"):
     try:
         res = discover_runs_and_build_fofn(
             base_dir=base_dir,
@@ -1060,121 +1063,123 @@ if st.button("🔎 Escanear e montar FOFN", key="btn_scan_fofn"):
             merge_multi=st.session_state.get("fofn_merge_multi", True),
             include_assemblies=st.session_state.get("fofn_include_assemblies", True),
         )
-        st.success(f"FOFN salvo/atualizado: {res['fofn_path']}")
+        st.success(f"FOFN saved/updated: {res['fofn_path']}")
         try:
             import pandas as pd
             df = pd.DataFrame(res["rows"], columns=res["header"])
-            st.dataframe(df.head(1000), width="stretch")
+            st.dataframe(df.head(1000), use_container_width=True)
         except Exception:
-            st.write("Total de linhas:", len(res["rows"]))
+            st.write("Total rows:", len(res["rows"]))
         st.info(
-            "Resumo de runtype: "
+            "Runtype summary: "
             + ", ".join([f"{k}={v}" for k, v in res["counts"].items()])
         )
         if res["issues"]:
-            st.warning("Possíveis problemas detectados:")
+            st.warning("Potential issues detected:")
             for msg in res["issues"]:
                 st.markdown(f"- {msg}")
     except Exception as e:
-        st.error(f"Falha ao gerar FOFN: {e}")
+        st.error(f"Failed to generate FOFN: {e}")
 
 st.session_state["fofn_use"] = True
 
-# ------------------------- Parâmetros principais (sem amostra única) -------------------------
-st.subheader("Parâmetros principais")
-with st.expander("Parâmetros globais", expanded=False):
+# ============================= Main parameters =============================
+
+st.subheader("Main parameters")
+with st.expander("Global parameters", expanded=False):
     colA, colB = st.columns(2)
     with colA:
-        # Força sempre '-profile docker'
+        # Force '-profile docker' always
         st.session_state["profile"] = "docker"
         st.text_input(
-            "Profile",
+            "Profile (-profile)",
             value="docker",
             key="profile",
             disabled=True,
-            help="Este app usa sempre '-profile docker' para o Bactopia.",
+            help="This app always uses '-profile docker' for Bactopia.",
         )
 
         outdir = path_picker(
-            "Outdir (raiz resultados)",
+            "Outdir (results root)",
             key="outdir",
             mode="dir",
             start=DEFAULT_OUTDIR,
-            help="Pasta onde o Nextflow/Bactopia escreverá a saída.",
+            help="Folder where Nextflow/Bactopia will write output.",
         )
         datasets = path_picker(
-            "datasets/ (opcional)",
+            "datasets/ (optional)",
             key="datasets",
             mode="dir",
             start=str(pathlib.Path.home()),
         )
     with colB:
-        resume = st.checkbox("-resume (retomar)", value=True, key="resume")
+        resume = st.checkbox("-resume (resume previous runs)", value=True, key="resume")
         max_cpus_default = min(os.cpu_count() or 64, 128)
         threads = st.slider("--max_cpus", 0, max_cpus_default, 0, 1, key="threads")
         memory_gb = st.slider("--max_memory (GB)", 0, 256, 0, 1, key="memory_gb")
 
-# ------------------------- FASTP / Unicycler -------------------------
+# ============================= FASTP / Unicycler =============================
+
 FASTP_HELP_MD = """
-# ℹ️ fastp — ajuda dos parâmetros expostos na UI
+# ℹ️ fastp — explanation of parameters shown in the UI
 
-Esta aba constrói a string `--fastp_opts` usada pelo Bactopia. Principais opções:
+This panel builds the `--fastp_opts` string used by Bactopia. Main options:
 
-- `-3` : ativa trimming na extremidade 3' (final da leitura).
-- `-5` : ativa trimming na extremidade 5' (início da leitura).
-- `-M <int>` : média mínima de qualidade da janela de trimming.
-- `-W <int>` : tamanho da janela para cálculo de média de qualidade.
-- `-q <int>` : qualidade mínima para uma base ser considerada "boa".
-- `-l <int>` : tamanho mínimo da leitura após trimming.
-- `-n <int>` : máximo de bases 'N' permitidas na leitura.
-- `-u <int>` : porcentagem máxima de bases abaixo de qualidade.
-- `--cut_front` / `--cut_tail` : ativa cortes dinâmicos no início/fim.
-- `--cut_mean_quality <int>` : qualidade mínima na janela de corte.
-- `--cut_window_size <int>` : tamanho da janela para os cortes dinâmicos.
-- `--detect_adapter_for_pe` : detecção automática de adaptadores em PE.
-- `-g` : ativa detecção e remoção de polyG.
+- `-3` : enable trimming at the 3' end (read tail).
+- `-5` : enable trimming at the 5' end (read start).
+- `-M <int>` : minimum average quality of the sliding window.
+- `-W <int>` : window size for average quality.
+- `-q <int>` : minimum quality for a base to be considered "good".
+- `-l <int>` : minimum read length after trimming.
+- `-n <int>` : maximum number of Ns in a read.
+- `-u <int>` : maximum percentage of bases below given quality.
+- `--cut_front` / `--cut_tail` : dynamic trimming at read ends.
+- `--cut_mean_quality <int>` : minimum quality in the cutting window.
+- `--cut_window_size <int>` : window size for dynamic trimming.
+- `--detect_adapter_for_pe` : automatic adapter detection in PE.
+- `-g` : enable polyG tail trimming.
 
-O campo "Extra (append)" permite adicionar qualquer flag suportada pelo fastp
-que não esteja mapeada diretamente na interface.
+The "Advanced extra (append)" text field lets you add any extra fastp flags
+that are not explicitly mapped in the interface.
 """
 
-st.subheader("Parâmetros FASTP/Unicycler", help=FASTP_HELP_MD)
+st.subheader("FASTP / Unicycler settings", help=FASTP_HELP_MD)
 
-with st.expander("Parâmetros do fastp", expanded=False):
+with st.expander("fastp options", expanded=False):
     fastp_mode = st.radio(
-        "Modo",
-        ["Simples (recomendado)", "Avançado (linha completa)"],
+        "Mode",
+        ["Simple (recommended)", "Advanced (full line)"],
         index=0,
         key="fastp_mode",
         horizontal=True,
     )
-    if fastp_mode.startswith("Simples"):
+    if fastp_mode.startswith("Simple"):
         topA, topB, topC = st.columns(3)
         with topA:
-            st.checkbox("Ativar 3’ (-3)", value=True, key="fastp_dash3")
+            st.checkbox("Enable 3’ (-3)", value=True, key="fastp_dash3")
         with topB:
-            st.slider("-M (média mínima da janela)", 0, 40, 20, 1, key="fastp_M")
+            st.slider("-M (min window avg quality)", 0, 40, 20, 1, key="fastp_M")
         with topC:
-            st.slider("-W (tamanho da janela)", 1, 50, 5, 1, key="fastp_W")
+            st.slider("-W (window size)", 1, 50, 5, 1, key="fastp_W")
 
-        st.markdown("**Opções adicionais (opcionais)**")
+        st.markdown("**Additional options (optional)**")
         c1, c2, c3, c4 = st.columns(4)
         with c1:
-            st.checkbox("Ativar 5’ (-5)", value=False, key="fastp_enable_5prime")
-            st.checkbox("Detectar adaptador PE", value=False, key="fastp_detect_adapter_pe")
+            st.checkbox("Enable 5’ (-5)", value=False, key="fastp_enable_5prime")
+            st.checkbox("Detect adapter in PE", value=False, key="fastp_detect_adapter_pe")
         with c2:
-            st.checkbox("Qualidade (-q)", value=False, key="fastp_q_enable")
+            st.checkbox("Quality (-q)", value=False, key="fastp_q_enable")
             if st.session_state.get("fastp_q_enable"):
-                st.slider("Valor de -q", 0, 40, 20, 1, key="fastp_q")
+                st.slider("Value for -q", 0, 40, 20, 1, key="fastp_q")
         with c3:
             st.checkbox("Min length (-l)", value=False, key="fastp_l_enable")
             if st.session_state.get("fastp_l_enable"):
-                st.slider("Valor de -l", 0, 500, 15, 1, key="fastp_l")
+                st.slider("Value for -l", 0, 500, 15, 1, key="fastp_l")
         with c4:
-            st.number_input("Máx. Ns (-n)", min_value=0, max_value=10, value=0, step=1, key="fastp_n")
-            st.number_input("Máx. % não-qual. (-u)", min_value=0, max_value=100, value=0, step=1, key="fastp_u")
+            st.number_input("Max Ns (-n)", min_value=0, max_value=10, value=0, step=1, key="fastp_n")
+            st.number_input("Max % low qual (-u)", min_value=0, max_value=100, value=0, step=1, key="fastp_u")
 
-        st.markdown("**Cortes dirigidos (cut_*)**")
+        st.markdown("**Directed cuts (cut_*)**")
         cc1, cc2, cc3, cc4 = st.columns(4)
         with cc1:
             st.checkbox("--cut_front", value=False, key="fastp_cut_front")
@@ -1187,7 +1192,7 @@ with st.expander("Parâmetros do fastp", expanded=False):
 
         st.checkbox("polyG (-g)", value=False, key="fastp_poly_g")
         fastp_extra = st.text_input(
-            "Extra avançado (append)",
+            "Advanced extra (append)",
             value=st.session_state.get("fastp_extra", ""),
             key="fastp_extra",
         )
@@ -1227,13 +1232,13 @@ with st.expander("Parâmetros do fastp", expanded=False):
         st.caption(f"**fastp_opts:** `{fastp_opts_value}`")
     else:
         fastp_opts_value = st.text_input(
-            "Linha completa do fastp (avançado)",
+            "Full fastp line (advanced)",
             value=st.session_state.get("fastp_opts_text", "-3 -M 20 -W 5"),
             key="fastp_opts_text",
         )
 
-with st.expander("Parâmetros do Unicycler", expanded=False):
-    st.radio("Modo", ["conservative", "normal", "bold"], index=1, key="unicycler_mode")
+with st.expander("Unicycler options", expanded=False):
+    st.radio("Mode", ["conservative", "normal", "bold"], index=1, key="unicycler_mode")
     st.number_input("min_fasta_length", 0, 100000, 1000, 100, key="unicycler_min_len")
     st.text_input(
         "Extra (append)",
@@ -1248,9 +1253,10 @@ with st.expander("Parâmetros do Unicycler", expanded=False):
     unicycler_opts_value = " ".join(uni_parts)
     st.caption(f"unicycler_opts: `{unicycler_opts_value}`")
 
-# ------------------------- Extra Params + Relatórios -------------------------
+# ============================= Extra params + reports =============================
+
 extra_params_input = st.text_input(
-    "Parâmetros extras (linha crua)",
+    "Extra parameters (raw line)",
     value=st.session_state.get("extra_params", ""),
     key="extra_params",
 )
@@ -1258,15 +1264,15 @@ computed_extra = extra_params_input
 if st.session_state.get("fofn_use") and "fofn_out" in locals() and fofn_out:
     computed_extra = (computed_extra + f" --samples {shlex.quote(fofn_out)}").strip()
 
-with st.expander("Relatórios (Nextflow)", expanded=False):
+with st.expander("Reports (Nextflow)", expanded=False):
     rep = st.checkbox("-with-report", value=True, key="with_report")
     tim = st.checkbox("-with-timeline", value=True, key="with_timeline")
     trc = st.checkbox("-with-trace", value=True, key="with_trace")
 
-# ------------------------- Montagem do comando -------------------------
+# ============================= Command building =============================
 
 def build_bactopia_cmd(params: dict) -> str:
-    # Este app força o uso de '-profile docker' (execução via containers)
+    # This app enforces '-profile docker' (container execution)
     profile = params.get("profile") or "docker"
     outdir = params.get("outdir", DEFAULT_OUTDIR)
     datasets = params.get("datasets")
@@ -1280,7 +1286,7 @@ def build_bactopia_cmd(params: dict) -> str:
     with_timeline = params.get("with_timeline")
     with_trace = params.get("with_trace")
 
-    # Garante que o outdir exista e tenha seu próprio .nextflow/
+    # Ensure outdir exists and has its own .nextflow/
     outdir_path = pathlib.Path(outdir).expanduser().resolve()
     outdir_path.mkdir(parents=True, exist_ok=True)
     ensure_project_nxf_dir(outdir_path)
@@ -1320,7 +1326,7 @@ def build_bactopia_cmd(params: dict) -> str:
         base += shlex.split(extra)
 
     nf_cmd = " ".join(shlex.quote(x) for x in base)
-    # Executa o nextflow a partir do outdir, para que .nextflow/history fique lá
+    # Run Nextflow from outdir so that .nextflow/history lives there
     full_cmd = f"cd {shlex.quote(str(outdir_path))} && {nf_cmd}"
     return full_cmd
 
@@ -1344,31 +1350,32 @@ cmd = build_bactopia_cmd(params)
 st.caption(f"Profile: {params['profile']} | Outdir: {params['outdir']}")
 st.caption(
     f"HOME={os.environ.get('HOME')} | "
-    f"NXF_HOME={os.environ.get('NXF_HOME', '(não definido)')}"
+    f"NXF_HOME={os.environ.get('NXF_HOME', '(not set)')}"
 )
 st.caption(
-    f"BACTOPIA_ENV_PREFIX={os.environ.get('BACTOPIA_ENV_PREFIX', '(não definido)')}"
+    f"BACTOPIA_ENV_PREFIX={os.environ.get('BACTOPIA_ENV_PREFIX', '(not set)')}"
 )
 st.code(cmd, language="bash")
 
-# ------------------------- Validação pré-execução -------------------------
+# ============================= Pre-run validation =============================
+
 def preflight_validate(params: dict, fofn_path: str) -> list[str]:
     errs: list[str] = []
 
     if not docker_available():
         errs.append(
-            "Docker não está disponível no PATH. "
-            "Este app executa o Bactopia apenas com '-profile docker', portanto o Docker é obrigatório."
+            "Docker is not available in PATH. "
+            "This app runs Bactopia only with '-profile docker', so Docker is mandatory."
         )
 
     datasets = params.get("datasets")
     if datasets and not pathlib.Path(datasets).exists():
-        errs.append(f"Caminho não existe: datasets = {datasets}")
+        errs.append(f"Path does not exist: datasets = {datasets}")
 
     if not pathlib.Path(fofn_path).is_file():
         errs.append(
-            f"FOFN não encontrado: {fofn_path}.\n"
-            "Gere o FOFN em 'Gerar FOFN' (botão '🔎 Escanear e montar FOFN') antes de executar."
+            f"FOFN not found: {fofn_path}.\n"
+            "Generate the FOFN in 'Generate FOFN' (button '🔎 Scan base folder and build FOFN') before running."
         )
 
     return errs
@@ -1377,34 +1384,35 @@ def preflight_validate(params: dict, fofn_path: str) -> list[str]:
 _errors = preflight_validate(params, fofn_out)
 
 if _errors:
-    st.error("Erros de configuração encontrados. Corrija antes de executar:")
+    st.error("Configuration errors detected. Fix them before running:")
     for e in _errors:
         st.markdown(f"- {e}")
 
-# ------------------------- Botões Execução / Clean -------------------------
+# ============================= Run / Clean buttons =============================
+
 col1, col2, col3 = st.columns([1, 1, 2])
 with col1:
     start_main = st.button(
-        "▶️ Executar (async)",
+        "▶️ Run (async)",
         key="btn_main_start",
         disabled=st.session_state.get("main_running", False),
     )
 with col2:
     stop_main = st.button(
-        "⏹️ Interromper",
+        "⏹️ Stop",
         key="btn_main_stop",
         disabled=not st.session_state.get("main_running", False),
     )
 with col3:
     c1, c2, c3 = st.columns([1, 1, 2])
     with c1:
-        st.checkbox("Confirmar", value=False, key="confirm_clean")
+        st.checkbox("Confirm", value=False, key="confirm_clean")
     with c2:
-        st.checkbox("Manter logs (-k)", value=False, key="clean_keep_logs")
+        st.checkbox("Keep logs (-k)", value=False, key="clean_keep_logs")
     with c3:
-        st.checkbox("Todas execuções", value=False, key="clean_all_runs")
+        st.checkbox("All runs", value=False, key="clean_all_runs")
     clean_clicked = st.button(
-        "🧹 Limpar ambiente",
+        "🧹 Clean environment",
         key="btn_clean_main",
         disabled=not st.session_state.get("confirm_clean", False),
     )
@@ -1413,20 +1421,20 @@ status_box_main = st.empty()
 report_zone_main = st.empty()
 log_container_main = st.empty()
 
-# --- LIMPEZA DE EXECUÇÕES ---
+# --- Cleaning runs ---
 if clean_clicked:
     if st.session_state.get("main_running", False):
         request_stop_ns("main")
         time.sleep(0.8)
 
-    # Limpeza/logs a partir do mesmo outdir usado nas execuções
+    # Clean/log from the same outdir used in runs
     launch_dir = pathlib.Path(st.session_state.get("outdir", DEFAULT_OUTDIR)).expanduser().resolve()
     launch_dir.mkdir(parents=True, exist_ok=True)
     ensure_project_nxf_dir(launch_dir)
     ensure_nxf_home()
 
     if not nextflow_available():
-        st.error("Nextflow não encontrado (nem no PATH, nem em BACTOPIA_ENV_PREFIX).")
+        st.error("Nextflow not found (neither in PATH nor in BACTOPIA_ENV_PREFIX).")
     else:
         all_runs = st.session_state.get("clean_all_runs", False)
         keep_logs = st.session_state.get("clean_keep_logs", False)
@@ -1449,7 +1457,7 @@ if clean_clicked:
                     run_names.append(rn)
 
             if not run_names:
-                st.info("Nenhuma execução encontrada pelo 'nextflow log'.")
+                st.info("No runs found by `nextflow log`.")
             else:
                 targets = [run_names[-1]] if not all_runs else list(reversed(run_names))
                 failures = []
@@ -1472,14 +1480,14 @@ if clean_clicked:
 
                 if cleaned and not failures:
                     if all_runs:
-                        st.success(f"Limpeza realizada para {cleaned} execução(ões).")
+                        st.success(f"Cleaned {cleaned} run(s).")
                     else:
-                        st.success(f"Limpeza realizada para: {targets[0]}")
+                        st.success(f"Cleaned: {targets[0]}")
                 elif cleaned and failures:
-                    st.warning(f"Limpeza parcial: {cleaned} ok, {len(failures)} com erro.")
+                    st.warning(f"Partial cleanup: {cleaned} ok, {len(failures)} failed.")
                 else:
                     st.error(
-                        "Falha ao limpar." if not all_runs else "Falha ao limpar todas as execuções."
+                        "Failed to clean last run." if not all_runs else "Failed to clean all runs."
                     )
 
                 for rn, msg in failures:
@@ -1489,30 +1497,29 @@ if clean_clicked:
 
                 if any("Missing cache index file" in (m or "") for _, m in failures):
                     st.warning(
-                        "Algumas execuções não possuem índice de cache (`.nextflow/cache`). "
-                        "Nesses casos o `nextflow clean` não consegue mapear o `work/`. "
-                        "Se necessário, faça uma limpeza manual/forçada de `work/` e `.nextflow/cache/` (irreversível)."
+                        "Some runs do not have a cache index (`.nextflow/cache`). "
+                        "In these cases, `nextflow clean` cannot map `work/`. "
+                        "If needed, you may manually/forcibly remove `work/` and `.nextflow/cache/` (irreversible)."
                     )
         except Exception as e:
             st.exception(e)
 
 if stop_main:
     request_stop_ns("main")
-    status_box_main.warning("Solicitada interrupção…")
+    status_box_main.warning("Stop requested…")
 
 if start_main:
     if _errors:
-        st.error("Execução bloqueada pelas validações acima.")
+        st.error("Run blocked by the validation errors above.")
     elif not nextflow_available():
-        st.error("Nextflow não encontrado (nem no PATH, nem em BACTOPIA_ENV_PREFIX).")
+        st.error("Nextflow not found (neither in PATH nor in BACTOPIA_ENV_PREFIX).")
     else:
         try:
-            # sem stdbuf: usamos o cmd exatamente como montado em build_bactopia_cmd
-            full_cmd = cmd
-            status_box_main.info("Executando (async).")
+            full_cmd = cmd  # no stdbuf wrapper, use the command as built
+            status_box_main.info("Running (async).")
             start_async_runner_ns(full_cmd, "main")
         except Exception as e:
-            st.error(f"Falha ao iniciar (async): {e}")
+            st.error(f"Failed to start (async): {e}")
 
 if st.session_state.get("main_running", False):
     drain_log_queue_ns("main", tail_limit=200, max_pull=500)
@@ -1528,3 +1535,17 @@ if st.session_state.get("main_running", False):
         _st_rerun()
 else:
     render_log_box_ns("main")
+
+DISCLAIMER_MD = """
+> ⚠️ **Notice about Bactopia**
+>
+> This panel only orchestrates official **Bactopia** pipeline.  
+> Bactopia is software developed by third parties (https://bactopia.github.io/latest/).  
+> **BEAR-HUB** does not modify Bactopia's code; it only assembles commands
+> and parameters in a more user-friendly way.
+>
+> For methods, limitations, and the correct way to cite Bactopia, always refer
+> to the official documentation and repository.
+"""
+
+st.markdown(DISCLAIMER_MD)

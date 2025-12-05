@@ -1,6 +1,6 @@
-# HUB.py — Hub multipáginas
+# BEAR-HUB.py — Multi-page Hub
 # ---------------------------------------------------------------------
-# Requer: streamlit>=1.30, Nextflow (+ Docker/Apptainer) instalados no PATH.
+# Requires: streamlit>=1.30, Nextflow (+ Docker/Apptainer) installed in PATH.
 # ---------------------------------------------------------------------
 
 import os
@@ -9,15 +9,23 @@ import shutil
 import platform
 import streamlit as st
 
-# ============================= Config geral =============================
+# ============================= General config =============================
 st.set_page_config(page_title="BEAR-HUB", page_icon="🐻", layout="wide")
 
-APP_ROOT = pathlib.Path.cwd()
+APP_ROOT = pathlib.Path(__file__).resolve().parent
 PAGES_DIR = APP_ROOT / "pages"
 PAGE_BACTOPIA = PAGES_DIR / "BACTOPIA.py"
 PAGE_TOOLS = PAGES_DIR / "BACTOPIA-TOOLS.py"
+PAGE_MERLIN = PAGES_DIR / "MERLIN.py"
 PAGE_PORT = PAGES_DIR / "PORT.py"
-PAGE_TEST = PAGES_DIR / "TEST.py"
+
+# Discover project root (folder that holds /static)
+if (APP_ROOT / "static").is_dir():
+    PROJECT_ROOT = APP_ROOT
+elif (APP_ROOT.parent / "static").is_dir():
+    PROJECT_ROOT = APP_ROOT.parent
+else:
+    PROJECT_ROOT = APP_ROOT  # fallback
 
 # ============================= Utils =============================
 def which(cmd: str):
@@ -28,90 +36,149 @@ def env_badge(label: str, ok: bool) -> str:
     return f"{'✅' if ok else '❌'} {label}"
 
 def ensure_pages_hint():
+    """
+    Check that all required pages exist under pages/.
+    If the file is only present at the project root, suggest moving it.
+    """
     missing = []
+    # BACTOPIA
     if not PAGE_BACTOPIA.exists():
-        # Se o arquivo estiver na raiz do projeto, sugira mover
         if (APP_ROOT / "BACTOPIA.py").exists():
-            missing.append("`pages/BACTOPIA.py` (encontrado `./BACTOPIA.py`; mova para `pages/`)")
+            missing.append(
+                "`pages/BACTOPIA.py` (found `./BACTOPIA.py`; move it to `pages/`)"
+            )
         else:
             missing.append("`pages/BACTOPIA.py`")
+
+    # BACTOPIA-TOOLS
     if not PAGE_TOOLS.exists():
         if (APP_ROOT / "BACTOPIA-TOOLS.py").exists():
-            missing.append("`pages/app_tBACTOPIA-TOOLSools.py` (encontrado `./BACTOPIA-TOOLS.py`; mova para `pages/`)")
+            missing.append(
+                "`pages/BACTOPIA-TOOLS.py` (found `./BACTOPIA-TOOLS.py`; move it to `pages/`)"
+            )
         else:
             missing.append("`pages/BACTOPIA-TOOLS.py`")
+
+    # MERLIN
+    if not PAGE_MERLIN.exists():
+        if (APP_ROOT / "MERLIN.py").exists():
+            missing.append(
+                "`pages/MERLIN.py` (found `./MERLIN.py`; move it to `pages/`)"
+            )
+        else:
+            missing.append("`pages/MERLIN.py`")
+
+    # PORT
     if not PAGE_PORT.exists():
-        if (APP_ROOT / "").exists():
-            missing.append("`pages/PORT.py` (encontrado `./PORT.py`; mova para `pages/`)")
+        if (APP_ROOT / "PORT.py").exists():
+            missing.append(
+                "`pages/PORT.py` (found `./PORT.py`; move it to `pages/`)"
+            )
         else:
             missing.append("`pages/PORT.py`")
+
     return missing
 
 # ============================= Header =============================
-st.title("🧬 BEAR-Hub 🐻")
-st.caption("Central com navegação para as duas páginas: **Main (FOFN/pipeline)** e **Ferramentas oficiais (--wf)**.")
+ICON_PATH_BEAR_HUB = PROJECT_ROOT / "static" / "bear-hub-logo-bg.png"
 
-# Ambiente (diagnóstico rápido)
-nf_ok = which("nextflow") is not None
-docker_ok = which("docker") is not None
-sing_ok = which("singularity") is not None or which("apptainer") is not None
+if ICON_PATH_BEAR_HUB.is_file():
+    left_co, cent_co, last_co = st.columns(3)
+    with cent_co:
+        st.image(str(ICON_PATH_BEAR_HUB), width=1000)
+else:
+    st.title("🧬 BEAR-HUB 🐻")
 
-with st.container():
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("SO", platform.system())
-    c2.write(env_badge("Nextflow", nf_ok))
-    c3.write(env_badge("Docker", docker_ok))
-    c4.write(env_badge("Singularity/Apptainer", sing_ok))
 st.divider()
 
-# ============================= Checagem de páginas =============================
+# Quick environment diagnostics (kept commented, now in English)
+# nf_ok = which("nextflow") is not None
+# docker_ok = which("docker") is not None
+# sing_ok = which("singularity") is not None or which("apptainer") is not None
+#
+# with st.container():
+#     c1, c2, c3, c4 = st.columns(4)
+#     c1.metric("OS", platform.system())
+#     c2.write(env_badge("Nextflow", nf_ok))
+#     c3.write(env_badge("Docker", docker_ok))
+#     c4.write(env_badge("Singularity/Apptainer", sing_ok))
+
+
+
+# ============================= Page checks =============================
 missing = ensure_pages_hint()
 if missing:
-    st.error("Páginas não encontradas:")
+    st.error("Required pages not found:")
     for m in missing:
         st.markdown(f"- {m}")
     st.info(
-        "Crie a pasta `pages/` na raiz do projeto e mova os arquivos para lá.\n\n"
-        "Exemplo:\n"
+        "Create the `pages/` folder at the project root and move the files there.\n\n"
+        "Example:\n"
         "`mkdir -p pages && mv BACTOPIA.py pages/BACTOPIA.py && mv BACTOPIA-TOOLS.py pages/BACTOPIA-TOOLS.py`"
     )
 else:
-    # Navegação por cartões + links nativos do Streamlit
-    st.subheader("Navegar")
+    # Navigation cards + Streamlit native routing
+
+
+    #st.markdown("## Hub")
+    #st.divider()
     cA, cB = st.columns(2)
 
     with cA:
-        st.markdown("### Bactopia — Pipeline Principal")
-        st.caption("Gera **FOFN** automaticamente, monta o comando do **Bactopia** e executa via Nextflow (assíncrono).")
-        st.page_link("pages/BACTOPIA.py", label="Abrir Bactopia", icon="🦠")
+        st.markdown("### Bactopia — Main Pipeline")
+        st.caption(
+            "Automatically builds a **FOFN**, assembles the **Bactopia** command and runs it via Nextflow (async)."
+        )
+        if st.button("BACTOPIA", type="primary", icon="🦠", use_container_width=True):
+            st.switch_page("pages/BACTOPIA.py")
 
     with cB:
-        st.markdown("### Ferramentas Bactopia")
-        st.caption("Executa **amrfinderplus, rgi, abricate, mobsuite, mlst, pangenome, mashtree** nas amostras concluídas.")
-        st.page_link("pages/BACTOPIA-TOOLS.py", label="Abrir página Ferramentas", icon="🧰")
-
-
+        st.markdown("### Bactopia Tools")
+        st.caption(
+            "Runs **amrfinderplus, rgi, abricate, mobsuite, mlst, pangenome, mashtree** "
+            "on completed samples."
+        )
+        if st.button("BACTOPIA TOOLS", type="primary", icon="🧰", use_container_width=True):
+            st.switch_page("pages/BACTOPIA-TOOLS.py")
 
     cA1, cB2 = st.columns(2)
 
     with cA1:
+        st.markdown("### Bactopia MERLIN")
+        st.caption("Runs species-specific workflows on completed samples.")
+        if st.button("BACTOPIA MERLIN", type="primary", icon="🧙🏻", use_container_width=True):
+            st.switch_page("pages/MERLIN.py")
+
+    with cB2:
         st.markdown("### PORT — Plasmid Outbreak Investigation Tool")
-        st.caption("PORT.")
-        st.page_link("pages/BACTOPIA.py", label="Abrir PORT", icon="🍷")
-
-
+        st.caption("(IN DEVELOPMENT) Wrapper to run **PORT** for plasmid-focused outbreak investigations.")
+        if st.button("PORT", type="secondary", icon="🍷", use_container_width=True):
+            st.switch_page("pages/PORT.py")
 
     st.divider()
-    with st.expander("Dicas rápidas", expanded=False):
+    with st.expander("Quick tips", expanded=False):
         st.markdown(
-            "- Cada página tem suas próprias opções e logs.\n"
-            "- Se faltar `Nextflow` no PATH, instale e reabra o terminal/sessão."
+            "- Each page has its own options and logs.\n"
+            "- If `Nextflow` is missing from your PATH, install it and restart your terminal/session.\n"
+            "- Docker or Singularity/Apptainer must be installed if you intend to run container profiles."
         )
 
-# Rodapé
+# ============================= Footer (disclaimer) =============================
 st.markdown(
     "<hr style='opacity:0.3'/>"
-    "<small>BEAR-HUB — multipage hub. "
-    "",
-    unsafe_allow_html=True
+    "<small>"
+    """
+BPT-BR
+
+Este projeto fornece apenas uma interface (hub/UI) para orquestrar análises com o Bactopia (https://github.com/bactopia).
+Bactopia é um software de terceiros, desenvolvido e mantido independentemente por seus autores originais.
+Não temos qualquer vínculo oficial com o projeto Bactopia.
+
+EN
+
+This project only provides a user interface (hub/UI) to orchestrate analyses with Bactopia (https://github.com/bactopia).
+Bactopia is third-party software, developed and maintained independently by its original authors.
+We have no official affiliation with the Bactopia project.
+    """,
+    unsafe_allow_html=True,
 )

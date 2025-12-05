@@ -20,6 +20,26 @@ from queue import Queue, Empty
 
 import streamlit as st
 import streamlit.components.v1 as components
+# ============================= Config geral =============================
+st.set_page_config(page_title="BEAR-HUB", page_icon="🐻", layout="wide")
+
+APP_ROOT = pathlib.Path(__file__).resolve().parent
+PAGES_DIR = APP_ROOT / "pages"
+PAGE_BACTOPIA = PAGES_DIR / "BACTOPIA.py"
+PAGE_TOOLS = PAGES_DIR / "BACTOPIA-TOOLS.py"
+PAGE_PORT = PAGES_DIR / "PORT.py"
+PAGE_TEST = PAGES_DIR / "TEST.py"
+
+# APP_ROOT já existe e é o diretório deste arquivo
+# descobrimos a raiz do projeto de forma segura
+if (APP_ROOT / "static").is_dir():
+    PROJECT_ROOT = APP_ROOT
+elif (APP_ROOT.parent / "static").is_dir():
+    PROJECT_ROOT = APP_ROOT.parent
+else:
+    PROJECT_ROOT = APP_ROOT  # fallback
+
+
 
 # ============================= Config =============================
 # Deixe o set_page_config no app principal, se estiver usando multipage.
