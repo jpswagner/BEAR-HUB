@@ -10,17 +10,16 @@ BEAR-HUB is a streamlined **Streamlit** interface designed to orchestrate bacter
 ## Key Features
 
 -   **Bactopia Pipeline**: Run the complete Bactopia pipeline with automatic run-type detection (Paired-End, Single-End, Hybrid, ONT, Assembly).
+-       -   **FOFN Generator**: Automatic generation of "File of File Names" for sample management.
 -   **Bactopia Tools**: Execute specific post-processing workflows (e.g., AMRFinderPlus, MLST, Pan-genome analysis) on completed samples.
 -   **Merlin**: Access species-specific tools and workflows.
 -   **PORT**: (In Development) Support for plasmid-focused outbreak investigations using Nanopore/Hybrid assemblies.
--   **FOFN Generator**: Automatic generation of "File of File Names" for sample management.
--   **Visual Logs**: Real-time monitoring of Nextflow execution logs directly within the browser.
 
 ---
 
 ## 1. Requirements
 
-BEAR-HUB is designed for **Linux** environments (Ubuntu-like). It also works well on **Windows via WSL2**.
+BEAR-HUB is designed for **Linux** environments (Ubuntu-like).
 
 **Prerequisites:**
 
@@ -29,7 +28,7 @@ BEAR-HUB is designed for **Linux** environments (Ubuntu-like). It also works wel
 -   [x] **Disk Space** (Bactopia and its datasets can require significant storage)
 -   [x] **Docker** (Highly recommended; required for `profile: docker`)
 
-> **Note:** While Singularity/Apptainer is supported by Nextflow, this hub is optimized for Docker.
+> **Note:** While Singularity/Apptainer is supported by Nextflow, this hub is optimized for running bactopia with Docker.
 
 ---
 
@@ -84,6 +83,9 @@ This will launch the Streamlit server and provide a local URL (usually `http://l
     -   Choose tools (e.g., `amrfinderplus`, `rgi`, `mlst`).
     -   Click "Run Tools".
 -   **MERLIN**: Specialized tools for specific species (e.g., *Klebsiella*, *Salmonella*).
+    -   Select your Bactopia output folder.
+    -   Choose tools.
+    -   Click "Run".
 -   **PORT**: (Beta) Nanopore and plasmid analysis workflows.
 
 ---
