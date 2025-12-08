@@ -18,11 +18,9 @@ The script checks for the existence of required page files and environment
 dependencies (Nextflow, Docker) and renders the main landing page.
 """
 
-import os
 import pathlib
-import shutil
-import platform
 import streamlit as st
+import utils  # Import the new utility module
 
 # ============================= General config =============================
 st.set_page_config(page_title="BEAR-HUB", page_icon="🐻", layout="wide")
@@ -43,31 +41,7 @@ else:
     PROJECT_ROOT = APP_ROOT  # fallback
 
 # ============================= Utils =============================
-def which(cmd: str):
-    """
-    Locate a command in the user's PATH.
-
-    Args:
-        cmd (str): The name of the command to search for.
-
-    Returns:
-        str or None: The full path to the command if found, else None.
-    """
-    from shutil import which as _which
-    return _which(cmd)
-
-def env_badge(label: str, ok: bool) -> str:
-    """
-    Generate a simple badge string indicating status.
-
-    Args:
-        label (str): The label for the badge (e.g., "Docker").
-        ok (bool): True if the status is OK (green check), False otherwise (red X).
-
-    Returns:
-        str: A formatted string with an emoji and the label.
-    """
-    return f"{'✅' if ok else '❌'} {label}"
+# Using utils.which and utils.env_badge instead of defining them locally
 
 def ensure_pages_hint():
     """
@@ -133,16 +107,16 @@ else:
 st.divider()
 
 # Quick environment diagnostics (kept commented, now in English)
-# nf_ok = which("nextflow") is not None
-# docker_ok = which("docker") is not None
-# sing_ok = which("singularity") is not None or which("apptainer") is not None
+# nf_ok = utils.which("nextflow") is not None
+# docker_ok = utils.which("docker") is not None
+# sing_ok = utils.which("singularity") is not None or utils.which("apptainer") is not None
 #
 # with st.container():
 #     c1, c2, c3, c4 = st.columns(4)
 #     c1.metric("OS", platform.system())
-#     c2.write(env_badge("Nextflow", nf_ok))
-#     c3.write(env_badge("Docker", docker_ok))
-#     c4.write(env_badge("Singularity/Apptainer", sing_ok))
+#     c2.write(utils.env_badge("Nextflow", nf_ok))
+#     c3.write(utils.env_badge("Docker", docker_ok))
+#     c4.write(utils.env_badge("Singularity/Apptainer", sing_ok))
 
 
 

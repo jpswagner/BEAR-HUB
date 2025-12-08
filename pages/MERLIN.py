@@ -24,19 +24,20 @@ import os
 import shlex
 import time
 import pathlib
-import subprocess
-import re
 import shutil
-import asyncio
-import html
-import threading
 import hashlib
-import fnmatch
 from typing import List
-from queue import Queue, Empty
 
 import streamlit as st
 import streamlit.components.v1 as components
+
+# Import utility module from parent directory (or same directory if running from root)
+try:
+    import utils
+except ImportError:
+    import sys
+    sys.path.append(str(pathlib.Path(__file__).parent.parent))
+    import utils
 
 # ============================= General config =============================
 st.set_page_config(
@@ -60,136 +61,20 @@ elif (APP_ROOT.parent / "static").is_dir():
 else:
     PROJECT_ROOT = APP_ROOT  # fallback
 
-
-def _st_rerun():
-    """Trigger a Streamlit rerun."""
-    fn = getattr(st, "rerun", None) or getattr(st, "experimental_rerun", None)
-    if fn:
-        fn()
-
-
 APP_STATE_DIR = pathlib.Path.home() / ".bactopia_ui_local"
 # Aligned with BEAR-HUB: ~/BEAR_DATA/bactopia_out
 DEFAULT_OUTDIR = str((pathlib.Path.home() / "BEAR_DATA" / "bactopia_out").resolve())
 
 # ===================== Nextflow via Bactopia conda env =====================
 
-def bootstrap_bear_env_from_file():
-    """
-    Load configuration from `.bear-hub.env`.
-
-    Sets environment variables like BACTOPIA_ENV_PREFIX and NXF_CONDA_EXE
-    if they are not already set.
-    """
-    solver = os.environ.get("NXF_CONDA_EXE")
-    if os.environ.get("BACTOPIA_ENV_PREFIX") and solver and os.path.exists(solver):
-        return
-
-    candidates: list[pathlib.Path] = []
-
-    # If BEAR_HUB_ROOT is defined, use it as starting point
-    env_root = os.environ.get("BEAR_HUB_ROOT")
-    if env_root:
-        candidates.append(pathlib.Path(env_root).expanduser() / ".bear-hub.env")
-
-    # Default BEAR-HUB installation path
-    candidates.append(pathlib.Path.home() / "BEAR-HUB" / ".bear-hub.env")
-
-    for cfg in candidates:
-        try:
-            if not cfg.is_file():
-                continue
-            with cfg.open("r", encoding="utf-8") as fh:
-                for line in fh:
-                    line = line.strip()
-                    if not line or line.startswith("#"):
-                        continue
-                    m = re.match(r'export\s+([A-Za-z_][A-Za-z0-9_]*)=(.*)', line)
-                    if not m:
-                        continue
-                    var, value = m.group(1), m.group(2).strip()
-                    # Remove quotes if line is like: export VAR="..."
-                    if ((value.startswith('"') and value.endswith('"'))
-                            or (value.startswith("'") and value.endswith("'"))):
-                        value = value[1:-1]
-                    if not var or not value:
-                        continue
-
-                    if var == "NXF_CONDA_EXE":
-                        cur = os.environ.get("NXF_CONDA_EXE")
-                        if (not cur) or (cur and not os.path.exists(cur)):
-                            os.environ["NXF_CONDA_EXE"] = value
-                    else:
-                        if var not in os.environ:
-                            os.environ[var] = value
-            break
-        except Exception:
-            continue
-
-    if os.environ.get("BEAR_HUB_ROOT") and not os.environ.get("BEAR_HUB_BASEDIR"):
-        os.environ["BEAR_HUB_BASEDIR"] = os.environ["BEAR_HUB_ROOT"]
-
-
 # Try to load .bear-hub.env early
-bootstrap_bear_env_from_file()
+utils.bootstrap_bear_env_from_file()
 
-# Discover Nextflow inside the "bactopia" environment, if present
 BACTOPIA_ENV_PREFIX = os.environ.get("BACTOPIA_ENV_PREFIX")
-BACTOPIA_NEXTFLOW_BIN: str | None = None
-
-if BACTOPIA_ENV_PREFIX:
-    try:
-        _bact_env = pathlib.Path(BACTOPIA_ENV_PREFIX).expanduser().resolve()
-        _cand_nf = _bact_env / "bin" / "nextflow"
-        if _cand_nf.is_file() and os.access(_cand_nf, os.X_OK):
-            BACTOPIA_NEXTFLOW_BIN = str(_cand_nf)
-    except Exception:
-        BACTOPIA_NEXTFLOW_BIN = None
-
-
-def which(cmd: str):
-    """Find a command in PATH."""
-    from shutil import which as _which
-    return _which(cmd)
-
-
-def get_nextflow_bin() -> str:
-    """
-    Get the path to the Nextflow binary.
-
-    Returns:
-        str: Path to Nextflow.
-    """
-    v = (st.session_state.get("nextflow_bin") or "").strip()
-    if v:
-        return v
-    v = (os.environ.get("NEXTFLOW_BIN") or "").strip()
-    if v:
-        return v
-    if BACTOPIA_NEXTFLOW_BIN:
-        return BACTOPIA_NEXTFLOW_BIN
-    return "nextflow"
-
-
-def nextflow_available() -> bool:
-    """
-    Check if Nextflow is available.
-
-    Returns:
-        bool: True if available.
-    """
-    if (st.session_state.get("nextflow_bin") or "").strip():
-        return True
-    if (os.environ.get("NEXTFLOW_BIN") or "").strip():
-        return True
-    if BACTOPIA_NEXTFLOW_BIN:
-        return True
-    return which("nextflow") is not None
-
 
 def have_tool(name: str) -> bool:
     """Check if a tool is in PATH."""
-    return which(name) is not None
+    return utils.which(name) is not None
 
 # ============================= Help (popovers) =============================
 
@@ -251,399 +136,6 @@ def help_header(title_md: str, help_key: str, ratio=(4, 1)):
         st.markdown(title_md)
     with c2:
         help_popover("❓ Help", HELP[help_key])
-
-# ============================= File explorer (popup) =============================
-
-def _safe_id(s: str) -> str:
-    """Generate a safe ID string."""
-    return hashlib.md5(s.encode("utf-8")).hexdigest()[:10]
-
-
-def _list_dir(cur: pathlib.Path) -> tuple[list[pathlib.Path], list[pathlib.Path]]:
-    """List subdirectories and files."""
-    try:
-        entries = list(cur.iterdir())
-    except Exception:
-        entries = []
-    dirs = [p for p in entries if p.is_dir()]
-    files = [p for p in entries if p.is_file()]
-    dirs.sort(key=lambda p: p.name.lower())
-    files.sort(key=lambda p: p.name.lower())
-    return dirs, files
-
-
-def _fs_browser_core(
-    label: str,
-    key: str,
-    mode: str = "file",
-    start: str | None = None,
-    patterns: list[str] | None = None,
-):
-    """
-    Core file browser UI component.
-
-    Args:
-        label (str): Label for the browser.
-        key (str): Session state key.
-        mode (str): "file" or "dir".
-        start (str | None): Initial path.
-        patterns (list[str] | None): File patterns.
-    """
-    base_start = start or st.session_state.get(key) or os.getcwd()
-    cur_key = f"__picker_cur__{key}"
-    try:
-        cur = pathlib.Path(st.session_state.get(cur_key, base_start)).expanduser().resolve()
-    except Exception:
-        cur = pathlib.Path(base_start).expanduser().resolve()
-
-    def set_cur(p: pathlib.Path):
-        st.session_state[cur_key] = str(p.expanduser().resolve())
-
-    hostfs_root = os.getenv("HOSTFS_ROOT", "/hostfs")
-
-    c_up, c_home, c_host, c_path, c_pick = st.columns([0.9, 0.9, 0.9, 6, 2])
-
-    with c_up:
-        if st.button("⬆️ Up", key=f"{key}_up"):
-            parent = cur.parent if cur.parent != cur else cur
-            set_cur(parent)
-            _st_rerun()
-
-    with c_home:
-        home_base = pathlib.Path(start or pathlib.Path.home())
-        if st.button("🏠 Base", key=f"{key}_home"):
-            set_cur(home_base)
-            _st_rerun()
-
-    with c_host:
-        if os.path.exists(hostfs_root):
-            if st.button("🖥 Host", key=f"{key}_host"):
-                set_cur(pathlib.Path(hostfs_root))
-                _st_rerun()
-
-    with c_path:
-        st.caption(str(cur))
-
-    with c_pick:
-        if mode == "dir":
-            if st.button("Choose", key=f"{key}_choose_dir"):
-                st.session_state[key] = str(cur)
-
-    dirs, files = _list_dir(cur)
-    st.markdown("**Directories**")
-    dcols = st.columns(2)
-    for i, d in enumerate(dirs):
-        did = _safe_id(str(d))
-        if dcols[i % 2].button("📁 " + d.name, key=f"{key}_d_{did}"):
-            set_cur(d)
-            _st_rerun()
-
-    if mode == "file":
-        if patterns:
-            files = [f for f in files if any(fnmatch.fnmatch(f.name, pat) for pat in patterns)]
-        st.markdown("**Files**")
-        for f in files:
-            fid = _safe_id(str(f))
-            if st.button("📄 " + f.name, key=f"{key}_f_{fid}"):
-                st.session_state[key] = str(f.resolve())
-                st.session_state[f"__open_{key}"] = False
-                _st_rerun()
-
-
-def path_picker(
-    label: str,
-    key: str,
-    mode: str = "dir",
-    start: str | None = None,
-    patterns: list[str] | None = None,
-    help: str | None = None,
-):
-    """
-    Render a path picker with text input and browse button.
-
-    Args:
-        label (str): Input label.
-        key (str): Session state key.
-        mode (str): "file" or "dir".
-        start (str | None): Initial path.
-        patterns (list[str] | None): File patterns.
-        help (str | None): Help tooltip.
-
-    Returns:
-        str: Selected path.
-    """
-    open_key = f"__open_{key}"
-    cur_key = f"__picker_cur__{key}"
-
-    if open_key not in st.session_state:
-        st.session_state[open_key] = False
-
-    col1, col2 = st.columns([7, 2])
-    with col1:
-        val = st.text_input(label, value=st.session_state.get(key, start or ""), key=key, help=help)
-        try:
-            if val:
-                val_abs = str(pathlib.Path(val).expanduser().resolve())
-                if val_abs != val:
-                    st.session_state[key] = val_abs
-        except Exception:
-            pass
-    with col2:
-        if st.button("Browse…", key=f"open_{key}"):
-            st.session_state[open_key] = True
-            try:
-                hint = pathlib.Path(st.session_state.get(key) or start or os.getcwd())
-                base = hint if hint.is_dir() else hint.parent
-                st.session_state[cur_key] = str(base.expanduser().resolve())
-            except Exception:
-                st.session_state[cur_key] = str(
-                    pathlib.Path(start or os.getcwd()).expanduser().resolve()
-                )
-
-    # Dialog-based popup (if available)
-    if st.session_state.get(open_key, False) and hasattr(st, "dialog"):
-        @st.dialog(label, width="large")
-        def _dlg():
-            _fs_browser_core(label, key, mode=mode, start=start, patterns=patterns)
-            c_ok, c_cancel = st.columns(2)
-            with c_ok:
-                if st.button("✅ Use this path", key=f"use_{key}"):
-                    if mode == "dir":
-                        cur = pathlib.Path(st.session_state.get(cur_key, start or os.getcwd()))
-                        st.session_state[key] = str(cur.expanduser().resolve())
-                    st.session_state[open_key] = False
-                    _st_rerun()
-            with c_cancel:
-                if st.button("Cancel", key=f"cancel_{key}"):
-                    st.session_state[open_key] = False
-                    _st_rerun()
-        _dlg()
-
-    # Inline fallback if st.dialog does not exist (older Streamlit)
-    elif st.session_state.get(open_key, False):
-        st.info(f"{label} (inline mode — fallback)")
-        _fs_browser_core(label, key, mode=mode, start=start, patterns=patterns)
-        c_ok, c_cancel = st.columns(2)
-        with c_ok:
-            if st.button("✅ Use this path", key=f"use_inline_{key}"):
-                if mode == "dir":
-                    cur = pathlib.Path(st.session_state.get(cur_key, start or os.getcwd()))
-                    st.session_state[key] = str(cur.expanduser().resolve())
-                st.session_state[open_key] = False
-                _st_rerun()
-        with c_cancel:
-            if st.button("Cancel", key=f"cancel_inline_{key}"):
-                st.session_state[open_key] = False
-                _st_rerun()
-
-    return st.session_state.get(key) or ""
-
-# ============================= Async execution utils =============================
-
-def ensure_state_dir():
-    """Ensure state directory exists."""
-    APP_STATE_DIR.mkdir(parents=True, exist_ok=True)
-
-
-ANSI_ESCAPE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
-
-
-def _strip_ansi(s: str) -> str:
-    """Strip ANSI codes."""
-    return ANSI_ESCAPE.sub("", s)
-
-
-def _normalize_linebreaks(chunk: str) -> list[str]:
-    """
-    Normalize log output:
-      - remove ANSI color/escape codes
-      - adapt long lines into more readable breaks
-    """
-    if not chunk:
-        return []
-    chunk = _strip_ansi(chunk).replace("\r", "\n")
-    chunk = re.sub(r"\s+-\s+\[", "\n[", chunk)
-    chunk = re.sub(r"(?<!^)\s+(?=executor\s*>)", "\n", chunk, flags=re.IGNORECASE)
-    chunk = re.sub(r"✔\s+(?=\[)", "✔\n", chunk)
-    return [p.rstrip() for p in chunk.split("\n") if p.strip() != ""]
-
-
-async def _async_read_stream(stream, log_q: Queue, stop_event: threading.Event):
-    """Async stream reader."""
-    while True:
-        line = await stream.readline()
-        if not line:
-            break
-        s = line.decode(errors="replace")
-        for sub in _normalize_linebreaks(s):
-            log_q.put(sub)
-        if stop_event.is_set():
-            break
-
-
-async def _async_exec(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: threading.Event):
-    """Async command executor."""
-    try:
-        proc = await asyncio.create_subprocess_exec(
-            "bash",
-            "-lc",
-            full_cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-    except Exception as e:
-        status_q.put(("error", f"Failed to start process: {e}"))
-        return
-
-    t_out = asyncio.create_task(_async_read_stream(proc.stdout, log_q, stop_event))
-    t_err = asyncio.create_task(_async_read_stream(proc.stderr, log_q, stop_event))
-
-    while True:
-        if stop_event.is_set():
-            try:
-                proc.terminate()
-                try:
-                    await asyncio.wait_for(proc.wait(), timeout=5.0)
-                except asyncio.TimeoutError:
-                    proc.kill()
-            except ProcessLookupError:
-                pass
-            break
-        if proc.returncode is not None:
-            break
-        await asyncio.sleep(0.1)
-
-    try:
-        await asyncio.gather(t_out, t_err)
-    except Exception:
-        pass
-
-    rc = await proc.wait()
-    status_q.put(("rc", rc))
-
-
-def _thread_entry(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: threading.Event):
-    """Background thread entry point."""
-    loop = asyncio.new_event_loop()
-    try:
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(_async_exec(full_cmd, log_q, status_q, stop_event))
-    finally:
-        loop.close()
-
-
-def start_async_runner_ns(full_cmd: str, ns: str):
-    """
-    Start an asynchronous runner.
-
-    Args:
-      ns (str): "species" (namespace for state).
-      full_cmd (str): complete bash command to execute.
-    """
-    log_q = Queue()
-    status_q = Queue()
-    stop_event = threading.Event()
-    th = threading.Thread(
-        target=_thread_entry,
-        args=(full_cmd, log_q, status_q, stop_event),
-        daemon=True,
-    )
-    th.start()
-    st.session_state[f"{ns}_running"] = True
-    st.session_state[f"{ns}_log_q"] = log_q
-    st.session_state[f"{ns}_status_q"] = status_q
-    st.session_state[f"{ns}_stop_event"] = stop_event
-    st.session_state[f"{ns}_thread"] = th
-    st.session_state[f"{ns}_live_log"] = []
-
-
-def request_stop_ns(ns: str):
-    """Request stopping the runner."""
-    ev = st.session_state.get(f"{ns}_stop_event")
-    if ev and not ev.is_set():
-        ev.set()
-
-
-def drain_log_queue_ns(ns: str, tail_limit: int = 200, max_pull: int = 500):
-    """
-    Pull messages from the log queue into st.session_state,
-    keeping only the last `tail_limit` lines.
-    """
-    q: Queue = st.session_state.get(f"{ns}_log_q")
-    if not q:
-        return
-    buf = st.session_state.get(f"{ns}_live_log", [])
-    pulled = 0
-    while pulled < max_pull:
-        try:
-            line = q.get_nowait()
-        except Empty:
-            break
-        buf.append(line)
-        pulled += 1
-    if len(buf) > tail_limit:
-        buf[:] = buf[-tail_limit:]
-    st.session_state[f"{ns}_live_log"] = buf
-
-
-def render_log_box_ns(ns: str, height: int = 520):
-    """
-    Render a custom HTML "terminal" log box.
-
-    Args:
-        ns (str): Namespace.
-        height (int): Height in pixels.
-    """
-    lines = st.session_state.get(f"{ns}_live_log", [])
-    content = html.escape("\n".join(lines)) if lines else ""
-    components.html(
-        f"""
-    <div id="logbox_{ns}" style=
-        "
-        width:100%; height:{height-40}px; margin:0 auto; padding:12px;
-        overflow-y:auto; overflow-x:auto; background:#0b0b0b; color:#e6e6e6;
-        border-radius:10px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
-        font-size:13px; line-height:1.35;">
-      <pre style="margin:0; white-space: pre;">{content or "&nbsp;"}</pre>
-    </div>
-    <script>const el=document.getElementById("logbox_{ns}"); if(el){{el.scrollTop=el.scrollHeight;}}</script>
-    """,
-        height=height,
-        scrolling=False,
-    )
-
-
-def check_status_and_finalize_ns(ns: str, status_box):
-    """
-    Check if the async runner has finished and update visual status.
-    """
-    sq: Queue = st.session_state.get(f"{ns}_status_q")
-    if not sq:
-        return False
-    finalized = False
-    msg = None
-    rc = None
-    try:
-        while True:
-            kind, payload = sq.get_nowait()
-            if kind == "error":
-                msg = payload
-                finalized = True
-                rc = -1
-            elif kind == "rc":
-                rc = int(payload)
-                finalized = True
-    except Empty:
-        pass
-    if finalized:
-        st.session_state[f"{ns}_running"] = False
-        st.session_state[f"{ns}_thread"] = None
-        st.session_state[f"{ns}_stop_event"] = None
-        if rc == 0:
-            status_box.success("Finished successfully.")
-        else:
-            status_box.error(msg or f"Execution finished with code {rc}. Check the log below.")
-    return finalized
 
 # ============================= Bactopia helpers =============================
 
@@ -724,7 +216,7 @@ def write_include_file(outdir: str, samples: List[str]) -> str:
     Returns:
         str: Path to the generated include file.
     """
-    ensure_state_dir()
+    utils.ensure_state_dir()
     fname = APP_STATE_DIR / f"include_{hashlib.md5((outdir + '|' + ';'.join(samples)).encode()).hexdigest()[:10]}.txt"
     with open(fname, "w", encoding="utf-8") as fh:
         for s in samples:
@@ -758,7 +250,7 @@ def bt_nextflow_cmd(
     Returns:
         str: The full shell command.
     """
-    nf_bin = get_nextflow_bin()
+    nf_bin = utils.get_nextflow_bin()
     base = [
         nf_bin,
         "run",
@@ -885,7 +377,7 @@ bt_root_default = _guess_bt_root_default()
 if "bt_outdir" not in st.session_state or not st.session_state["bt_outdir"]:
     st.session_state["bt_outdir"] = bt_root_default
 
-bt_outdir = path_picker(
+bt_outdir = utils.path_picker(
     "Bactopia results directory",
     key="bt_outdir",
     mode="dir",
@@ -997,11 +489,11 @@ status_box_species = st.empty()
 log_zone_species = st.empty()
 
 if stop_species:
-    request_stop_ns("species")
+    utils.request_stop_ns("species")
     status_box_species.warning("Stop requested…")
 
 if start_species:
-    if not nextflow_available():
+    if not utils.nextflow_available():
         st.error("Nextflow not found (neither in PATH nor via BACTOPIA_ENV_PREFIX / NEXTFLOW_BIN / nextflow_bin).")
     else:
         if not bt_outdir:
@@ -1049,18 +541,18 @@ if start_species:
 
                     full_cmd = " ; ".join(sub_cmds)
                     status_box_species.info("Running species-specific tools (async).")
-                    start_async_runner_ns(full_cmd, "species")
+                    utils.start_async_runner_ns(full_cmd, "species")
 
 # Live log update
 if st.session_state.get("species_running", False):
-    drain_log_queue_ns("species", tail_limit=500, max_pull=800)
-    render_log_box_ns("species", height=520)
-    finished = check_status_and_finalize_ns("species", status_box_species)
+    utils.drain_log_queue_ns("species", tail_limit=500, max_pull=800)
+    utils.render_log_box_ns("species", height=520)
+    finished = utils.check_status_and_finalize_ns("species", status_box_species)
     if not finished:
         time.sleep(0.3)
-        _st_rerun()
+        utils._st_rerun()
 else:
-    render_log_box_ns("species", height=520)
+    utils.render_log_box_ns("species", height=520)
 
 # ------------------------- merged-results -------------------------
 st.divider()
