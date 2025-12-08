@@ -10,7 +10,7 @@ BEAR-HUB is a streamlined **Streamlit** interface designed to orchestrate bacter
 ## Key Features
 
 -   **Bactopia Pipeline**: Run the complete Bactopia pipeline with automatic run-type detection (Paired-End, Single-End, Hybrid, ONT, Assembly).
--       -   **FOFN Generator**: Automatic generation of "File of File Names" for sample management.
+    -   **FOFN Generator**: Automatic generation of "File of File Names" for sample management.
 -   **Bactopia Tools**: Execute specific post-processing workflows (e.g., AMRFinderPlus, MLST, Pan-genome analysis) on completed samples.
 -   **Merlin**: Access species-specific tools and workflows.
 -   **PORT**: (In Development) Support for plasmid-focused outbreak investigations using Nanopore/Hybrid assemblies.
