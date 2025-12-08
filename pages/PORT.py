@@ -4,6 +4,18 @@
 # Requisitos: streamlit>=1.30; Nextflow + (Docker/Apptainer); PORT clonado
 # ----------------------------------------------------------------------
 
+"""
+PORT Interface.
+
+This module provides a UI for running PORT (Plasmid Outbreak Research Tool).
+It supports:
+1.  **Input Modes**: Running on raw Nanopore FASTQs or existing Bactopia assemblies.
+2.  **Assembly Management**: Automatically creating a `port_assemblies` directory
+    symlinked/copied from Bactopia output.
+3.  **Configuration**: Setting assemblers, read types, and resource limits.
+4.  **Execution**: Asynchronous running of the PORT Nextflow pipeline.
+"""
+
 import os
 import shlex
 import time
@@ -46,6 +58,7 @@ else:
 # st.set_page_config(page_title="PORT — Nanopore & Plasmídeos", layout="wide")
 
 def _st_rerun():
+    """Trigger a Streamlit rerun."""
     fn = getattr(st, "rerun", None) or getattr(st, "experimental_rerun", None)
     if fn:
         fn()
@@ -56,21 +69,30 @@ DEFAULT_PORT_OUTDIR = str((pathlib.Path.cwd() / "port_out").resolve())
 
 # ============================= Utils comuns (mesmo estilo BACTOPIA-TOOLS) =============================
 def ensure_state_dir():
+    """Ensure state directory exists."""
     APP_STATE_DIR.mkdir(parents=True, exist_ok=True)
 
 def which(cmd: str):
+    """Find command in PATH."""
     from shutil import which as _which
     return _which(cmd)
 
 def nextflow_available():
+    """Check if Nextflow is available."""
     return which("nextflow") is not None
 
 ANSI_ESCAPE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
 def _strip_ansi(s: str) -> str:
+    """Strip ANSI codes."""
     return ANSI_ESCAPE.sub("", s)
 
 def _normalize_linebreaks(chunk: str) -> list[str]:
+    """
+    Normalize log output:
+      - remove ANSI color/escape codes
+      - adapt long lines into more readable breaks
+    """
     if not chunk:
         return []
     chunk = _strip_ansi(chunk).replace("\r", "\n")
@@ -81,6 +103,7 @@ def _normalize_linebreaks(chunk: str) -> list[str]:
     return [p.rstrip() for p in chunk.split("\n") if p.strip() != ""]
 
 async def _async_read_stream(stream, log_q: Queue, stop_event: threading.Event):
+    """Async stream reader."""
     while True:
         line = await stream.readline()
         if not line:
@@ -92,6 +115,7 @@ async def _async_read_stream(stream, log_q: Queue, stop_event: threading.Event):
             break
 
 async def _async_exec(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: threading.Event):
+    """Async command executor."""
     try:
         proc = await asyncio.create_subprocess_exec(
             "bash", "-lc", full_cmd,
@@ -129,6 +153,7 @@ async def _async_exec(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: 
     status_q.put(("rc", rc))
 
 def _thread_entry(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: threading.Event):
+    """Thread entry point."""
     loop = asyncio.new_event_loop()
     try:
         asyncio.set_event_loop(loop)
@@ -137,6 +162,7 @@ def _thread_entry(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: thre
         loop.close()
 
 def start_async_runner_ns(full_cmd: str, ns: str):
+    """Start async runner thread."""
     log_q = Queue()
     status_q = Queue()
     stop_event = threading.Event()
@@ -154,11 +180,13 @@ def start_async_runner_ns(full_cmd: str, ns: str):
     st.session_state[f"{ns}_live_log"] = []
 
 def request_stop_ns(ns: str):
+    """Request stop of async runner."""
     ev = st.session_state.get(f"{ns}_stop_event")
     if ev and not ev.is_set():
         ev.set()
 
 def drain_log_queue_ns(ns: str, tail_limit: int = 200, max_pull: int = 500):
+    """Drain log queue into session state."""
     q: Queue = st.session_state.get(f"{ns}_log_q")
     if not q:
         return
@@ -176,6 +204,7 @@ def drain_log_queue_ns(ns: str, tail_limit: int = 200, max_pull: int = 500):
     st.session_state[f"{ns}_live_log"] = buf
 
 def render_log_box_ns(ns: str, height: int = 520):
+    """Render log box."""
     lines = st.session_state.get(f"{ns}_live_log", [])
     content = html.escape("\n".join(lines)) if lines else ""
     components.html(
@@ -198,6 +227,7 @@ def render_log_box_ns(ns: str, height: int = 520):
     )
 
 def check_status_and_finalize_ns(ns: str, status_box):
+    """Check run status and update UI."""
     sq: Queue = st.session_state.get(f"{ns}_status_q")
     if not sq:
         return False
@@ -231,9 +261,13 @@ def check_status_and_finalize_ns(ns: str, status_box):
 
 def extract_sample_id_from_filename(path: pathlib.Path) -> str:
     """
-    Extrai o ID de amostra a partir do nome do arquivo FASTA, no espírito do identificador do Bactopia Tools:
-    - remove .fa/.fna/.fasta e variantes .gz
-    - corta no primeiro ponto restante (se houver)
+    Extract sample ID from a FASTA filename.
+
+    Args:
+        path (pathlib.Path): Path to the file.
+
+    Returns:
+        str: Sample ID (filename without extension).
     """
     name = path.name
     for ext in (".fa.gz", ".fna.gz", ".fasta.gz", ".fa", ".fna", ".fasta"):
@@ -246,8 +280,13 @@ def extract_sample_id_from_filename(path: pathlib.Path) -> str:
 
 def scan_bactopia_assemblies(bactopia_run_dir: str):
     """
-    Escaneia recursivamente a saída do Bactopia e agrupa FASTA por ID de amostra.
-    Retorna dict { sample_id: [lista_de_paths] }.
+    Scan Bactopia output for assembly files.
+
+    Args:
+        bactopia_run_dir (str): Path to Bactopia output.
+
+    Returns:
+        dict: Mapping of sample_id to list of assembly file paths.
     """
     run_path = pathlib.Path(bactopia_run_dir).expanduser().resolve()
     if not run_path.exists():
@@ -265,8 +304,13 @@ def scan_bactopia_assemblies(bactopia_run_dir: str):
 
 def _base_name_without_double_ext(path: pathlib.Path) -> str:
     """
-    Remove extensões tipo .fa/.fna/.fasta/.fa.gz/.fna.gz/.fasta.gz
-    e retorna somente o “núcleo” do nome.
+    Get filename without any FASTA extension.
+
+    Args:
+        path (pathlib.Path): File path.
+
+    Returns:
+        str: Base name.
     """
     name = path.name
     for ext in (".fa.gz", ".fna.gz", ".fasta.gz", ".fa", ".fna", ".fasta"):
@@ -276,13 +320,18 @@ def _base_name_without_double_ext(path: pathlib.Path) -> str:
 
 def build_port_assemblies_from_sample_map(bactopia_run_dir: str, sample_map, selected_samples):
     """
-    Cria/atualiza a pasta `port_assemblies` dentro do run do Bactopia,
-    contendo APENAS .fasta (nada de .gz):
+    Prepare the `port_assemblies` directory.
 
-    - Se origem for .fa/.fna/.fasta  -> cria symlink .fasta
-    - Se origem for .fa.gz/.fna.gz/.fasta.gz -> descompacta para .fasta
+    Creates a directory `port_assemblies` inside the run directory and populates
+    it with symlinks (or uncompressed copies) of the selected samples' assemblies.
 
-    Antes, a pasta é completamente limpa para evitar ficar com resquícios de .fna.gz.
+    Args:
+        bactopia_run_dir (str): Bactopia run directory.
+        sample_map (dict): Mapping of sample IDs to files.
+        selected_samples (list): List of selected sample IDs.
+
+    Returns:
+        tuple: (target_path, count_created)
     """
     run_path = pathlib.Path(bactopia_run_dir).expanduser().resolve()
     target = run_path / "port_assemblies"

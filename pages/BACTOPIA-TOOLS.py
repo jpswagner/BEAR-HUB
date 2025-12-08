@@ -20,6 +20,18 @@
 #     limitations, and the correct way to cite the software.
 # ---------------------------------------------------------------------
 
+"""
+Bactopia Tools Interface.
+
+This module provides a UI for running "Bactopia Tools" (workflows that run on
+already processed Bactopia samples). It handles:
+1.  **Sample Discovery**: Scanning a Bactopia output directory to find valid samples.
+2.  **Tool Selection**: Checkbox-based selection of tools like AMRFinderPlus, RGI, MLST, etc.
+3.  **Configuration**: Setting parameters specific to each tool (e.g., identity thresholds, database paths).
+4.  **Batch Execution**: Creating an `--include` file for selected samples and running the tools via Nextflow.
+5.  **Monitoring**: Real-time log visualization.
+"""
+
 import os
 import shlex
 import time
@@ -61,6 +73,11 @@ else:
     PROJECT_ROOT = APP_ROOT  # fallback
 
 def _st_rerun():
+    """
+    Trigger a rerun of the Streamlit script.
+
+    Uses `st.rerun()` if available, otherwise `st.experimental_rerun()`.
+    """
     fn = getattr(st, "rerun", None) or getattr(st, "experimental_rerun", None)
     if fn:
         fn()
@@ -74,17 +91,13 @@ DEFAULT_OUTDIR = str((pathlib.Path.home() / "BEAR_DATA" / "bactopia_out").resolv
 
 def bootstrap_bear_env_from_file():
     """
-    If the user did not run `source .bear-hub.env` before launching Streamlit,
-    try to load this file and populate important variables:
-      - BEAR_HUB_ROOT / BEAR_HUB_BASEDIR
+    Load environment variables from `.bear-hub.env`.
+
+    Reads configuration if not already present in the environment. Sets:
+      - BEAR_HUB_ROOT
+      - BEAR_HUB_BASEDIR
       - BACTOPIA_ENV_PREFIX
       - NXF_CONDA_EXE
-
-    Rules:
-      - If BACTOPIA_ENV_PREFIX already exists AND NXF_CONDA_EXE points
-        to a valid binary, nothing is done.
-      - For NXF_CONDA_EXE: if it exists but is invalid, it is overwritten.
-      - For the other variables, we only set them if they do not exist yet.
     """
     solver = os.environ.get("NXF_CONDA_EXE")
     if os.environ.get("BACTOPIA_ENV_PREFIX") and solver and os.path.exists(solver):
@@ -154,11 +167,16 @@ if BACTOPIA_ENV_PREFIX:
 
 def get_nextflow_bin() -> str:
     """
-    Priority order for the Nextflow binary:
+    Get the path to the Nextflow executable.
+
+    Priority order:
       1) st.session_state['nextflow_bin']
       2) $NEXTFLOW_BIN
       3) BACTOPIA_ENV_PREFIX/bin/nextflow
       4) 'nextflow' in the system PATH
+
+    Returns:
+        str: Path to Nextflow.
     """
     v = (st.session_state.get("nextflow_bin") or "").strip()
     if v:
@@ -173,10 +191,25 @@ def get_nextflow_bin() -> str:
 # ============================= Helps (popovers) =============================
 
 def help_popover(label: str, text: str):
+    """
+    Show a help text inside a popover.
+
+    Args:
+        label (str): Label for the popover button.
+        text (str): Markdown text content.
+    """
     with st.popover(label):
         st.markdown(text)
 
 def help_header(title_md: str, help_key: str, ratio=(4, 1)):
+    """
+    Render a header row with a help button.
+
+    Args:
+        title_md (str): Markdown title string.
+        help_key (str): Key to look up help text in the HELP dictionary.
+        ratio (tuple): Ratio of column widths for title vs help button.
+    """
     c1, c2 = st.columns(ratio)
     with c1:
         st.markdown(title_md)
@@ -393,10 +426,20 @@ HELP["plasmidfinder"] = """
 # ============================= File explorer (pop-up) =============================
 
 def _safe_id(s: str) -> str:
+    """Generate a short hash ID for a string."""
     return hashlib.md5(s.encode("utf-8")).hexdigest()[:10]
 
 
 def _list_dir(cur: pathlib.Path) -> tuple[list[pathlib.Path], list[pathlib.Path]]:
+    """
+    List subdirectories and files in the given directory.
+
+    Args:
+        cur (pathlib.Path): The directory to list.
+
+    Returns:
+        tuple: (sorted_dirs, sorted_files)
+    """
     try:
         entries = list(cur.iterdir())
     except Exception:
@@ -411,11 +454,14 @@ def _list_dir(cur: pathlib.Path) -> tuple[list[pathlib.Path], list[pathlib.Path]
 def _fs_browser_core(label: str, key: str, mode: str = "file",
                      start: str | None = None, patterns: list[str] | None = None):
     """
-    Core of the file browser:
+    Render the core UI for the file/directory browser.
 
-    - Directory navigation (up, base, host).
-    - Folder/file selection.
-    - Pattern filtering (e.g. *.tsv).
+    Args:
+        label (str): Label for the browser.
+        key (str): Unique session state key.
+        mode (str): "file" or "dir".
+        start (str | None): Starting directory.
+        patterns (list[str] | None): File patterns to match (e.g. ["*.txt"]).
     """
     base_start = start or st.session_state.get(key) or os.getcwd()
     cur_key = f"__picker_cur__{key}"
@@ -481,13 +527,18 @@ def _fs_browser_core(label: str, key: str, mode: str = "file",
 def path_picker(label: str, key: str, mode: str = "dir",
                 start: str | None = None, patterns: list[str] | None = None, help: str | None = None):
     """
-    Text field + “Browse…” button using `st.dialog` (if available).
+    Render a path picker with a text input and a 'Browse' button.
 
-    - The pop-up opens only when **Browse…** is clicked.
-    - To close the pop-up cleanly, use:
-        - “✅ Use this path” or
-        - “Cancel”.
-    - On older Streamlit versions (no `st.dialog`), falls back to inline mode.
+    Args:
+        label (str): Label for the input.
+        key (str): Unique session state key.
+        mode (str): "file" or "dir".
+        start (str | None): Initial path.
+        patterns (list[str] | None): File glob patterns (if mode="file").
+        help (str | None): Tooltip help text.
+
+    Returns:
+        str: The selected path.
     """
     open_key = f"__open_{key}"
     cur_key = f"__picker_cur__{key}"
@@ -558,19 +609,20 @@ def path_picker(label: str, key: str, mode: str = "dir",
 # ============================= Utils =============================
 
 def ensure_state_dir():
+    """Ensure the application state directory exists."""
     APP_STATE_DIR.mkdir(parents=True, exist_ok=True)
 
 def which(cmd: str):
+    """Locate a command in PATH."""
     from shutil import which as _which
     return _which(cmd)
 
 def nextflow_available():
     """
-    Check if a usable Nextflow is available:
-      - st.session_state['nextflow_bin']
-      - $NEXTFLOW_BIN
-      - BACTOPIA_ENV_PREFIX/bin/nextflow
-      - 'nextflow' in PATH
+    Check if a usable Nextflow binary is found.
+
+    Returns:
+        bool: True if Nextflow is available.
     """
     if (st.session_state.get("nextflow_bin") or "").strip():
         return True
@@ -581,18 +633,24 @@ def nextflow_available():
     return which("nextflow") is not None
 
 def have_tool(name: str) -> bool:
+    """Check if a specific tool is in PATH."""
     return which(name) is not None
 
 ANSI_ESCAPE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
 def _strip_ansi(s: str) -> str:
+    """Strip ANSI codes from a string."""
     return ANSI_ESCAPE.sub("", s)
 
 def _normalize_linebreaks(chunk: str) -> list[str]:
     """
-    Normalize Nextflow log output:
-      - remove ANSI colors/escapes
-      - break long lines at useful points
+    Normalize Nextflow log output for display.
+
+    Args:
+        chunk (str): Raw output chunk.
+
+    Returns:
+        list[str]: Cleaned lines.
     """
     if not chunk:
         return []
@@ -603,6 +661,7 @@ def _normalize_linebreaks(chunk: str) -> list[str]:
     return [p.rstrip() for p in chunk.split("\n") if p.strip() != ""]
 
 async def _async_read_stream(stream, log_q: Queue, stop_event: threading.Event):
+    """Async reader for subprocess stdout/stderr."""
     while True:
         line = await stream.readline()
         if not line:
@@ -614,6 +673,7 @@ async def _async_read_stream(stream, log_q: Queue, stop_event: threading.Event):
             break
 
 async def _async_exec(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: threading.Event):
+    """Async execution wrapper for shell commands."""
     try:
         proc = await asyncio.create_subprocess_exec(
             "bash", "-lc", full_cmd,
@@ -647,6 +707,7 @@ async def _async_exec(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: 
     status_q.put(("rc", rc))
 
 def _thread_entry(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: threading.Event):
+    """Thread entry point for async execution loop."""
     loop = asyncio.new_event_loop()
     try:
         asyncio.set_event_loop(loop)
@@ -656,9 +717,11 @@ def _thread_entry(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: thre
 
 def start_async_runner_ns(full_cmd: str, ns: str):
     """
-    Start an asynchronous runner:
-      - ns = "tools" (namespace prefix in session_state)
-      - full_cmd = full bash command to be executed
+    Start an asynchronous runner in a separate thread.
+
+    Args:
+        full_cmd (str): The command to run.
+        ns (str): Namespace for session state keys (e.g., 'tools').
     """
     log_q = Queue()
     status_q = Queue()
@@ -677,14 +740,19 @@ def start_async_runner_ns(full_cmd: str, ns: str):
     st.session_state[f"{ns}_live_log"] = []
 
 def request_stop_ns(ns: str):
+    """Signal the async runner to stop."""
     ev = st.session_state.get(f"{ns}_stop_event")
     if ev and not ev.is_set():
         ev.set()
 
 def drain_log_queue_ns(ns: str, tail_limit: int = 200, max_pull: int = 500):
     """
-    Move messages from log queue into `st.session_state`,
-    keeping only the last `tail_limit` lines.
+    Move messages from log queue into `st.session_state`.
+
+    Args:
+        ns (str): Namespace string.
+        tail_limit (int): Max lines to keep.
+        max_pull (int): Max lines to process per call.
     """
     q: Queue = st.session_state.get(f"{ns}_log_q")
     if not q:
@@ -705,6 +773,10 @@ def drain_log_queue_ns(ns: str, tail_limit: int = 200, max_pull: int = 500):
 def render_log_box_ns(ns: str, height: int = 520):
     """
     Render a custom HTML “terminal” log box.
+
+    Args:
+        ns (str): Namespace string.
+        height (int): Height in pixels.
     """
     lines = st.session_state.get(f"{ns}_live_log", [])
     content = html.escape("\n".join(lines)) if lines else ""
@@ -727,6 +799,13 @@ def render_log_box_ns(ns: str, height: int = 520):
 def check_status_and_finalize_ns(ns: str, status_box):
     """
     Check if the async runner has finished and update the visual status.
+
+    Args:
+        ns (str): Namespace string.
+        status_box: Streamlit status element.
+
+    Returns:
+        bool: True if finished, False otherwise.
     """
     sq: Queue = st.session_state.get(f"{ns}_status_q")
     if not sq:
@@ -774,9 +853,11 @@ def discover_samples_from_outdir(outdir: str) -> List[str]:
     """
     Discover samples in a Bactopia output directory.
 
-    - Strict mode: folders containing 'main/' or 'tools/'.
-    - Fallback: if nothing has main/tools, treat any
-      non-administrative folder as a sample.
+    Args:
+        outdir (str): Path to the Bactopia output directory.
+
+    Returns:
+        List[str]: A list of detected sample names.
     """
     p = pathlib.Path(outdir)
     if not p.exists() or not p.is_dir():
@@ -801,15 +882,12 @@ def discover_samples_from_outdir(outdir: str) -> List[str]:
 
 def _guess_bt_root_default() -> str:
     """
-    Try to guess the base Bactopia folder using a few candidates:
+    Attempt to guess the Bactopia results folder location.
 
-    1) global BEAR-HUB outdir (if it exists in st.session_state['outdir'])
-    2) outdir/bactopia_out
-    3) PROJECT_ROOT/bactopia_out
-    4) APP_ROOT/bactopia_out
-    5) ~/BEAR_DATA/bactopia_out (fallback)
+    Checks standard locations like project root, BEAR_DATA, etc.
 
-    Returns the first folder that has detectable samples.
+    Returns:
+        str: The best guess path.
     """
     candidates: list[pathlib.Path] = []
 
@@ -1455,6 +1533,13 @@ if st.session_state.get("bt_run_mashtree"):
 def write_include_file(outdir: str, samples: List[str]) -> str:
     """
     Generate a temporary file for `--include`, with one sample per line.
+
+    Args:
+        outdir (str): Base output directory.
+        samples (List[str]): List of sample names to include.
+
+    Returns:
+        str: Path to the generated include file.
     """
     ensure_state_dir()
     fname = APP_STATE_DIR / f"include_{hashlib.md5((outdir + '|' + ';'.join(samples)).encode()).hexdigest()[:10]}.txt"
@@ -1474,7 +1559,20 @@ def bt_nextflow_cmd(
     extra: List[str] | None = None,
 ) -> str:
     """
-    Build the Nextflow command for a specific Bactopia Tool (`--wf tool`).
+    Build the Nextflow command for a specific Bactopia Tool.
+
+    Args:
+        tool (str): Name of the tool (e.g., 'amrfinderplus').
+        outdir (str): Bactopia results directory.
+        include_file (str): Path to file with list of samples.
+        profile (str): Nextflow profile (e.g., 'docker').
+        threads (int | None): Max CPUs.
+        memory_gb (int | None): Max memory in GB.
+        resume (bool): Whether to use '-resume'.
+        extra (List[str] | None): Additional arguments.
+
+    Returns:
+        str: The full shell command.
     """
     nf_bin = get_nextflow_bin()
     base = [
