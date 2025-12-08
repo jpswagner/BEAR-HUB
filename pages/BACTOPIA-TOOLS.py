@@ -1605,7 +1605,7 @@ st.divider()
 col1, col2 = st.columns([1, 1])
 with col1:
     start_tools = st.button(
-        "▶️ Run Tools (async)",
+        "▶️ Run Tools",
         key="btn_tools_start",
         disabled=st.session_state.get("tools_running", False),
     )
