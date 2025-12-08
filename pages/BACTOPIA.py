@@ -17,6 +17,19 @@
 # • Always uses '-profile docker' (Docker is required)
 # ---------------------------------------------------------------------
 
+"""
+Bactopia Main Interface.
+
+This module implements the primary interface for running the Bactopia pipeline.
+It handles:
+1.  **FOFN Generation**: Automatically scanning directories for FASTQ/FASTA files
+    and creating a 'File Of File Names' (samples.txt) describing the samples.
+2.  **Configuration**: Setting up Bactopia parameters (profile, resources, fastp, unicycler).
+3.  **Execution**: Asynchronously running Nextflow/Bactopia commands.
+4.  **Monitoring**: Real-time log tailing of the Nextflow execution.
+5.  **Environment Management**: ensuring Nextflow and Docker availability.
+"""
+
 import os
 import shlex
 import time
@@ -51,6 +64,12 @@ else:
 # ============================= Basic helpers =============================
 
 def _st_rerun():
+    """
+    Trigger a rerun of the Streamlit script.
+
+    Uses `st.rerun()` if available (newer Streamlit), otherwise falls back
+    to `st.experimental_rerun()`.
+    """
     fn = getattr(st, "rerun", None) or getattr(st, "experimental_rerun", None)
     if fn:
         fn()
@@ -63,19 +82,17 @@ DEFAULT_PRESET_NAME = "default"
 
 def bootstrap_bear_env_from_file():
     """
-    Try to load `.bear-hub.env` if the user didn't do `source .bear-hub.env`
-    before starting Streamlit. This file is used to populate environment variables:
-      - BEAR_HUB_ROOT
-      - BEAR_HUB_BASEDIR (if missing)
-      - BACTOPIA_ENV_PREFIX
-      - NXF_CONDA_EXE
+    Load environment variables from `.bear-hub.env`.
 
-    Rules:
-      - We skip loading if BACTOPIA_ENV_PREFIX is already set AND NXF_CONDA_EXE
-        points to a valid binary.
-      - For NXF_CONDA_EXE: if it exists but points to a non-existing path,
-        it will be overwritten by the value from .bear-hub.env.
-      - For the other variables, we only set them if they don't exist in os.environ.
+    This function attempts to load configuration from `.bear-hub.env` if
+    key variables (like BACTOPIA_ENV_PREFIX) are missing. It looks in
+    `BEAR_HUB_ROOT` or standard installation paths.
+
+    It sets:
+      - BEAR_HUB_ROOT
+      - BEAR_HUB_BASEDIR
+      - BACTOPIA_ENV_PREFIX
+      - NXF_CONDA_EXE (if valid)
     """
     # If we already have BACTOPIA_ENV_PREFIX and a valid NXF_CONDA_EXE, assume env is ready
     solver = os.environ.get("NXF_CONDA_EXE")
@@ -168,11 +185,16 @@ if BACTOPIA_ENV_PREFIX:
 def ensure_nxf_home() -> str | None:
     """
     Ensure there is a writable NXF_HOME to avoid cache/history issues.
-    Preference:
-      1) $BEAR_HUB_OUTDIR/.nextflow (if set)
-      2) $BEAR_HUB_BASEDIR/.nextflow (if set)
-      3) DEFAULT_OUTDIR/.nextflow
-      4) $HOME/.nextflow
+
+    Nextflow requires a writable home directory for caching and history. This function
+    checks or creates `NXF_HOME` in order of preference:
+      1. $BEAR_HUB_OUTDIR/.nextflow
+      2. $BEAR_HUB_BASEDIR/.nextflow
+      3. DEFAULT_OUTDIR/.nextflow
+      4. $HOME/.nextflow
+
+    Returns:
+        str | None: The path to the writable NXF_HOME, or None if creation failed.
     """
     existing = os.environ.get("NXF_HOME")
     if existing:
@@ -205,9 +227,17 @@ def ensure_nxf_home() -> str | None:
 
 def ensure_project_nxf_dir(base: str | pathlib.Path | None = None) -> str | None:
     """
-    Ensure there is a `.nextflow` directory where Nextflow is executed,
-    to avoid the error:
-       ERROR ~ .nextflow/history.lock (No such file or directory)
+    Ensure a `.nextflow` directory exists in the project base.
+
+    This prevents the "No such file or directory" error for `.nextflow/history.lock`
+    when Nextflow tries to write execution history.
+
+    Args:
+        base (str | pathlib.Path | None): The base directory for execution.
+            Defaults to current working directory.
+
+    Returns:
+        str | None: The path to the `.nextflow` directory, or None on failure.
     """
     try:
         base_path = pathlib.Path(base) if base is not None else pathlib.Path.cwd()
@@ -224,34 +254,68 @@ ensure_nxf_home()
 # ============================= Utils =============================
 
 def ensure_state_dir():
+    """Create the application state directory if it doesn't exist."""
     APP_STATE_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def which(cmd: str):
+    """
+    Find the path to an executable.
+
+    Args:
+        cmd (str): The name of the command.
+
+    Returns:
+        str | None: The full path to the command, or None if not found.
+    """
     from shutil import which as _which
     return _which(cmd)
 
 
 def docker_available():
+    """
+    Check if Docker is available in the system PATH.
+
+    Returns:
+        bool: True if 'docker' executable is found, False otherwise.
+    """
     return which("docker") is not None
 
 
 def get_nextflow_bin() -> str:
     """
-    Return the Nextflow binary to use:
-    - if BACTOPIA_ENV_PREFIX is set and has bin/nextflow, use that;
-    - otherwise, use 'nextflow' from system PATH.
+    Return the Nextflow binary path to use.
+
+    Returns:
+        str: The path to the Nextflow binary. It prioritizes the binary
+        in `BACTOPIA_ENV_PREFIX` if set, otherwise defaults to "nextflow" (system PATH).
     """
     return BACTOPIA_NEXTFLOW_BIN or "nextflow"
 
 
 def nextflow_available():
+    """
+    Check if Nextflow is available.
+
+    Returns:
+        bool: True if Nextflow is configured or in PATH, False otherwise.
+    """
     if BACTOPIA_NEXTFLOW_BIN:
         return True
     return which("nextflow") is not None
 
 
 def run_cmd(cmd: str | List[str], cwd: str | None = None) -> tuple[int, str, str]:
+    """
+    Run a shell command synchronously.
+
+    Args:
+        cmd (str | List[str]): The command to run. Can be a string or list of strings.
+        cwd (str | None): The working directory for execution.
+
+    Returns:
+        tuple[int, str, str]: A tuple containing (return_code, stdout, stderr).
+    """
     if isinstance(cmd, list):
         shell_cmd = " ".join(shlex.quote(x) for x in cmd)
     else:
@@ -289,6 +353,12 @@ PRESET_KEYS_ALLOWLIST = {
 
 
 def load_presets():
+    """
+    Load presets from the YAML state file.
+
+    Returns:
+        dict: A dictionary of loaded presets.
+    """
     ensure_state_dir()
     if PRESETS_FILE.exists():
         try:
@@ -301,12 +371,24 @@ def load_presets():
 
 
 def save_presets(presets: dict):
+    """
+    Save presets to the YAML state file.
+
+    Args:
+        presets (dict): The dictionary of presets to save.
+    """
     ensure_state_dir()
     with open(PRESETS_FILE, "w", encoding="utf-8") as fh:
         yaml.safe_dump(presets, fh, sort_keys=True, allow_unicode=True)
 
 
 def _snapshot_current_state() -> dict:
+    """
+    Capture the current session state values for allowlisted keys.
+
+    Returns:
+        dict: A subset of st.session_state containing only preset-relevant keys.
+    """
     snap = {}
     for k in PRESET_KEYS_ALLOWLIST:
         if k in st.session_state:
@@ -315,12 +397,24 @@ def _snapshot_current_state() -> dict:
 
 
 def _apply_dict_to_state(values: dict):
+    """
+    Update st.session_state with values from a dictionary.
+
+    Args:
+        values (dict): Key-value pairs to update in the session state.
+    """
     for k, v in (values or {}).items():
         if k in PRESET_KEYS_ALLOWLIST:
             st.session_state[k] = v
 
 
 def apply_preset_before_widgets():
+    """
+    Apply any pending preset values to the session state before widgets render.
+
+    This ensures that when widgets are initialized, they pick up the values
+    from the loaded preset.
+    """
     pending = st.session_state.pop("__pending_preset_values", None)
     if pending:
         _apply_dict_to_state(pending)
@@ -328,6 +422,7 @@ def apply_preset_before_widgets():
 
 
 def _cb_stage_apply_preset():
+    """Callback to stage a preset for application on the next rerun."""
     name = st.session_state.get("__preset_to_load")
     if not name or name == "(none)":
         return
@@ -337,6 +432,7 @@ def _cb_stage_apply_preset():
 
 
 def _cb_save_preset():
+    """Callback to save the current state as a new preset."""
     name = (st.session_state.get("__preset_save_name") or "").strip() or DEFAULT_PRESET_NAME
     name = re.sub(r"\s+", "_", name)
     presets = load_presets()
@@ -346,6 +442,7 @@ def _cb_save_preset():
 
 
 def _cb_delete_preset():
+    """Callback to delete the selected preset."""
     name = st.session_state.get("__preset_to_load")
     if not name or name == "(none)":
         return
@@ -357,6 +454,7 @@ def _cb_delete_preset():
 
 
 def render_presets_sidebar():
+    """Render the Presets management interface in the sidebar."""
     st.header("Presets")
     presets = load_presets()
     names = sorted(presets.keys())
@@ -380,10 +478,20 @@ apply_preset_before_widgets()
 # ============================= File explorer (inline + pop-up) =============================
 
 def _safe_id(s: str) -> str:
+    """Generate a short hash ID for a string (safe for DOM IDs)."""
     return hashlib.md5(s.encode("utf-8")).hexdigest()[:10]
 
 
 def _list_dir(cur: pathlib.Path) -> tuple[list[pathlib.Path], list[pathlib.Path]]:
+    """
+    List directories and files in a given path.
+
+    Args:
+        cur (pathlib.Path): The directory to list.
+
+    Returns:
+        tuple: A tuple containing sorted lists of subdirectories and files.
+    """
     try:
         entries = list(cur.iterdir())
     except Exception:
@@ -397,6 +505,16 @@ def _list_dir(cur: pathlib.Path) -> tuple[list[pathlib.Path], list[pathlib.Path]
 
 def _fs_browser_core(label: str, key: str, mode: str = "file",
                      start: str | None = None, patterns: list[str] | None = None):
+    """
+    Render the core UI for the file system browser.
+
+    Args:
+        label (str): The label for the picker.
+        key (str): Unique key for session state.
+        mode (str): "file" or "dir".
+        start (str | None): Initial path.
+        patterns (list[str] | None): File patterns to match (e.g., ["*.txt"]).
+    """
     base_start = start or st.session_state.get(key) or os.getcwd()
     cur_key = f"__picker_cur__{key}"
     try:
@@ -460,6 +578,20 @@ def _fs_browser_core(label: str, key: str, mode: str = "file",
 
 def path_picker(label: str, key: str, mode: str = "dir",
                 start: str | None = None, patterns: list[str] | None = None, help: str | None = None):
+    """
+    Render a path picker widget (input field with a 'Browse' button).
+
+    Args:
+        label (str): Label for the input.
+        key (str): Unique key for session state.
+        mode (str): "file" or "dir".
+        start (str | None): Initial directory path.
+        patterns (list[str] | None): File glob patterns to filter (if mode="file").
+        help (str | None): Tooltip text.
+
+    Returns:
+        str: The selected path.
+    """
     col1, col2 = st.columns([7, 2])
     with col1:
         val = st.text_input(label, value=st.session_state.get(key, start or ""), key=key, help=help)
@@ -531,6 +663,7 @@ LANE_SUFFIX = re.compile(r"(_L\d{3,4})?(_\d{3})?$", re.IGNORECASE)
 
 
 def _drop_exts(name: str) -> str:
+    """Strip known FASTA/FASTQ extensions from a filename."""
     for ext in [".fastq.gz", ".fq.gz", ".fastq", ".fq", ".fna.gz", ".fa.gz", ".fasta.gz", ".fna", ".fa", ".fasta"]:
         if name.endswith(ext):
             return name[: -len(ext)]
@@ -538,6 +671,15 @@ def _drop_exts(name: str) -> str:
 
 
 def _infer_root_and_tag(path: pathlib.Path) -> Tuple[str, str]:
+    """
+    Infer the sample root name and type (PE1, PE2, SE) from a filename.
+
+    Args:
+        path (pathlib.Path): The path to the file.
+
+    Returns:
+        Tuple[str, str]: A tuple of (sample_root_name, tag). Tag is one of "PE1", "PE2", "SE".
+    """
     name = _drop_exts(path.name)
     name = LANE_SUFFIX.sub("", name)
     for pat in PE1_PATTERNS:
@@ -552,11 +694,23 @@ def _infer_root_and_tag(path: pathlib.Path) -> Tuple[str, str]:
 
 
 def _is_probably_ont(p: pathlib.Path) -> bool:
+    """Guess if a file is Nanopore based on common keywords in the path/name."""
     s = str(p.as_posix()).lower()
     return any(x in s for x in ["ont", "nanopore", "minion", "promethion", "fastq_pass", "guppy"])
 
 
 def _collect_files(base: pathlib.Path, patterns: List[str], recursive: bool) -> List[pathlib.Path]:
+    """
+    Collect files matching patterns in a base directory.
+
+    Args:
+        base (pathlib.Path): Base directory.
+        patterns (List[str]): List of glob patterns.
+        recursive (bool): Whether to search recursively.
+
+    Returns:
+        List[pathlib.Path]: Sorted list of unique file paths.
+    """
     out: List[pathlib.Path] = []
     for pat in patterns:
         out += list(base.rglob(pat) if recursive else base.glob(pat))
@@ -579,6 +733,28 @@ def discover_runs_and_build_fofn(base_dir: str,
                                  infer_ont_by_name: bool,
                                  merge_multi: bool,
                                  include_assemblies: bool) -> dict:
+    """
+    Scan a directory for sequencing files and build a FOFN (File Of File Names).
+
+    Args:
+        base_dir (str): Directory to scan.
+        recursive (bool): Scan subdirectories.
+        species (str): Species name to use in FOFN.
+        gsize (str): Genome size string.
+        fofn_path (str): Output path for the FOFN file.
+        treat_se_as_ont (bool): Treat single-end reads as ONT.
+        infer_ont_by_name (bool): Use filename heuristics to detect ONT.
+        merge_multi (bool): Merge multiple files for same sample with commas.
+        include_assemblies (bool): Include FASTA assemblies.
+
+    Returns:
+        dict: A dictionary containing:
+            - rows: List of rows in the FOFN.
+            - counts: Count of runtypes detected.
+            - issues: List of potential issues/warnings.
+            - header: The header columns of the FOFN.
+            - fofn_path: Path to the generated file.
+    """
     base = pathlib.Path(base_dir or ".")
     if not base.exists():
         raise FileNotFoundError("Base folder does not exist.")
@@ -723,10 +899,23 @@ ANSI_ESCAPE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
 
 def _strip_ansi(s: str) -> str:
+    """Remove ANSI escape sequences from a string."""
     return ANSI_ESCAPE.sub("", s)
 
 
 def _normalize_linebreaks(chunk: str) -> list[str]:
+    """
+    Clean and normalize log output chunks.
+
+    Handles carriage returns, strip ANSI codes, and formats Nextflow-specific
+    output patterns for better readability in the log viewer.
+
+    Args:
+        chunk (str): Raw output chunk.
+
+    Returns:
+        list[str]: list of cleaned log lines.
+    """
     if not chunk:
         return []
     chunk = _strip_ansi(chunk).replace("\r", "\n")
@@ -738,6 +927,14 @@ def _normalize_linebreaks(chunk: str) -> list[str]:
 
 
 async def _async_read_stream(stream, log_q: Queue, stop_event: threading.Event):
+    """
+    Async coroutine to read from a stream and put lines into a queue.
+
+    Args:
+        stream: The asyncio stream to read from (stdout/stderr).
+        log_q (Queue): The queue to put lines into.
+        stop_event (threading.Event): Event to signal stopping.
+    """
     while True:
         line = await stream.readline()
         if not line:
@@ -750,6 +947,15 @@ async def _async_read_stream(stream, log_q: Queue, stop_event: threading.Event):
 
 
 async def _async_exec(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: threading.Event):
+    """
+    Async coroutine to execute a subprocess and stream its output.
+
+    Args:
+        full_cmd (str): The shell command to execute.
+        log_q (Queue): Queue for logs.
+        status_q (Queue): Queue for status messages/return code.
+        stop_event (threading.Event): Event to trigger termination.
+    """
     try:
         proc = await asyncio.create_subprocess_exec(
             "bash", "-c", full_cmd,
@@ -784,6 +990,7 @@ async def _async_exec(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: 
 
 
 def _thread_entry(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: threading.Event):
+    """Entry point for the background thread running the async loop."""
     loop = asyncio.new_event_loop()
     try:
         asyncio.set_event_loop(loop)
@@ -793,6 +1000,15 @@ def _thread_entry(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: thre
 
 
 def start_async_runner_ns(full_cmd: str, ns: str):
+    """
+    Start a background thread to run a command asynchronously.
+
+    Initializes queues and events in session_state[ns_...] and starts the thread.
+
+    Args:
+        full_cmd (str): The command to run.
+        ns (str): Namespace string to prefix session state keys.
+    """
     log_q = Queue()
     status_q = Queue()
     stop_event = threading.Event()
@@ -811,12 +1027,21 @@ def start_async_runner_ns(full_cmd: str, ns: str):
 
 
 def request_stop_ns(ns: str):
+    """Signal the background runner to stop."""
     ev = st.session_state.get(f"{ns}_stop_event")
     if ev and not ev.is_set():
         ev.set()
 
 
 def drain_log_queue_ns(ns: str, tail_limit: int = 200, max_pull: int = 500):
+    """
+    Drain logs from the queue into the session state list.
+
+    Args:
+        ns (str): Namespace string.
+        tail_limit (int): Max number of lines to keep in history.
+        max_pull (int): Max number of lines to pull per call.
+    """
     q: Queue = st.session_state.get(f"{ns}_log_q")
     if not q:
         return
@@ -835,6 +1060,13 @@ def drain_log_queue_ns(ns: str, tail_limit: int = 200, max_pull: int = 500):
 
 
 def render_log_box_ns(ns: str, height: int = 560):
+    """
+    Render a scrollable log box component.
+
+    Args:
+        ns (str): Namespace string.
+        height (int): Height of the box in pixels.
+    """
     lines = st.session_state.get(f"{ns}_live_log", [])
     content = html.escape("\n".join(lines)) if lines else ""
     components.html(
@@ -855,6 +1087,18 @@ def render_log_box_ns(ns: str, height: int = 560):
 
 
 def check_status_and_finalize_ns(outdir: str, ns: str, status_box, report_zone):
+    """
+    Check the status queue for completion and update UI.
+
+    Args:
+        outdir (str): The output directory.
+        ns (str): Namespace string.
+        status_box: Streamlit element for status messages.
+        report_zone: Streamlit element for reports (unused but kept for API).
+
+    Returns:
+        bool: True if execution finished, False otherwise.
+    """
     sq: Queue = st.session_state.get(f"{ns}_status_q")
     if not sq:
         return False
@@ -1272,6 +1516,15 @@ with st.expander("Reports (Nextflow)", expanded=False):
 # ============================= Command building =============================
 
 def build_bactopia_cmd(params: dict) -> str:
+    """
+    Construct the full Bactopia/Nextflow command string.
+
+    Args:
+        params (dict): Dictionary of parameters (profile, outdir, etc.).
+
+    Returns:
+        str: The full shell command to execute.
+    """
     # This app enforces '-profile docker' (container execution)
     profile = params.get("profile") or "docker"
     outdir = params.get("outdir", DEFAULT_OUTDIR)
@@ -1360,6 +1613,16 @@ st.code(cmd, language="bash")
 # ============================= Pre-run validation =============================
 
 def preflight_validate(params: dict, fofn_path: str) -> list[str]:
+    """
+    Validate the configuration before execution.
+
+    Args:
+        params (dict): Run parameters.
+        fofn_path (str): Path to the samples.txt file.
+
+    Returns:
+        list[str]: A list of error messages. Empty if validation passes.
+    """
     errs: list[str] = []
 
     if not docker_available():

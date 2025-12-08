@@ -3,6 +3,21 @@
 # Requires: streamlit>=1.30, Nextflow (+ Docker/Apptainer) installed in PATH.
 # ---------------------------------------------------------------------
 
+"""
+BEAR-HUB Main Application.
+
+This module serves as the entry point for the BEAR-HUB Streamlit application.
+It acts as a central hub (Dashboard) providing navigation to different
+modules of the application:
+    - Bactopia (Main Pipeline)
+    - Bactopia Tools (Post-processing)
+    - Merlin (Species-specific workflows)
+    - PORT (Plasmid Outbreak Investigation Tool)
+
+The script checks for the existence of required page files and environment
+dependencies (Nextflow, Docker) and renders the main landing page.
+"""
+
 import os
 import pathlib
 import shutil
@@ -29,16 +44,42 @@ else:
 
 # ============================= Utils =============================
 def which(cmd: str):
+    """
+    Locate a command in the user's PATH.
+
+    Args:
+        cmd (str): The name of the command to search for.
+
+    Returns:
+        str or None: The full path to the command if found, else None.
+    """
     from shutil import which as _which
     return _which(cmd)
 
 def env_badge(label: str, ok: bool) -> str:
+    """
+    Generate a simple badge string indicating status.
+
+    Args:
+        label (str): The label for the badge (e.g., "Docker").
+        ok (bool): True if the status is OK (green check), False otherwise (red X).
+
+    Returns:
+        str: A formatted string with an emoji and the label.
+    """
     return f"{'✅' if ok else '❌'} {label}"
 
 def ensure_pages_hint():
     """
-    Check that all required pages exist under pages/.
-    If the file is only present at the project root, suggest moving it.
+    Check that all required page files exist in the `pages/` directory.
+
+    Scans for the expected page files (`BACTOPIA.py`, `BACTOPIA-TOOLS.py`,
+    `MERLIN.py`, `PORT.py`) in the `pages/` subdirectory. If a file is missing
+    but found in the project root, it suggests moving it.
+
+    Returns:
+        list[str]: A list of error messages describing missing pages or
+        suggested actions. Returns an empty list if all pages are correctly placed.
     """
     missing = []
     # BACTOPIA
