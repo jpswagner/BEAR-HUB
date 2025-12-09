@@ -138,71 +138,6 @@ def help_header(title_md: str, help_key: str, ratio=(4, 1)):
 
 # ============================= Bactopia helpers =============================
 
-def discover_samples_from_outdir(outdir: str) -> List[str]:
-    """
-    Discover sample folders in the Bactopia output directory.
-
-    Args:
-        outdir (str): Path to Bactopia output.
-
-    Returns:
-        List[str]: Detected sample names.
-    """
-    p = pathlib.Path(outdir)
-    if not p.exists() or not p.is_dir():
-        return []
-    samples_strict: List[str] = []
-    candidates: List[str] = []
-
-    for child in sorted(p.iterdir(), key=lambda x: x.name):
-        if not child.is_dir():
-            continue
-        # Ignore administrative directories
-        if child.name.startswith("bactopia-") or child.name in {"bactopia-runs", "work"}:
-            continue
-        candidates.append(child.name)
-        if (child / "main").exists() or (child / "tools").exists():
-            samples_strict.append(child.name)
-
-    if samples_strict:
-        return samples_strict
-    return candidates
-
-
-def _guess_bt_root_default() -> str:
-    """
-    Guess the default Bactopia results directory.
-
-    Returns:
-        str: Detected path or default fallback.
-    """
-    candidates: list[pathlib.Path] = []
-
-    global_outdir = st.session_state.get("outdir")
-    if global_outdir:
-        base = pathlib.Path(global_outdir).expanduser()
-        candidates.append(base)
-        candidates.append(base / "bactopia_out")
-
-    # Local projects
-    candidates.append(PROJECT_ROOT / "bactopia_out")
-    candidates.append(APP_ROOT / "bactopia_out")
-
-    # Default fallback
-    candidates.append(pathlib.Path.home() / "BEAR_DATA" / "bactopia_out")
-
-    for cand in candidates:
-        try:
-            cand = cand.expanduser().resolve()
-            if cand.exists() and cand.is_dir():
-                if discover_samples_from_outdir(str(cand)):
-                    return str(cand)
-        except Exception:
-            pass
-
-    # If nothing worked, still return the last fallback
-    return str((pathlib.Path.home() / "BEAR_DATA" / "bactopia_out").expanduser().resolve())
-
 
 def write_include_file(outdir: str, samples: List[str]) -> str:
     """
@@ -370,7 +305,7 @@ else:
 st.subheader("Folder and sample selection")
 help_popover("❓ Help", HELP["samples"])
 
-bt_root_default = _guess_bt_root_default()
+bt_root_default = utils.guess_bactopia_root_default(PROJECT_ROOT)
 
 # Initialize bt_outdir only here so we don't fight with the widget
 if "bt_outdir" not in st.session_state or not st.session_state["bt_outdir"]:
@@ -394,7 +329,7 @@ prev_bt_outdir = st.session_state.get("_prev_bt_outdir_merlin")
 folder_changed = prev_bt_outdir is not None and prev_bt_outdir != bt_outdir
 st.session_state["_prev_bt_outdir_merlin"] = bt_outdir
 
-samples = discover_samples_from_outdir(bt_outdir) if bt_outdir else []
+samples = utils.discover_samples_from_outdir(bt_outdir) if bt_outdir else []
 if samples:
     prev_sel = st.session_state.get("bt_selected_samples", [])
     if not isinstance(prev_sel, list):
