@@ -23,27 +23,54 @@ BEAR-HUB is designed for **Linux** environments (Ubuntu-like).
 
 **Prerequisites:**
 
--   [x] **Conda** (Miniconda, Anaconda, or Mambaforge)
+-   [x] **Conda** (Miniconda, Anaconda, or Mambaforge) - Required for managing bioinformatics environments.
+-   [x] **Docker** (Highly recommended; required for `profile: docker`) - Required for running Bactopia containers.
 -   [x] **Internet Access** (for downloading packages and datasets)
 -   [x] **Disk Space** (Bactopia and its datasets can require significant storage)
--   [x] **Docker** (Highly recommended; required for `profile: docker`)
 
 > **Note:** While Singularity/Apptainer is supported by Nextflow, this hub is optimized for running bactopia with Docker.
 
 ---
 
-## 2. Installation (Quick Start)
+## 2. Installation (Executables - Recommended)
 
-The recommended installation method is via Conda using the provided script.
+We provide standalone executables for Linux, which simplifies the setup process.
 
-### 2.1. Clone the Repository
+### 2.1. Download
+Download the latest `bear-installer` and `bear-hub` binaries from the [Releases](https://github.com/jpswagner/BEAR-HUB/releases) page.
+
+### 2.2. Install
+Make the installer executable and run it. This steps requires **Conda** and **Docker** to be installed on your system. It will set up the necessary `bactopia` environment for the pipelines.
+
+```bash
+chmod +x bear-installer
+./bear-installer
+```
+
+### 2.3. Run
+Once the installation is complete, you can launch the application using the `bear-hub` executable.
+
+```bash
+chmod +x bear-hub
+./bear-hub
+```
+
+This will launch the application (usually at `http://localhost:8501`).
+
+---
+
+## 3. Installation (Manual / Dev)
+
+If you prefer to run from source:
+
+### 3.1. Clone the Repository
 
 ```bash
 git clone https://github.com/jpswagner/BEAR-HUB.git
 cd BEAR-HUB
 ```
 
-### 2.2. Install Dependencies
+### 3.2. Install Dependencies
 
 Run the installation script to set up the Conda environments (`bear-hub` and `bactopia`) and configuration files.
 
@@ -52,16 +79,7 @@ chmod +x install_bear.sh run_bear.sh
 ./install_bear.sh
 ```
 
-**What this script does:**
-1.  Creates the `bear-hub` environment (Python, Streamlit, etc.).
-2.  Creates the `bactopia` environment (Nextflow, Bactopia).
-3.  Generates a configuration file `${HOME}/BEAR-HUB/.bear-hub.env`.
-
----
-
-## 3. Usage
-
-### 3.1. Launching the App
+### 3.3. Launching the App
 
 Start the application using the runner script:
 
@@ -69,9 +87,41 @@ Start the application using the runner script:
 ./run_bear.sh
 ```
 
-This will launch the Streamlit server and provide a local URL (usually `http://localhost:8501`). Open this URL in your web browser.
+---
 
-### 3.2. Navigation
+## 4. Building Executables Locally
+
+If you want to build the executables yourself (e.g., for development), you can use the provided GitHub Actions workflow or run PyInstaller locally.
+
+**Requirements:** `pyinstaller`
+
+```bash
+# 1. Install dependencies
+pip install -r requirements.txt
+pip install pyinstaller
+
+# 2. Build Installer
+pyinstaller --onefile --clean --name bear-installer bear_installer.py
+
+# 3. Build Launcher (BEAR-HUB)
+pyinstaller --onefile --clean \
+    --name bear-hub \
+    --add-data "BEAR-HUB.py:." \
+    --add-data "utils.py:." \
+    --add-data "pages:pages" \
+    --add-data "static:static" \
+    --collect-all streamlit \
+    --collect-all altair \
+    --collect-all pandas \
+    --collect-all pyyaml \
+    bear_launcher.py
+```
+
+The binaries will be created in the `dist/` directory.
+
+---
+
+## 5. Usage & Navigation
 
 -   **Home**: Dashboard overview and system health checks (Nextflow/Docker status).
 -   **BACTOPIA**: The core pipeline runner. Use this to process raw reads.
@@ -87,43 +137,6 @@ This will launch the Streamlit server and provide a local URL (usually `http://l
     -   Choose tools.
     -   Click "Run".
 -   **PORT**: (Beta) Nanopore and plasmid analysis workflows.
-
----
-
-## 4. Project Structure
-
-```text
-BEAR-HUB/
-├── BEAR-HUB.py          # Main entry point (Dashboard)
-├── pages/               # Sub-pages for the application
-│   ├── BACTOPIA.py      # Main Bactopia pipeline interface
-│   ├── BACTOPIA-TOOLS.py# Post-processing tools interface
-│   ├── MERLIN.py        # Species-specific workflows
-│   └── PORT.py          # Plasmid/Nanopore interface
-├── static/              # Images and assets
-├── install_bear.sh      # Installation script
-├── run_bear.sh          # Launcher script
-└── ...
-```
-
----
-
-## 5. Updates & Uninstallation
-
-**Update:**
-Pull the latest changes from GitHub:
-```bash
-git pull origin main
-```
-If dependencies changed, re-run `./install_bear.sh`.
-
-**Uninstall:**
-Remove the conda environments and the project folder:
-```bash
-conda remove -n bear-hub --all
-conda remove -n bactopia --all
-rm -rf ~/BEAR-HUB
-```
 
 ---
 
