@@ -689,3 +689,99 @@ def run_cmd(cmd: str | List[str], cwd: str | None = None) -> tuple[int, str, str
         return res.returncode, res.stdout or "", res.stderr or ""
     except Exception as e:
         return 1, "", f"Failed to execute: {e}"
+
+
+# ============================= Shared Bactopia Helpers =============================
+
+ROOT_DIR = pathlib.Path(__file__).resolve().parent
+
+
+def discover_samples_from_outdir(outdir: str) -> List[str]:
+    """
+    Discover samples in a Bactopia output directory.
+
+    Args:
+        outdir (str): Path to the Bactopia output directory.
+
+    Returns:
+        List[str]: A list of detected sample names.
+    """
+    p = pathlib.Path(outdir)
+    if not p.exists() or not p.is_dir():
+        return []
+    samples_strict: List[str] = []
+    candidates: List[str] = []
+
+    for child in sorted(p.iterdir(), key=lambda x: x.name):
+        if not child.is_dir():
+            continue
+        # Ignore administrative directories
+        if child.name.startswith("bactopia-") or child.name in {"bactopia-runs", "work"}:
+            continue
+        candidates.append(child.name)
+        # Classic Bactopia structure
+        if (child / "main").exists() or (child / "tools").exists():
+            samples_strict.append(child.name)
+
+    if samples_strict:
+        return samples_strict
+    return candidates
+
+
+def guess_bactopia_root_default(project_root: pathlib.Path | None = None) -> str:
+    """
+    Attempt to guess the Bactopia results folder location.
+
+    Checks in order:
+    1. st.session_state['outdir']
+    2. BEAR_HUB_OUTDIR (env)
+    3. BEAR_HUB_BASEDIR (env) or CWD + /bactopia_out
+    4. Local project paths
+    5. Fallback ~/BEAR_DATA/bactopia_out
+
+    Args:
+        project_root (pathlib.Path | None): Optional explicit project root to check.
+
+    Returns:
+        str: The best guess path.
+    """
+    candidates: list[pathlib.Path] = []
+
+    # 1. Session State (from main BACTOPIA page)
+    global_outdir = st.session_state.get("outdir")
+    if global_outdir:
+        base = pathlib.Path(global_outdir).expanduser()
+        candidates.append(base)
+        candidates.append(base / "bactopia_out")
+
+    # 2. Environment Variable: BEAR_HUB_OUTDIR
+    env_out = os.getenv("BEAR_HUB_OUTDIR")
+    if env_out:
+        candidates.append(pathlib.Path(env_out).expanduser().resolve())
+
+    # 3. Environment Variable: BEAR_HUB_BASEDIR (or CWD)
+    # This matches the default logic in BACTOPIA.py
+    base_dir = os.getenv("BEAR_HUB_BASEDIR", os.getcwd())
+    candidates.append((pathlib.Path(base_dir).expanduser() / "bactopia_out").resolve())
+
+    # 4. Local Projects (using provided project_root or this file's parent)
+    if project_root:
+        candidates.append(project_root / "bactopia_out")
+
+    # Also check relative to utils.py (ROOT_DIR)
+    candidates.append(ROOT_DIR / "bactopia_out")
+
+    # 5. Default fallback
+    candidates.append(pathlib.Path.home() / "BEAR_DATA" / "bactopia_out")
+
+    for cand in candidates:
+        try:
+            cand = cand.expanduser().resolve()
+            if cand.exists() and cand.is_dir():
+                if discover_samples_from_outdir(str(cand)):
+                    return str(cand)
+        except Exception:
+            pass
+
+    # If nothing worked, use the last fallback anyway
+    return str((pathlib.Path.home() / "BEAR_DATA" / "bactopia_out").expanduser().resolve())
