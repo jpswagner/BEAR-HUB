@@ -20,18 +20,20 @@ import os
 import shlex
 import time
 import pathlib
-import subprocess
-import re
 import shutil
-import asyncio
-import html
-import threading
 import gzip
 from typing import List
-from queue import Queue, Empty
 
 import streamlit as st
-import streamlit.components.v1 as components
+
+# Import utility module from parent directory (or same directory if running from root)
+try:
+    import utils
+except ImportError:
+    import sys
+    sys.path.append(str(pathlib.Path(__file__).parent.parent))
+    import utils
+
 # ============================= Config geral =============================
 st.set_page_config(page_title="BEAR-HUB", page_icon="🐻", layout="wide")
 
@@ -57,205 +59,13 @@ else:
 # Deixe o set_page_config no app principal, se estiver usando multipage.
 # st.set_page_config(page_title="PORT — Nanopore & Plasmídeos", layout="wide")
 
-def _st_rerun():
-    """Trigger a Streamlit rerun."""
-    fn = getattr(st, "rerun", None) or getattr(st, "experimental_rerun", None)
-    if fn:
-        fn()
-
 APP_STATE_DIR = pathlib.Path.home() / ".bactopia_ui_local"
 DEFAULT_BACTOPIA_OUTDIR = str((pathlib.Path.cwd() / "bactopia_out").resolve())
 DEFAULT_PORT_OUTDIR = str((pathlib.Path.cwd() / "port_out").resolve())
 
 # ============================= Utils comuns (mesmo estilo BACTOPIA-TOOLS) =============================
-def ensure_state_dir():
-    """Ensure state directory exists."""
-    APP_STATE_DIR.mkdir(parents=True, exist_ok=True)
 
-def which(cmd: str):
-    """Find command in PATH."""
-    from shutil import which as _which
-    return _which(cmd)
-
-def nextflow_available():
-    """Check if Nextflow is available."""
-    return which("nextflow") is not None
-
-ANSI_ESCAPE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
-
-def _strip_ansi(s: str) -> str:
-    """Strip ANSI codes."""
-    return ANSI_ESCAPE.sub("", s)
-
-def _normalize_linebreaks(chunk: str) -> list[str]:
-    """
-    Normalize log output:
-      - remove ANSI color/escape codes
-      - adapt long lines into more readable breaks
-    """
-    if not chunk:
-        return []
-    chunk = _strip_ansi(chunk).replace("\r", "\n")
-    # alguns ajustes para quebrar melhor as linhas longas
-    chunk = re.sub(r"\s+-\s+\[", "\n[", chunk)
-    chunk = re.sub(r"(?<!^)\s+(?=executor\s*>)", "\n", chunk, flags=re.IGNORECASE)
-    chunk = re.sub(r"✔\s+(?=\[)", "✔\n", chunk)
-    return [p.rstrip() for p in chunk.split("\n") if p.strip() != ""]
-
-async def _async_read_stream(stream, log_q: Queue, stop_event: threading.Event):
-    """Async stream reader."""
-    while True:
-        line = await stream.readline()
-        if not line:
-            break
-        s = line.decode(errors="replace")
-        for sub in _normalize_linebreaks(s):
-            log_q.put(sub)
-        if stop_event.is_set():
-            break
-
-async def _async_exec(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: threading.Event):
-    """Async command executor."""
-    try:
-        proc = await asyncio.create_subprocess_exec(
-            "bash", "-lc", full_cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-    except Exception as e:
-        status_q.put(("error", f"Falha ao iniciar processo: {e}"))
-        return
-
-    t_out = asyncio.create_task(_async_read_stream(proc.stdout, log_q, stop_event))
-    t_err = asyncio.create_task(_async_read_stream(proc.stderr, log_q, stop_event))
-
-    while True:
-        if stop_event.is_set():
-            try:
-                proc.terminate()
-                try:
-                    await asyncio.wait_for(proc.wait(), timeout=5.0)
-                except asyncio.TimeoutError:
-                    proc.kill()
-            except ProcessLookupError:
-                pass
-            break
-        if proc.returncode is not None:
-            break
-        await asyncio.sleep(0.1)
-
-    try:
-        await asyncio.gather(t_out, t_err)
-    except Exception:
-        pass
-
-    rc = await proc.wait()
-    status_q.put(("rc", rc))
-
-def _thread_entry(full_cmd: str, log_q: Queue, status_q: Queue, stop_event: threading.Event):
-    """Thread entry point."""
-    loop = asyncio.new_event_loop()
-    try:
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(_async_exec(full_cmd, log_q, status_q, stop_event))
-    finally:
-        loop.close()
-
-def start_async_runner_ns(full_cmd: str, ns: str):
-    """Start async runner thread."""
-    log_q = Queue()
-    status_q = Queue()
-    stop_event = threading.Event()
-    th = threading.Thread(
-        target=_thread_entry,
-        args=(full_cmd, log_q, status_q, stop_event),
-        daemon=True,
-    )
-    th.start()
-    st.session_state[f"{ns}_running"] = True
-    st.session_state[f"{ns}_log_q"] = log_q
-    st.session_state[f"{ns}_status_q"] = status_q
-    st.session_state[f"{ns}_stop_event"] = stop_event
-    st.session_state[f"{ns}_thread"] = th
-    st.session_state[f"{ns}_live_log"] = []
-
-def request_stop_ns(ns: str):
-    """Request stop of async runner."""
-    ev = st.session_state.get(f"{ns}_stop_event")
-    if ev and not ev.is_set():
-        ev.set()
-
-def drain_log_queue_ns(ns: str, tail_limit: int = 200, max_pull: int = 500):
-    """Drain log queue into session state."""
-    q: Queue = st.session_state.get(f"{ns}_log_q")
-    if not q:
-        return
-    buf = st.session_state.get(f"{ns}_live_log", [])
-    pulled = 0
-    while pulled < max_pull:
-        try:
-            line = q.get_nowait()
-        except Empty:
-            break
-        buf.append(line)
-        pulled += 1
-    if len(buf) > tail_limit:
-        buf[:] = buf[-tail_limit:]
-    st.session_state[f"{ns}_live_log"] = buf
-
-def render_log_box_ns(ns: str, height: int = 520):
-    """Render log box."""
-    lines = st.session_state.get(f"{ns}_live_log", [])
-    content = html.escape("\n".join(lines)) if lines else ""
-    components.html(
-        f"""
-    <div id="logbox_{ns}" style="
-        width:100%; height:{height-40}px; margin:0 auto; padding:12px;
-        overflow-y:auto; overflow-x:auto; background:#0b0b0b; color:#e6e6e6;
-        border-radius:10px;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
-        font-size:13px; line-height:1.35;">
-      <pre style="margin:0; white-space: pre;">{content or "&nbsp;"}</pre>
-    </div>
-    <script>
-      const el = document.getElementById("logbox_{ns}");
-      if (el) {{ el.scrollTop = el.scrollHeight; }}
-    </script>
-    """,
-        height=height,
-        scrolling=False,
-    )
-
-def check_status_and_finalize_ns(ns: str, status_box):
-    """Check run status and update UI."""
-    sq: Queue = st.session_state.get(f"{ns}_status_q")
-    if not sq:
-        return False
-    finalized = False
-    msg = None
-    rc = None
-    try:
-        while True:
-            kind, payload = sq.get_nowait()
-            if kind == "error":
-                msg = payload
-                finalized = True
-                rc = -1
-            elif kind == "rc":
-                rc = int(payload)
-                finalized = True
-    except Empty:
-        pass
-
-    if finalized:
-        st.session_state[f"{ns}_running"] = False
-        st.session_state[f"{ns}_thread"] = None
-        st.session_state[f"{ns}_stop_event"] = None
-        if rc == 0:
-            status_box.success("Concluído com sucesso.")
-        else:
-            status_box.error(msg or f"Execução terminou com código {rc}. Veja o log abaixo.")
-    return finalized
+# All utils moved to utils.py
 
 # ============================= Funções PORT / Bactopia =============================
 
@@ -592,7 +402,7 @@ with col_cfg2:
         )
 
     if stop_port:
-        request_stop_ns("port")
+        utils.request_stop_ns("port")
         status_box_port.warning("Solicitada interrupção…")
 
 # ----------------- Montagem do comando Nextflow -----------------
@@ -643,7 +453,7 @@ st.code(cmd_preview, language="bash")
 
 # ----------------- Disparo da execução (async, estilo Tools) -----------------
 if start_port:
-    if not nextflow_available():
+    if not utils.nextflow_available():
         status_box_port.error("Nextflow não encontrado no PATH.")
     elif input_mode.startswith("FASTQ") and not input_dir:
         status_box_port.error("Informe o diretório com FASTQs para --input_dir.")
@@ -658,18 +468,18 @@ if start_port:
         if stdbuf:
             full_cmd = f"{stdbuf} -oL -eL {cmd_preview}"
         status_box_port.info("Executando PORT (async).")
-        start_async_runner_ns(full_cmd, "port")
+        utils.start_async_runner_ns(full_cmd, "port")
 
 # ----------------- Log em tempo real -----------------
 st.markdown("---")
 st.subheader("Saída do Nextflow (PORT)")
 
 if st.session_state.get("port_running", False):
-    drain_log_queue_ns("port", tail_limit=500, max_pull=800)
-    render_log_box_ns("port", height=520)
-    finished = check_status_and_finalize_ns("port", status_box_port)
+    utils.drain_log_queue_ns("port", tail_limit=500, max_pull=800)
+    utils.render_log_box_ns("port", height=520)
+    finished = utils.check_status_and_finalize_ns("port", status_box_port)
     if not finished:
         time.sleep(0.3)
-        _st_rerun()
+        utils._st_rerun()
 else:
-    render_log_box_ns("port", height=520)
+    utils.render_log_box_ns("port", height=520)
