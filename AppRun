@@ -1,0 +1,59 @@
+#!/bin/bash
+set -e
+
+# AppRun is the entry point for the AppImage.
+# $APPDIR is the path where the AppImage is mounted.
+
+HERE="$(dirname "$(readlink -f "${0}")")"
+export PATH="${HERE}/usr/bin:${PATH}"
+
+# Icon resource (if needed by the app)
+export BEAR_HUB_ICON="${HERE}/bear-hub.png"
+
+# Installer/Setup Check
+# We reuse the logic from bear-installer, but maybe we just bundle it all?
+# For now, let's assume 'bear-hub' (the python binary) handles the "check env" logic or we call the installer.
+
+# We need to run the installer first if the env isn't ready.
+# The 'bear-installer' binary is also packed in /usr/bin.
+
+# Check for config or marker
+CONFIG_FILE="${HOME}/BEAR-HUB/.bear-hub.env"
+
+if [ ! -f "$CONFIG_FILE" ]; then
+    # Try to use zenity for a GUI prompt
+    if command -v zenity >/dev/null 2>&1; then
+        zenity --info --title="BEAR-HUB Setup" --text="First time setup required.\n\nThis will check for Docker/Conda and create the 'bactopia' environment.\nIt may take a few minutes." --width=400
+
+        # Run installer in terminal so user can see progress?
+        # Or run in background with progress bar?
+        # Installer is interactive (prints text). Running it in a terminal is safest for now.
+        # x-terminal-emulator is standard on Debian/Ubuntu.
+
+        TERMINAL_CMD=""
+        if command -v x-terminal-emulator >/dev/null 2>&1; then
+            TERMINAL_CMD="x-terminal-emulator"
+        elif command -v gnome-terminal >/dev/null 2>&1; then
+            TERMINAL_CMD="gnome-terminal"
+        elif command -v konsole >/dev/null 2>&1; then
+            TERMINAL_CMD="konsole"
+        elif command -v xterm >/dev/null 2>&1; then
+            TERMINAL_CMD="xterm"
+        fi
+
+        if [ -n "$TERMINAL_CMD" ]; then
+            $TERMINAL_CMD -e "${HERE}/usr/bin/bear-installer"
+        else
+            # Fallback: run silently and hope, or show error
+             zenity --error --text="No terminal emulator found to run setup. Please run the AppImage from a terminal."
+             exit 1
+        fi
+
+    else
+        # No GUI tool, try running installer directly (might fail if no terminal attached)
+        "${HERE}/usr/bin/bear-installer"
+    fi
+fi
+
+# Now run the app
+exec "${HERE}/usr/bin/bear-hub" "$@"

@@ -14,9 +14,9 @@ from streamlit.web import cli as stcli
 
 def load_config():
     """Loads environment variables from .bear-hub.env"""
-    # If frozen, we look for config in the same dir as executable
+    # If frozen, we look for config in the user's home dir (same as installer)
     if getattr(sys, 'frozen', False):
-        root_dir = os.path.dirname(sys.executable)
+        root_dir = os.path.join(os.path.expanduser("~"), "BEAR-HUB")
     else:
         root_dir = os.path.abspath(os.path.dirname(__file__))
 

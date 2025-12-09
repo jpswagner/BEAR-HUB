@@ -28,8 +28,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install pyinstaller
         pip install -r requirements.txt
-        # Ensure streamlit hook is available or updated if necessary
-        # We install the app dependencies so PyInstaller can find them
 
     - name: Build Installer (bear-installer)
       run: |
@@ -39,10 +37,6 @@ jobs:
 
     - name: Build Launcher (bear-hub)
       run: |
-        # We need to collect streamlit runtime and our app files
-        # --collect-all streamlit might be needed if hooks fail, but usually auto-detected
-        # We add our specific files
-
         pyinstaller --onefile --clean \
           --name bear-hub \
           --add-data "BEAR-HUB.py:." \
@@ -55,24 +49,47 @@ jobs:
           --collect-all pyyaml \
           bear_launcher.py
 
-    - name: Test Executables (Smoke Test)
+    - name: Prepare AppDir for AppImage
       run: |
-        # Verify they were created
-        ls -lh dist/
+        mkdir -p AppDir/usr/bin
 
-        if [ ! -f dist/bear-installer ]; then echo "bear-installer missing"; exit 1; fi
-        if [ ! -f dist/bear-hub ]; then echo "bear-hub missing"; exit 1; fi
+        # Copy binaries
+        cp dist/bear-installer AppDir/usr/bin/
+        cp dist/bear-hub AppDir/usr/bin/
+
+        # Copy metadata
+        cp bear-hub.desktop AppDir/
+        cp AppRun AppDir/
+        chmod +x AppDir/AppRun
+
+        # Icon
+        # Try to find an icon in static/, else make a dummy one to avoid build failure
+        if [ -f "static/bear-hub-icon.png" ]; then
+          cp "static/bear-hub-icon.png" AppDir/bear-hub.png
+        else
+          touch AppDir/bear-hub.png
+        fi
+
+    - name: Build AppImage
+      run: |
+        # Download appimagetool
+        wget -q https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+        chmod +x appimagetool-x86_64.AppImage
+
+        # Create AppImage
+        # ARCH=x86_64 ./appimagetool-x86_64.AppImage AppDir BEAR-HUB-x86_64.AppImage
+        # Using --appimage-extract-and-run in case of FUSE issues on runner
+        ./appimagetool-x86_64.AppImage --appimage-extract-and-run AppDir BEAR-HUB-x86_64.AppImage
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: bear-hub-linux-executables
-        path: dist/
+        name: bear-hub-appimage
+        path: BEAR-HUB-x86_64.AppImage
 
     - name: Release
       uses: softprops/action-gh-release@v1
       if: github.event_name == 'release'
       with:
         files: |
-          dist/bear-installer
-          dist/bear-hub
+          BEAR-HUB-x86_64.AppImage

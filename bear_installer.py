@@ -16,14 +16,21 @@ import subprocess
 import sys
 import platform
 import json
+import traceback
 
 # Configuration
 APP_NAME = "BEAR-HUB"
-ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
-if getattr(sys, 'frozen', False):
-    # If running as a PyInstaller bundle, we might want the directory of the executable
-    ROOT_DIR = os.path.dirname(sys.executable)
 
+def get_root_dir():
+    if getattr(sys, 'frozen', False):
+        # AppImage/Frozen: Use user home directory to ensure we can write files
+        # The executable is inside a read-only SquashFS mount
+        return os.path.join(os.path.expanduser("~"), "BEAR-HUB")
+    else:
+        # Dev/Script: Use local directory
+        return os.path.abspath(os.path.dirname(__file__))
+
+ROOT_DIR = get_root_dir()
 DATA_DIR = os.path.join(ROOT_DIR, "data")
 OUT_DIR = os.path.join(ROOT_DIR, "bactopia_out")
 CONFIG_FILE = os.path.join(ROOT_DIR, ".bear-hub.env")
@@ -44,15 +51,31 @@ def check_command(command):
 
 def get_conda_bin():
     """Finds conda or mamba binary."""
+    # 1. Check PATH
     mamba = check_command("mamba")
-    conda = check_command("conda")
-
-    # We return a tuple: (binary_to_use, is_mamba)
     if mamba:
         print("\nUsing 'mamba' for environment creation.")
         return mamba, True
+
+    conda = check_command("conda")
     if conda:
         return conda, False
+
+    # 2. Check common locations (vital for GUI launches where PATH might be minimal)
+    print("\n'conda'/'mamba' not found in PATH. Checking common locations...")
+    home = os.path.expanduser("~")
+    common_paths = [
+        os.path.join(home, "miniconda3", "bin", "conda"),
+        os.path.join(home, "anaconda3", "bin", "conda"),
+        os.path.join(home, "miniforge3", "bin", "mamba"),
+        os.path.join(home, "mambaforge", "bin", "mamba"),
+        "/opt/conda/bin/conda"
+    ]
+    for path in common_paths:
+        if os.path.exists(path) and os.access(path, os.X_OK):
+            print(f"Found binary at: {path}")
+            return path, path.endswith("mamba")
+
     return None, False
 
 def get_env_prefix(conda_bin, env_name):
@@ -63,12 +86,8 @@ def get_env_prefix(conda_bin, env_name):
     """
     # Try JSON output first (more reliable)
     try:
-        # We assume conda_bin supports 'env list --json'
-        # Some older versions might not, or if it is mamba/micromamba.
-        # But 'conda env list --json' is standard.
-        # However, if conda_bin is mamba, it might be slightly different, but usually compatible.
-
         # We use the base 'conda' command for listing if available because mamba can be slow or verbose
+        # If we found mamba directly, we use it.
         list_bin = check_command("conda") or conda_bin
 
         result = subprocess.run(
@@ -77,19 +96,10 @@ def get_env_prefix(conda_bin, env_name):
         )
         data = json.loads(result.stdout)
 
-        # data['envs'] is a list of paths.
-        # We need to find the one ending with env_name.
-        # NOTE: This is slightly risky if multiple envs have same name in different paths,
-        # but standard conda/mamba setup usually works this way.
-
-        # A safer approach used in the bash script was filtering by name in the first column.
-        # JSON output just gives paths.
-
         for path in data.get("envs", []):
             if os.path.basename(path) == env_name:
                 return path
     except Exception:
-        # Fallback to text parsing if JSON fails
         pass
 
     # Fallback text parsing
@@ -103,7 +113,6 @@ def get_env_prefix(conda_bin, env_name):
             if line.startswith("#"): continue
             parts = line.split()
             if len(parts) >= 2 and parts[0] == env_name:
-                # The last part is usually the path
                 return parts[-1]
     except Exception:
         pass
@@ -210,7 +219,7 @@ def main():
     # Check Conda/Mamba
     conda_bin, is_mamba = get_conda_bin()
     if not conda_bin:
-        print("\nERROR: Neither 'mamba' nor 'conda' found in PATH.")
+        print("\nERROR: Neither 'mamba' nor 'conda' found.")
         print("BEAR-HUB requires Conda or Mamba to manage bioinformatics environments.")
         sys.exit(1)
 
@@ -238,4 +247,16 @@ def main():
     print("You can now launch the application using the 'bear-hub' executable.")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"\nCRITICAL ERROR: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    finally:
+        # Pause so user can read the terminal output if launched via GUI
+        print("\n")
+        try:
+            input("Press Enter to close this window...")
+        except:
+            pass
