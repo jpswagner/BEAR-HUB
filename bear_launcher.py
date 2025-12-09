@@ -56,6 +56,9 @@ def main():
     else:
         base_path = os.path.dirname(os.path.abspath(__file__))
 
+    # Ensure CWD is set to the app root so relative imports/paths work
+    os.chdir(base_path)
+
     app_path = os.path.join(base_path, "BEAR-HUB.py")
 
     if not os.path.exists(app_path):
@@ -66,12 +69,13 @@ def main():
 
     # Construct the argument list for streamlit
     # We mimic 'streamlit run BEAR-HUB.py'
+    # We REMOVE headless=true so the browser opens automatically
     sys.argv = [
         "streamlit",
         "run",
         app_path,
         "--global.developmentMode=false",
-        "--server.headless=true",  # Often good for executables
+        "--browser.gatherUsageStats=false", # Suppress usage stats prompt
     ]
 
     sys.exit(stcli.main())

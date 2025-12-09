@@ -32,78 +32,64 @@ BEAR-HUB is designed for **Linux** environments (Ubuntu-like).
 
 ---
 
-## 2. Installation (Executables - Recommended)
+## 2. Installation (Recommended: AppImage)
 
-We provide standalone executables for Linux, which simplifies the setup process.
+For most users, we recommend downloading the **AppImage**. This is a single file that contains the application and can be run without installing Python libraries manually.
 
 ### 2.1. Download
-Download the latest `bear-installer` and `bear-hub` binaries from the [Releases](https://github.com/jpswagner/BEAR-HUB/releases) page.
+Go to the [**Releases Page**](https://github.com/jpswagner/BEAR-HUB/releases) and download the file ending in `.AppImage` (e.g., `BEAR-HUB-x86_64.AppImage`).
 
-### 2.2. Install
-Make the installer executable and run it. This steps requires **Conda** and **Docker** to be installed on your system. It will set up the necessary `bactopia` environment for the pipelines.
+### 2.2. Run
+1.  Right-click the downloaded file -> **Properties** -> **Permissions**.
+2.  Check the box **"Allow executing file as program"** (or similar).
+3.  Double-click the file to run.
 
-```bash
-chmod +x bear-installer
-./bear-installer
-```
-
-### 2.3. Run
-Once the installation is complete, you can launch the application using the `bear-hub` executable.
-
-```bash
-chmod +x bear-hub
-./bear-hub
-```
-
-This will launch the application (usually at `http://localhost:8501`).
+*On the first run, it will open a terminal window to check for Docker and Conda and set up the necessary environments. This setup happens only once.*
 
 ---
 
-## 3. Installation (Manual / Dev)
+## 3. Installation (From Source / Developer)
 
-If you prefer to run from source:
+If you cloned the repository (`git clone ...`) and want to run the code directly:
 
-### 3.1. Clone the Repository
+### 3.1. Install Dependencies
+You need Python 3 installed.
 
 ```bash
-git clone https://github.com/jpswagner/BEAR-HUB.git
-cd BEAR-HUB
+pip install -r requirements.txt
 ```
 
-### 3.2. Install Dependencies
-
-Run the installation script to set up the Conda environments (`bear-hub` and `bactopia`) and configuration files.
+### 3.2. Run Setup
+Run the installer script. This creates the `.bear-hub.env` configuration file and sets up the `bactopia` Conda environment.
 
 ```bash
-chmod +x install_bear.sh run_bear.sh
-./install_bear.sh
+python3 bear_installer.py
 ```
+*Ensure `conda` or `mamba` and `docker` are in your PATH before running this.*
 
-### 3.3. Launching the App
-
-Start the application using the runner script:
+### 3.3. Launch App
+Run the launcher script to start the interface.
 
 ```bash
-./run_bear.sh
+python3 bear_launcher.py
 ```
 
 ---
 
 ## 4. Building Executables Locally
 
-If you want to build the executables yourself (e.g., for development), you can use the provided GitHub Actions workflow or run PyInstaller locally.
+If you want to build the AppImage yourself (e.g., for development), you can use the provided GitHub Actions workflow or run PyInstaller locally.
 
-**Requirements:** `pyinstaller`
+**Requirements:** `pyinstaller`, `appimagetool`
 
 ```bash
 # 1. Install dependencies
 pip install -r requirements.txt
 pip install pyinstaller
 
-# 2. Build Installer
+# 2. Build binaries
 pyinstaller --onefile --clean --name bear-installer bear_installer.py
 
-# 3. Build Launcher (BEAR-HUB)
 pyinstaller --onefile --clean \
     --name bear-hub \
     --add-data "BEAR-HUB.py:." \
@@ -115,9 +101,10 @@ pyinstaller --onefile --clean \
     --collect-all pandas \
     --collect-all pyyaml \
     bear_launcher.py
-```
 
-The binaries will be created in the `dist/` directory.
+# 3. Create AppImage (requires AppDir structure and appimagetool)
+# See .github/workflows/build_executables.yml for the full steps.
+```
 
 ---
 
