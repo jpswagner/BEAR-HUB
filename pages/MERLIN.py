@@ -29,7 +29,6 @@ import hashlib
 from typing import List
 
 import streamlit as st
-import streamlit.components.v1 as components
 
 # Import utility module from parent directory (or same directory if running from root)
 try:
