@@ -12,6 +12,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
     - uses: actions/checkout@v4
@@ -58,11 +60,6 @@ jobs:
         # Verify they were created
         ls -lh dist/
 
-        # Test installer help/version if possible (it might try to run interactive logic)
-        # We can't fully run them because they expect interaction or env setup,
-        # but we can check if they start without immediate crash (e.g. import errors).
-        # However, bear-installer runs logic immediately. bear-hub launches streamlit server.
-        # So we just verify file existence for now.
         if [ ! -f dist/bear-installer ]; then echo "bear-installer missing"; exit 1; fi
         if [ ! -f dist/bear-hub ]; then echo "bear-hub missing"; exit 1; fi
 
@@ -72,24 +69,10 @@ jobs:
         name: bear-hub-linux-executables
         path: dist/
 
-    - name: Upload Release Assets
+    - name: Release
+      uses: softprops/action-gh-release@v1
       if: github.event_name == 'release'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./dist/bear-installer
-        asset_name: bear-installer
-        asset_content_type: application/octet-stream
-
-    - name: Upload Release Assets (Launcher)
-      if: github.event_name == 'release'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./dist/bear-hub
-        asset_name: bear-hub
-        asset_content_type: application/octet-stream
+        files: |
+          dist/bear-installer
+          dist/bear-hub
