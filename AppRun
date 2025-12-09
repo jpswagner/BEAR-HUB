@@ -11,12 +11,6 @@ export PATH="${HERE}/usr/bin:${PATH}"
 export BEAR_HUB_ICON="${HERE}/bear-hub.png"
 
 # Installer/Setup Check
-# We reuse the logic from bear-installer, but maybe we just bundle it all?
-# For now, let's assume 'bear-hub' (the python binary) handles the "check env" logic or we call the installer.
-
-# We need to run the installer first if the env isn't ready.
-# The 'bear-installer' binary is also packed in /usr/bin.
-
 # Check for config or marker
 CONFIG_FILE="${HOME}/BEAR-HUB/.bear-hub.env"
 
@@ -25,11 +19,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
     if command -v zenity >/dev/null 2>&1; then
         zenity --info --title="BEAR-HUB Setup" --text="First time setup required.\n\nThis will check for Docker/Conda and create the 'bactopia' environment.\nIt may take a few minutes." --width=400
 
-        # Run installer in terminal so user can see progress?
-        # Or run in background with progress bar?
-        # Installer is interactive (prints text). Running it in a terminal is safest for now.
-        # x-terminal-emulator is standard on Debian/Ubuntu.
-
+        # Determine terminal emulator
         TERMINAL_CMD=""
         if command -v x-terminal-emulator >/dev/null 2>&1; then
             TERMINAL_CMD="x-terminal-emulator"
@@ -42,7 +32,19 @@ if [ ! -f "$CONFIG_FILE" ]; then
         fi
 
         if [ -n "$TERMINAL_CMD" ]; then
-            $TERMINAL_CMD -e "${HERE}/usr/bin/bear-installer"
+            # We wrap the command in bash -c '...; read' to ensure window stays open
+            # We use "${HERE}/usr/bin/bear-installer" explicitly
+            INSTALLER_BIN="${HERE}/usr/bin/bear-installer"
+
+            # Complex quoting to handle paths with spaces if any, though inside AppImage usually safe
+            CMD="bash -c '\"$INSTALLER_BIN\"; echo; echo \"Process finished.\"; read -p \"Press Enter to close...\"'"
+
+            # gnome-terminal uses -- bash -c ..., others use -e
+            if [ "$TERMINAL_CMD" = "gnome-terminal" ]; then
+                $TERMINAL_CMD -- bash -c "\"$INSTALLER_BIN\"; echo; echo \"Process finished.\"; read -p \"Press Enter to close...\""
+            else
+                $TERMINAL_CMD -e bash -c "\"$INSTALLER_BIN\"; echo; echo \"Process finished.\"; read -p \"Press Enter to close...\""
+            fi
         else
             # Fallback: run silently and hope, or show error
              zenity --error --text="No terminal emulator found to run setup. Please run the AppImage from a terminal."

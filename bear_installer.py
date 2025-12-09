@@ -17,6 +17,7 @@ import sys
 import platform
 import json
 import traceback
+import datetime
 
 # Configuration
 APP_NAME = "BEAR-HUB"
@@ -34,6 +35,28 @@ ROOT_DIR = get_root_dir()
 DATA_DIR = os.path.join(ROOT_DIR, "data")
 OUT_DIR = os.path.join(ROOT_DIR, "bactopia_out")
 CONFIG_FILE = os.path.join(ROOT_DIR, ".bear-hub.env")
+LOG_FILE = os.path.join(ROOT_DIR, "install.log")
+
+class TeeLogger:
+    """Writes to both stdout/stderr and a log file."""
+    def __init__(self, filename):
+        self.terminal = sys.stdout
+        self.log = open(filename, "a", encoding="utf-8")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
+        self.log.flush() # Ensure it's written immediately
+
+    def flush(self):
+        self.terminal.flush()
+        self.log.flush()
+
+def setup_logging():
+    os.makedirs(ROOT_DIR, exist_ok=True)
+    sys.stdout = TeeLogger(LOG_FILE)
+    sys.stderr = sys.stdout # Redirect stderr to same log
+    print(f"--- Installer started at {datetime.datetime.now()} ---")
 
 def print_header():
     print("===============================")
@@ -43,6 +66,7 @@ def print_header():
     print(f"ROOT_DIR: {ROOT_DIR}")
     print(f"DATA_DIR: {DATA_DIR}")
     print(f"OUT_DIR : {OUT_DIR}")
+    print(f"LOG_FILE: {LOG_FILE}")
     print()
 
 def check_command(command):
@@ -199,6 +223,7 @@ def ensure_nextflow(prefix, conda_bin, is_mamba):
         sys.exit(1)
 
 def main():
+    setup_logging()
     print_header()
 
     # Create directories
@@ -255,6 +280,7 @@ if __name__ == "__main__":
         sys.exit(1)
     finally:
         # Pause so user can read the terminal output if launched via GUI
+        # Even with AppRun pause, this double pause is harmless and safe
         print("\n")
         try:
             input("Press Enter to close this window...")
