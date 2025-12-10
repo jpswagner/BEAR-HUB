@@ -3,15 +3,81 @@ set -e
 
 # AppRun is the entry point for the AppImage.
 # $APPDIR is the path where the AppImage is mounted.
+# $OWD is the original working directory (where the user launched it from).
+# $APPIMAGE is the full path to the AppImage file itself.
 
 HERE="$(dirname "$(readlink -f "${0}")")"
 export PATH="${HERE}/usr/bin:${PATH}"
 
-# Icon resource (if needed by the app)
+# Icon resource
 export BEAR_HUB_ICON="${HERE}/bear-hub.png"
 
-# Installer/Setup Check
-# Check for config or marker
+# ---------------------------------------------------------
+# Desktop Integration (Shortcut Creation)
+# ---------------------------------------------------------
+APP_NAME="BEAR-HUB"
+DESKTOP_FILE_NAME="bear-hub.desktop"
+USER_DESKTOP_FILE="${HOME}/.local/share/applications/${DESKTOP_FILE_NAME}"
+USER_ICON_DIR="${HOME}/.local/share/icons/hicolor/256x256/apps"
+USER_ICON_FILE="${USER_ICON_DIR}/bear-hub.png"
+
+# Only attempt integration if we are running from an actual AppImage file
+if [ -n "$APPIMAGE" ] && [ ! -f "$USER_DESKTOP_FILE" ]; then
+    # Ask user if they want to install the shortcut
+    INSTALL_SHORTCUT=false
+
+    if command -v zenity >/dev/null 2>&1; then
+        if zenity --question --title="${APP_NAME} Integration" --text="Do you want to create a desktop shortcut for ${APP_NAME}?" --width=300; then
+            INSTALL_SHORTCUT=true
+        fi
+    else
+        # Fallback to terminal prompt
+        echo "Do you want to create a desktop shortcut for ${APP_NAME}? [y/N]"
+        read -r response
+        if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
+            INSTALL_SHORTCUT=true
+        fi
+    fi
+
+    if [ "$INSTALL_SHORTCUT" = true ]; then
+        mkdir -p "$(dirname "$USER_DESKTOP_FILE")"
+        mkdir -p "$USER_ICON_DIR"
+
+        # Copy Icon
+        cp "${HERE}/bear-hub.png" "$USER_ICON_FILE"
+
+        # Create Desktop File
+        # We must point Exec= to the AppImage location
+        cat > "$USER_DESKTOP_FILE" <<EOF
+[Desktop Entry]
+Type=Application
+Name=${APP_NAME}
+Comment=Bacterial Epidemiology & AMR Reporter
+Exec="${APPIMAGE}" %F
+Icon=bear-hub
+Categories=Science;Biology;
+Terminal=false
+StartupNotify=true
+EOF
+
+        # Update database
+        if command -v update-desktop-database >/dev/null 2>&1; then
+            update-desktop-database "${HOME}/.local/share/applications"
+        fi
+
+        if command -v zenity >/dev/null 2>&1; then
+            zenity --info --text="Shortcut created! You can now search for '${APP_NAME}' in your applications menu." --width=300
+        else
+            echo "Shortcut created."
+        fi
+    fi
+fi
+
+
+# ---------------------------------------------------------
+# Environment Setup (Installer)
+# ---------------------------------------------------------
+
 CONFIG_FILE="${HOME}/BEAR-HUB/.bear-hub.env"
 
 if [ ! -f "$CONFIG_FILE" ]; then
@@ -33,17 +99,21 @@ if [ ! -f "$CONFIG_FILE" ]; then
 
         if [ -n "$TERMINAL_CMD" ]; then
             # We wrap the command in bash -c '...; read' to ensure window stays open
-            # We use "${HERE}/usr/bin/bear-installer" explicitly
             INSTALLER_BIN="${HERE}/usr/bin/bear-installer"
-
-            # Complex quoting to handle paths with spaces if any, though inside AppImage usually safe
-            CMD="bash -c '\"$INSTALLER_BIN\"; echo; echo \"Process finished.\"; read -p \"Press Enter to close...\"'"
 
             # gnome-terminal uses -- bash -c ..., others use -e
             if [ "$TERMINAL_CMD" = "gnome-terminal" ]; then
-                $TERMINAL_CMD -- bash -c "\"$INSTALLER_BIN\"; echo; echo \"Process finished.\"; read -p \"Press Enter to close...\""
+                # Use --wait to ensure we block until the terminal window closes
+                $TERMINAL_CMD --wait -- bash -c "\"$INSTALLER_BIN\"; echo; echo \"Process finished.\"; read -p \"Press Enter to close...\""
             else
-                $TERMINAL_CMD -e bash -c "\"$INSTALLER_BIN\"; echo; echo \"Process finished.\"; read -p \"Press Enter to close...\""
+                # xterm and others usually block by default or don't support --wait easily
+                # We assume standard behavior for now.
+                # konsole supports --nofork to block, but -e usually blocks too if not detached.
+                if [ "$TERMINAL_CMD" = "konsole" ]; then
+                     $TERMINAL_CMD --nofork -e bash -c "\"$INSTALLER_BIN\"; echo; echo \"Process finished.\"; read -p \"Press Enter to close...\""
+                else
+                     $TERMINAL_CMD -e bash -c "\"$INSTALLER_BIN\"; echo; echo \"Process finished.\"; read -p \"Press Enter to close...\""
+                fi
             fi
         else
             # Fallback: run silently and hope, or show error

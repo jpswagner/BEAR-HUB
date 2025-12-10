@@ -11,7 +11,8 @@ on:
 
 jobs:
   build:
-    # Use ubuntu-20.04 to ensure GLIBC compatibility with older systems (20.04, 22.04, 24.04)
+    # Use ubuntu-22.04 (GLIBC 2.35) which is compatible with recent systems but fixes the GLIBC 2.38 (ubuntu-24.04) error.
+    # User confirmed 20.04 hangs, but 22.04 works.
     runs-on: ubuntu-22.04
     permissions:
       contents: write
