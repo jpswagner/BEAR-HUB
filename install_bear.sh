@@ -319,6 +319,41 @@ else
     echo "  conda env list"
 fi
 
+# ---------------------------------------------------------
+# Configuração do Streamlit para evitar prompts de primeiro uso
+# - Cria ~/.streamlit/credentials.toml (suprimir email prompt)
+# - Cria ~/.streamlit/config.toml (suprimir usage stats)
+# ---------------------------------------------------------
+echo
+echo "Configurando Streamlit para evitar prompts interativos..."
+ST_DIR="${HOME}/.streamlit"
+mkdir -p "${ST_DIR}"
+
+# 1. credentials.toml: suppress email prompt by setting empty email
+CRED_FILE="${ST_DIR}/credentials.toml"
+if [[ ! -f "${CRED_FILE}" ]]; then
+    echo "Criando ${CRED_FILE}..."
+    cat > "${CRED_FILE}" <<TOML
+[general]
+email = ""
+TOML
+else
+    echo "${CRED_FILE} já existe."
+fi
+
+# 2. config.toml: disable usage stats
+CONFIG_FILE="${ST_DIR}/config.toml"
+if [[ ! -f "${CONFIG_FILE}" ]]; then
+    echo "Criando ${CONFIG_FILE} (desativar usage stats)..."
+    cat > "${CONFIG_FILE}" <<TOML
+[browser]
+gatherUsageStats = false
+TOML
+else
+    echo "${CONFIG_FILE} já existe."
+    # Opcional: checar se gatherUsageStats já está lá, mas não vamos sobrescrever configs do usuário
+fi
+
 echo
 echo "Instalação do BEAR-HUB finalizada."
 echo "Lembre-se: o Bactopia será executado sempre com '-profile docker' pelo app."
