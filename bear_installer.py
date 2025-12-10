@@ -222,6 +222,31 @@ def ensure_nextflow(prefix, conda_bin, is_mamba):
         print("ERROR: Failed to ensure a usable 'nextflow'.")
         sys.exit(1)
 
+def suppress_streamlit_prompts():
+    """
+    Creates ~/.streamlit/credentials.toml and config.toml to suppress
+    first-run email prompt and usage stats.
+    """
+    home = os.path.expanduser("~")
+    st_dir = os.path.join(home, ".streamlit")
+    os.makedirs(st_dir, exist_ok=True)
+
+    creds_file = os.path.join(st_dir, "credentials.toml")
+    if not os.path.exists(creds_file):
+        print(f"\nCreating {creds_file} to suppress email prompt...")
+        with open(creds_file, "w") as f:
+            f.write('[general]\nemail = ""\n')
+
+    config_file = os.path.join(st_dir, "config.toml")
+    # We append or create. If it exists, we don't want to overwrite user settings,
+    # but we want to ensure gatherUsageStats is false if not set.
+    # For simplicity in this installer, we just create it if missing, or warn.
+    if not os.path.exists(config_file):
+        print(f"Creating {config_file} to suppress usage stats...")
+        with open(config_file, "w") as f:
+            f.write('[browser]\ngatherUsageStats = false\n')
+            f.write('[server]\nheadless = false\n')
+
 def main():
     setup_logging()
     print_header()
@@ -253,6 +278,9 @@ def main():
 
     # Ensure Nextflow
     ensure_nextflow(prefix, conda_bin, is_mamba)
+
+    # Suppress Streamlit Prompts
+    suppress_streamlit_prompts()
 
     # Write Config
     print(f"\nNXF_CONDA_EXE will use: {conda_bin}")

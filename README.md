@@ -44,35 +44,41 @@ Go to the [**Releases Page**](https://github.com/jpswagner/BEAR-HUB/releases) an
 2.  Check the box **"Allow executing file as program"** (or similar).
 3.  Double-click the file to run.
 
-*On the first run, it will open a terminal window to check for Docker and Conda and set up the necessary environments. This setup happens only once.*
+**First Run Setup:**
+*   On the first run, the app will ask if you want to create a **Desktop Shortcut**. We recommend clicking "Yes".
+*   It will then open a terminal window to check for Docker and Conda and set up the necessary environments. This setup happens only once.
+*   The setup process logs to `~/BEAR-HUB/install.log`.
+*   Once finished, the application will launch in your default web browser.
 
 ---
 
-## 3. Installation (From Source / Developer)
+## 3. Manual Installation (Source Code)
 
-If you cloned the repository (`git clone ...`) and want to run the code directly:
+If you are a developer or prefer to run the code directly from the source, follow these steps.
 
-### 3.1. Install Dependencies
-You need Python 3 installed.
-
-```bash
-pip install -r requirements.txt
-```
-
-### 3.2. Run Setup
-Run the installer script. This creates the `.bear-hub.env` configuration file and sets up the `bactopia` Conda environment.
+### 3.1. Clone the Repository
 
 ```bash
-python3 bear_installer.py
+git clone https://github.com/jpswagner/BEAR-HUB.git
+cd BEAR-HUB
 ```
-*Ensure `conda` or `mamba` and `docker` are in your PATH before running this.*
 
-### 3.3. Launch App
-Run the launcher script to start the interface.
+### 3.2. Install Environment
+We provide a shell script to automate the setup of Conda environments (`bear-hub` and `bactopia`).
 
 ```bash
-python3 bear_launcher.py
+chmod +x install_bear.sh
+./install_bear.sh
 ```
+
+### 3.3. Run the Application
+Use the launcher script to start the interface.
+
+```bash
+chmod +x run_bear.sh
+./run_bear.sh
+```
+This will activate the `bear-hub` environment and launch Streamlit.
 
 ---
 
