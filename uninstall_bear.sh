@@ -15,6 +15,7 @@ echo "1. Desktop shortcut and icon"
 echo "2. Configuration folder: ${CONFIG_DIR}"
 echo "   (Includes logs, config, and installer setup)"
 echo "3. Conda environment: 'bactopia' (Optional)"
+echo "4. Temporary AppImage mount points (Cleanup)"
 echo
 
 read -p "Are you sure you want to uninstall BEAR-HUB? [y/N] " -n 1 -r
@@ -23,6 +24,40 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     echo "Uninstall cancelled."
     exit 0
 fi
+
+echo
+echo "--- Stopping running instances ---"
+if pgrep -f "bear-hub" >/dev/null; then
+    echo "Found running instances of bear-hub. Stopping them..."
+    pkill -f "bear-hub" || true
+    sleep 2
+else
+    echo "No running instances found."
+fi
+
+echo
+echo "--- Cleaning Temporary Mounts ---"
+# Be careful here. We look for /tmp/.mount_BEAR-* owned by user.
+# find /tmp -maxdepth 1 -name ".mount_BEAR-*" -user "$USER" -type d
+FOUND_MOUNTS=$(find /tmp -maxdepth 1 -name ".mount_BEAR-*" -user "$USER" -type d 2>/dev/null)
+
+if [ -n "$FOUND_MOUNTS" ]; then
+    echo "Found stale AppImage mounts:"
+    echo "$FOUND_MOUNTS"
+    echo "Attempting to unmount/remove..."
+    for mnt in $FOUND_MOUNTS; do
+        # Try fusermount -u first
+        fusermount -u -z "$mnt" 2>/dev/null || true
+        # If still exists, try rm -rf (risky but necessary for stale mounts)
+        if [ -d "$mnt" ]; then
+             rm -rf "$mnt"
+        fi
+    done
+    echo "Cleanup complete."
+else
+    echo "No stale mounts found."
+fi
+
 
 echo
 echo "--- Removing Desktop Integration ---"

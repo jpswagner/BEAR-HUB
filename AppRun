@@ -56,7 +56,7 @@ Comment=Bacterial Epidemiology & AMR Reporter
 Exec="${APPIMAGE}" %F
 Icon=bear-hub
 Categories=Science;Biology;
-Terminal=false
+Terminal=true
 StartupNotify=true
 EOF
 
@@ -82,8 +82,6 @@ UNINSTALLER_DEST="${CONFIG_DIR}/uninstall_bear.sh"
 
 if [ -f "$UNINSTALLER_SRC" ]; then
     mkdir -p "$CONFIG_DIR"
-    # Only copy if it doesn't exist or is different size/newer?
-    # Just overwrite to ensure latest version.
     cp "$UNINSTALLER_SRC" "$UNINSTALLER_DEST"
     chmod +x "$UNINSTALLER_DEST"
 fi
@@ -92,6 +90,15 @@ fi
 # ---------------------------------------------------------
 # Environment Setup (Installer)
 # ---------------------------------------------------------
+# Helper to detect terminal
+get_terminal() {
+    if command -v x-terminal-emulator >/dev/null 2>&1; then echo "x-terminal-emulator";
+    elif command -v gnome-terminal >/dev/null 2>&1; then echo "gnome-terminal";
+    elif command -v konsole >/dev/null 2>&1; then echo "konsole";
+    elif command -v xterm >/dev/null 2>&1; then echo "xterm";
+    fi
+}
+TERMINAL_CMD="$(get_terminal)"
 
 CONFIG_FILE="${CONFIG_DIR}/.bear-hub.env"
 
@@ -99,18 +106,6 @@ if [ ! -f "$CONFIG_FILE" ]; then
     # Try to use zenity for a GUI prompt
     if command -v zenity >/dev/null 2>&1; then
         zenity --info --title="BEAR-HUB Setup" --text="First time setup required.\n\nThis will check for Docker/Conda and create the 'bactopia' environment.\nIt may take a few minutes." --width=400
-
-        # Determine terminal emulator
-        TERMINAL_CMD=""
-        if command -v x-terminal-emulator >/dev/null 2>&1; then
-            TERMINAL_CMD="x-terminal-emulator"
-        elif command -v gnome-terminal >/dev/null 2>&1; then
-            TERMINAL_CMD="gnome-terminal"
-        elif command -v konsole >/dev/null 2>&1; then
-            TERMINAL_CMD="konsole"
-        elif command -v xterm >/dev/null 2>&1; then
-            TERMINAL_CMD="xterm"
-        fi
 
         if [ -n "$TERMINAL_CMD" ]; then
             # We wrap the command in bash -c '...; read' to ensure window stays open
@@ -140,5 +135,40 @@ if [ ! -f "$CONFIG_FILE" ]; then
     fi
 fi
 
-# Now run the app
-exec "${HERE}/usr/bin/bear-hub" "$@"
+# ---------------------------------------------------------
+# Run App (in Terminal)
+# ---------------------------------------------------------
+
+# We want the app to run in a terminal window so the user knows it's running
+# and can close the window to stop the server (cleaning up the AppImage mount).
+
+APP_BIN="${HERE}/usr/bin/bear-hub"
+
+# Check if we are already in a terminal (tty)
+if [ -t 1 ]; then
+    # Already in a terminal, just run it
+    echo "Starting BEAR-HUB..."
+    exec "$APP_BIN" "$@"
+else
+    # Not in a terminal (GUI launch). Spawn one.
+    if [ -n "$TERMINAL_CMD" ]; then
+        if [ "$TERMINAL_CMD" = "gnome-terminal" ]; then
+            # We don't need --wait here because exec replaces the process,
+            # but actually AppRun needs to stay alive? No, AppRun is the parent.
+            # If we exec gnome-terminal, the AppRun process ends.
+            # The AppImage mount stays until the last process accessing it dies?
+            # Usually AppImage waits for AppRun to finish.
+            # So we should block.
+            $TERMINAL_CMD --wait -- bash -c "echo 'BEAR-HUB is running...'; echo 'Close this window to stop the application.'; echo; \"$APP_BIN\" \"$@\""
+        else
+            if [ "$TERMINAL_CMD" = "konsole" ]; then
+                 $TERMINAL_CMD --nofork -e bash -c "echo 'BEAR-HUB is running...'; echo 'Close this window to stop the application.'; echo; \"$APP_BIN\" \"$@\""
+            else
+                 $TERMINAL_CMD -e bash -c "echo 'BEAR-HUB is running...'; echo 'Close this window to stop the application.'; echo; \"$APP_BIN\" \"$@\""
+            fi
+        fi
+    else
+        # Fallback if no terminal found (unlikely on desktop linux)
+        exec "$APP_BIN" "$@"
+    fi
+fi
