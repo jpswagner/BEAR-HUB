@@ -12,7 +12,6 @@ on:
 jobs:
   build:
     # Use ubuntu-22.04 (GLIBC 2.35) which is compatible with recent systems but fixes the GLIBC 2.38 (ubuntu-24.04) error.
-    # User confirmed 20.04 hangs, but 22.04 works.
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -59,13 +58,16 @@ jobs:
         cp dist/bear-installer AppDir/usr/bin/
         cp dist/bear-hub AppDir/usr/bin/
 
+        # Copy scripts
+        cp uninstall_bear.sh AppDir/usr/bin/
+        chmod +x AppDir/usr/bin/uninstall_bear.sh
+
         # Copy metadata
         cp bear-hub.desktop AppDir/
         cp AppRun AppDir/
         chmod +x AppDir/AppRun
 
         # Icon
-        # Try to find an icon in static/, else make a dummy one to avoid build failure
         if [ -f "static/bear-hub-icon.png" ]; then
           cp "static/bear-hub-icon.png" AppDir/bear-hub.png
         else
@@ -79,7 +81,6 @@ jobs:
         chmod +x appimagetool-x86_64.AppImage
 
         # Create AppImage
-        # Using --appimage-extract-and-run in case of FUSE issues on runner
         ./appimagetool-x86_64.AppImage --appimage-extract-and-run AppDir BEAR-HUB-x86_64.AppImage
 
     - name: Upload Artifacts

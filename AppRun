@@ -73,12 +73,27 @@ EOF
     fi
 fi
 
+# ---------------------------------------------------------
+# Deploy Uninstaller
+# ---------------------------------------------------------
+CONFIG_DIR="${HOME}/BEAR-HUB"
+UNINSTALLER_SRC="${HERE}/usr/bin/uninstall_bear.sh"
+UNINSTALLER_DEST="${CONFIG_DIR}/uninstall_bear.sh"
+
+if [ -f "$UNINSTALLER_SRC" ]; then
+    mkdir -p "$CONFIG_DIR"
+    # Only copy if it doesn't exist or is different size/newer?
+    # Just overwrite to ensure latest version.
+    cp "$UNINSTALLER_SRC" "$UNINSTALLER_DEST"
+    chmod +x "$UNINSTALLER_DEST"
+fi
+
 
 # ---------------------------------------------------------
 # Environment Setup (Installer)
 # ---------------------------------------------------------
 
-CONFIG_FILE="${HOME}/BEAR-HUB/.bear-hub.env"
+CONFIG_FILE="${CONFIG_DIR}/.bear-hub.env"
 
 if [ ! -f "$CONFIG_FILE" ]; then
     # Try to use zenity for a GUI prompt
@@ -107,8 +122,6 @@ if [ ! -f "$CONFIG_FILE" ]; then
                 $TERMINAL_CMD --wait -- bash -c "\"$INSTALLER_BIN\"; echo; echo \"Process finished.\"; read -p \"Press Enter to close...\""
             else
                 # xterm and others usually block by default or don't support --wait easily
-                # We assume standard behavior for now.
-                # konsole supports --nofork to block, but -e usually blocks too if not detached.
                 if [ "$TERMINAL_CMD" = "konsole" ]; then
                      $TERMINAL_CMD --nofork -e bash -c "\"$INSTALLER_BIN\"; echo; echo \"Process finished.\"; read -p \"Press Enter to close...\""
                 else

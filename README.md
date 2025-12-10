@@ -50,6 +50,15 @@ Go to the [**Releases Page**](https://github.com/jpswagner/BEAR-HUB/releases) an
 *   The setup process logs to `~/BEAR-HUB/install.log`.
 *   Once finished, the application will launch in your default web browser.
 
+### 2.3. Uninstall
+Since the AppImage does not register with the system package manager, you can uninstall it using the provided script.
+
+Run the following command in your terminal:
+```bash
+~/BEAR-HUB/uninstall_bear.sh
+```
+This will remove the desktop shortcut, configuration files, and optionally the `bactopia` Conda environment. Finally, you can delete the `.AppImage` file.
+
 ---
 
 ## 3. Manual Installation (Source Code)
