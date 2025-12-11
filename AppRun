@@ -1,0 +1,174 @@
+#!/bin/bash
+set -e
+
+# AppRun is the entry point for the AppImage.
+# $APPDIR is the path where the AppImage is mounted.
+# $OWD is the original working directory (where the user launched it from).
+# $APPIMAGE is the full path to the AppImage file itself.
+
+HERE="$(dirname "$(readlink -f "${0}")")"
+export PATH="${HERE}/usr/bin:${PATH}"
+
+# Icon resource
+export BEAR_HUB_ICON="${HERE}/bear-hub.png"
+
+# ---------------------------------------------------------
+# Desktop Integration (Shortcut Creation)
+# ---------------------------------------------------------
+APP_NAME="BEAR-HUB"
+DESKTOP_FILE_NAME="bear-hub.desktop"
+USER_DESKTOP_FILE="${HOME}/.local/share/applications/${DESKTOP_FILE_NAME}"
+USER_ICON_DIR="${HOME}/.local/share/icons/hicolor/256x256/apps"
+USER_ICON_FILE="${USER_ICON_DIR}/bear-hub.png"
+
+# Only attempt integration if we are running from an actual AppImage file
+if [ -n "$APPIMAGE" ] && [ ! -f "$USER_DESKTOP_FILE" ]; then
+    # Ask user if they want to install the shortcut
+    INSTALL_SHORTCUT=false
+
+    if command -v zenity >/dev/null 2>&1; then
+        if zenity --question --title="${APP_NAME} Integration" --text="Do you want to create a desktop shortcut for ${APP_NAME}?" --width=300; then
+            INSTALL_SHORTCUT=true
+        fi
+    else
+        # Fallback to terminal prompt
+        echo "Do you want to create a desktop shortcut for ${APP_NAME}? [y/N]"
+        read -r response
+        if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
+            INSTALL_SHORTCUT=true
+        fi
+    fi
+
+    if [ "$INSTALL_SHORTCUT" = true ]; then
+        mkdir -p "$(dirname "$USER_DESKTOP_FILE")"
+        mkdir -p "$USER_ICON_DIR"
+
+        # Copy Icon
+        cp "${HERE}/bear-hub.png" "$USER_ICON_FILE"
+
+        # Create Desktop File
+        # We must point Exec= to the AppImage location
+        cat > "$USER_DESKTOP_FILE" <<EOF
+[Desktop Entry]
+Type=Application
+Name=${APP_NAME}
+Comment=Bacterial Epidemiology & AMR Reporter
+Exec="${APPIMAGE}" %F
+Icon=bear-hub
+Categories=Science;Biology;
+Terminal=true
+StartupNotify=true
+EOF
+
+        # Update database
+        if command -v update-desktop-database >/dev/null 2>&1; then
+            update-desktop-database "${HOME}/.local/share/applications"
+        fi
+
+        if command -v zenity >/dev/null 2>&1; then
+            zenity --info --text="Shortcut created! You can now search for '${APP_NAME}' in your applications menu." --width=300
+        else
+            echo "Shortcut created."
+        fi
+    fi
+fi
+
+# ---------------------------------------------------------
+# Deploy Uninstaller
+# ---------------------------------------------------------
+CONFIG_DIR="${HOME}/BEAR-HUB"
+UNINSTALLER_SRC="${HERE}/usr/bin/uninstall_bear.sh"
+UNINSTALLER_DEST="${CONFIG_DIR}/uninstall_bear.sh"
+
+if [ -f "$UNINSTALLER_SRC" ]; then
+    mkdir -p "$CONFIG_DIR"
+    cp "$UNINSTALLER_SRC" "$UNINSTALLER_DEST"
+    chmod +x "$UNINSTALLER_DEST"
+fi
+
+
+# ---------------------------------------------------------
+# Environment Setup (Installer)
+# ---------------------------------------------------------
+# Helper to detect terminal
+get_terminal() {
+    if command -v x-terminal-emulator >/dev/null 2>&1; then echo "x-terminal-emulator";
+    elif command -v gnome-terminal >/dev/null 2>&1; then echo "gnome-terminal";
+    elif command -v konsole >/dev/null 2>&1; then echo "konsole";
+    elif command -v xterm >/dev/null 2>&1; then echo "xterm";
+    fi
+}
+TERMINAL_CMD="$(get_terminal)"
+
+CONFIG_FILE="${CONFIG_DIR}/.bear-hub.env"
+
+if [ ! -f "$CONFIG_FILE" ]; then
+    # Try to use zenity for a GUI prompt
+    if command -v zenity >/dev/null 2>&1; then
+        zenity --info --title="BEAR-HUB Setup" --text="First time setup required.\n\nThis will check for Docker/Conda and create the 'bactopia' environment.\nIt may take a few minutes." --width=400
+
+        if [ -n "$TERMINAL_CMD" ]; then
+            # We wrap the command in bash -c '...; read' to ensure window stays open
+            INSTALLER_BIN="${HERE}/usr/bin/bear-installer"
+
+            # gnome-terminal uses -- bash -c ..., others use -e
+            if [ "$TERMINAL_CMD" = "gnome-terminal" ]; then
+                # Use --wait to ensure we block until the terminal window closes
+                $TERMINAL_CMD --wait -- bash -c "\"$INSTALLER_BIN\"; echo; echo \"Process finished.\"; read -p \"Press Enter to close...\""
+            else
+                # xterm and others usually block by default or don't support --wait easily
+                if [ "$TERMINAL_CMD" = "konsole" ]; then
+                     $TERMINAL_CMD --nofork -e bash -c "\"$INSTALLER_BIN\"; echo; echo \"Process finished.\"; read -p \"Press Enter to close...\""
+                else
+                     $TERMINAL_CMD -e bash -c "\"$INSTALLER_BIN\"; echo; echo \"Process finished.\"; read -p \"Press Enter to close...\""
+                fi
+            fi
+        else
+            # Fallback: run silently and hope, or show error
+             zenity --error --text="No terminal emulator found to run setup. Please run the AppImage from a terminal."
+             exit 1
+        fi
+
+    else
+        # No GUI tool, try running installer directly (might fail if no terminal attached)
+        "${HERE}/usr/bin/bear-installer"
+    fi
+fi
+
+# ---------------------------------------------------------
+# Run App (in Terminal)
+# ---------------------------------------------------------
+
+# We want the app to run in a terminal window so the user knows it's running
+# and can close the window to stop the server (cleaning up the AppImage mount).
+
+APP_BIN="${HERE}/usr/bin/bear-hub"
+
+# Check if we are already in a terminal (tty)
+if [ -t 1 ]; then
+    # Already in a terminal, just run it
+    echo "Starting BEAR-HUB..."
+    exec "$APP_BIN" "$@"
+else
+    # Not in a terminal (GUI launch). Spawn one.
+    if [ -n "$TERMINAL_CMD" ]; then
+        if [ "$TERMINAL_CMD" = "gnome-terminal" ]; then
+            # We don't need --wait here because exec replaces the process,
+            # but actually AppRun needs to stay alive? No, AppRun is the parent.
+            # If we exec gnome-terminal, the AppRun process ends.
+            # The AppImage mount stays until the last process accessing it dies?
+            # Usually AppImage waits for AppRun to finish.
+            # So we should block.
+            $TERMINAL_CMD --wait -- bash -c "echo 'BEAR-HUB is running...'; echo 'Close this window to stop the application.'; echo; \"$APP_BIN\" \"$@\""
+        else
+            if [ "$TERMINAL_CMD" = "konsole" ]; then
+                 $TERMINAL_CMD --nofork -e bash -c "echo 'BEAR-HUB is running...'; echo 'Close this window to stop the application.'; echo; \"$APP_BIN\" \"$@\""
+            else
+                 $TERMINAL_CMD -e bash -c "echo 'BEAR-HUB is running...'; echo 'Close this window to stop the application.'; echo; \"$APP_BIN\" \"$@\""
+            fi
+        fi
+    else
+        # Fallback if no terminal found (unlikely on desktop linux)
+        exec "$APP_BIN" "$@"
+    fi
+fi

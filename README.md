@@ -23,55 +23,107 @@ BEAR-HUB is designed for **Linux** environments (Ubuntu-like).
 
 **Prerequisites:**
 
--   [x] **Conda** (Miniconda, Anaconda, or Mambaforge)
+-   [x] **Conda** (Miniconda, Anaconda, or Mambaforge) - Required for managing bioinformatics environments.
+-   [x] **Docker** (Highly recommended; required for `profile: docker`) - Required for running Bactopia containers.
 -   [x] **Internet Access** (for downloading packages and datasets)
 -   [x] **Disk Space** (Bactopia and its datasets can require significant storage)
--   [x] **Docker** (Highly recommended; required for `profile: docker`)
 
 > **Note:** While Singularity/Apptainer is supported by Nextflow, this hub is optimized for running bactopia with Docker.
 
 ---
 
-## 2. Installation (Quick Start)
+## 2. Installation (Recommended: AppImage)
 
-The recommended installation method is via Conda using the provided script.
+For most users, we recommend downloading the **AppImage**. This is a single file that contains the application and can be run without installing Python libraries manually.
 
-### 2.1. Clone the Repository
+### 2.1. Download
+Go to the [**Releases Page**](https://github.com/jpswagner/BEAR-HUB/releases) and download the file ending in `.AppImage` (e.g., `BEAR-HUB-x86_64.AppImage`).
+
+### 2.2. Run
+1.  Right-click the downloaded file -> **Properties** -> **Permissions**.
+2.  Check the box **"Allow executing file as program"** (or similar).
+3.  Double-click the file to run.
+
+**First Run Setup:**
+*   On the first run, the app will ask if you want to create a **Desktop Shortcut**. We recommend clicking "Yes".
+*   It will then open a terminal window to check for Docker and Conda and set up the necessary environments. This setup happens only once.
+*   The setup process logs to `~/BEAR-HUB/install.log`.
+*   Once finished, the application will launch in your default web browser.
+
+### 2.3. Uninstall
+Since the AppImage does not register with the system package manager, you can uninstall it using the provided script.
+
+Run the following command in your terminal:
+```bash
+~/BEAR-HUB/uninstall_bear.sh
+```
+This will remove the desktop shortcut, configuration files, and optionally the `bactopia` Conda environment. Finally, you can delete the `.AppImage` file.
+
+---
+
+## 3. Manual Installation (Source Code)
+
+If you are a developer or prefer to run the code directly from the source, follow these steps.
+
+### 3.1. Clone the Repository
 
 ```bash
 git clone https://github.com/jpswagner/BEAR-HUB.git
 cd BEAR-HUB
 ```
 
-### 2.2. Install Dependencies
-
-Run the installation script to set up the Conda environments (`bear-hub` and `bactopia`) and configuration files.
+### 3.2. Install Environment
+We provide a shell script to automate the setup of Conda environments (`bear-hub` and `bactopia`).
 
 ```bash
-chmod +x install_bear.sh run_bear.sh
+chmod +x install_bear.sh
 ./install_bear.sh
 ```
 
-**What this script does:**
-1.  Creates the `bear-hub` environment (Python, Streamlit, etc.).
-2.  Creates the `bactopia` environment (Nextflow, Bactopia).
-3.  Generates a configuration file `${HOME}/BEAR-HUB/.bear-hub.env`.
+### 3.3. Run the Application
+Use the launcher script to start the interface.
+
+```bash
+chmod +x run_bear.sh
+./run_bear.sh
+```
+This will activate the `bear-hub` environment and launch Streamlit.
 
 ---
 
-## 3. Usage
+## 4. Building Executables Locally
 
-### 3.1. Launching the App
+If you want to build the AppImage yourself (e.g., for development), you can use the provided GitHub Actions workflow or run PyInstaller locally.
 
-Start the application using the runner script:
+**Requirements:** `pyinstaller`, `appimagetool`
 
 ```bash
-./run_bear.sh
+# 1. Install dependencies
+pip install -r requirements.txt
+pip install pyinstaller
+
+# 2. Build binaries
+pyinstaller --onefile --clean --name bear-installer bear_installer.py
+
+pyinstaller --onefile --clean \
+    --name bear-hub \
+    --add-data "BEAR-HUB.py:." \
+    --add-data "utils.py:." \
+    --add-data "pages:pages" \
+    --add-data "static:static" \
+    --collect-all streamlit \
+    --collect-all altair \
+    --collect-all pandas \
+    --collect-all pyyaml \
+    bear_launcher.py
+
+# 3. Create AppImage (requires AppDir structure and appimagetool)
+# See .github/workflows/build_executables.yml for the full steps.
 ```
 
-This will launch the Streamlit server and provide a local URL (usually `http://localhost:8501`). Open this URL in your web browser.
+---
 
-### 3.2. Navigation
+## 5. Usage & Navigation
 
 -   **Home**: Dashboard overview and system health checks (Nextflow/Docker status).
 -   **BACTOPIA**: The core pipeline runner. Use this to process raw reads.
@@ -87,43 +139,6 @@ This will launch the Streamlit server and provide a local URL (usually `http://l
     -   Choose tools.
     -   Click "Run".
 -   **PORT**: (Beta) Nanopore and plasmid analysis workflows.
-
----
-
-## 4. Project Structure
-
-```text
-BEAR-HUB/
-├── BEAR-HUB.py          # Main entry point (Dashboard)
-├── pages/               # Sub-pages for the application
-│   ├── BACTOPIA.py      # Main Bactopia pipeline interface
-│   ├── BACTOPIA-TOOLS.py# Post-processing tools interface
-│   ├── MERLIN.py        # Species-specific workflows
-│   └── PORT.py          # Plasmid/Nanopore interface
-├── static/              # Images and assets
-├── install_bear.sh      # Installation script
-├── run_bear.sh          # Launcher script
-└── ...
-```
-
----
-
-## 5. Updates & Uninstallation
-
-**Update:**
-Pull the latest changes from GitHub:
-```bash
-git pull origin main
-```
-If dependencies changed, re-run `./install_bear.sh`.
-
-**Uninstall:**
-Remove the conda environments and the project folder:
-```bash
-conda remove -n bear-hub --all
-conda remove -n bactopia --all
-rm -rf ~/BEAR-HUB
-```
 
 ---
 

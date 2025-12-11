@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=BEAR-HUB
+Comment=Bacterial Epidemiology & AMR Reporter
+Exec=bear-hub
+Icon=bear-hub
+Categories=Science;Biology;
+Terminal=false

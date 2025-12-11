@@ -1,0 +1,97 @@
+name: Build Executables
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build:
+    # Use ubuntu-22.04 (GLIBC 2.35) which is compatible with recent systems but fixes the GLIBC 2.38 (ubuntu-24.04) error.
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        pip install -r requirements.txt
+
+    - name: Build Installer (bear-installer)
+      run: |
+        pyinstaller --onefile --clean \
+          --name bear-installer \
+          bear_installer.py
+
+    - name: Build Launcher (bear-hub)
+      run: |
+        pyinstaller --onefile --clean \
+          --name bear-hub \
+          --add-data "BEAR-HUB.py:." \
+          --add-data "utils.py:." \
+          --add-data "pages:pages" \
+          --add-data "static:static" \
+          --collect-all streamlit \
+          --collect-all altair \
+          --collect-all pandas \
+          --collect-all pyyaml \
+          bear_launcher.py
+
+    - name: Prepare AppDir for AppImage
+      run: |
+        mkdir -p AppDir/usr/bin
+
+        # Copy binaries
+        cp dist/bear-installer AppDir/usr/bin/
+        cp dist/bear-hub AppDir/usr/bin/
+
+        # Copy scripts
+        cp uninstall_bear.sh AppDir/usr/bin/
+        chmod +x AppDir/usr/bin/uninstall_bear.sh
+
+        # Copy metadata
+        cp bear-hub.desktop AppDir/
+        cp AppRun AppDir/
+        chmod +x AppDir/AppRun
+
+        # Icon
+        if [ -f "static/bear-hub-icon.png" ]; then
+          cp "static/bear-hub-icon.png" AppDir/bear-hub.png
+        else
+          touch AppDir/bear-hub.png
+        fi
+
+    - name: Build AppImage
+      run: |
+        # Download appimagetool
+        wget -q https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+        chmod +x appimagetool-x86_64.AppImage
+
+        # Create AppImage
+        ./appimagetool-x86_64.AppImage --appimage-extract-and-run AppDir BEAR-HUB-x86_64.AppImage
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: bear-hub-appimage
+        path: BEAR-HUB-x86_64.AppImage
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: github.event_name == 'release'
+      with:
+        files: |
+          BEAR-HUB-x86_64.AppImage
