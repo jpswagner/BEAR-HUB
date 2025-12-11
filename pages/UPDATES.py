@@ -38,6 +38,9 @@ def get_git_pull_cmd():
 CMD_GIT_PULL = get_git_pull_cmd()
 CMD_PIP_INSTALL = f"{sys.executable} -m pip install -r requirements.txt"
 
+# Check if running in frozen mode (AppImage)
+IS_FROZEN = getattr(sys, "frozen", False)
+
 # For Bactopia, we need to run inside its conda environment.
 # We try to detect the environment name or prefix.
 BACTOPIA_ENV_NAME = "bactopia" # Default name created by install_bear.sh
@@ -119,14 +122,19 @@ col1, col2 = st.columns(2)
 with col1:
     st.subheader("BEAR-HUB (App)")
 
-    # Get Git Info
-    branch, commit, dirty = get_git_info()
-    if branch == "Unknown":
-         st.warning("Git repository not detected. Updates via Git are disabled.")
-         git_available = False
+    if IS_FROZEN:
+        st.info("**Mode:** AppImage (Frozen)")
+        st.caption("You are running the packaged AppImage version.")
+        git_available = False
     else:
-         st.success(f"**Branch:** `{branch}`\n\n**Commit:** `{commit}`{dirty}")
-         git_available = True
+        # Get Git Info
+        branch, commit, dirty = get_git_info()
+        if branch == "Unknown":
+             st.warning("Git repository not detected. Updates via Git are disabled.")
+             git_available = False
+        else:
+             st.success(f"**Branch:** `{branch}`\n\n**Commit:** `{commit}`{dirty}")
+             git_available = True
 
     # App Version (if defined in a file, otherwise using git info is fine)
     # st.write(f"**App Version:** {APP_VERSION}")
@@ -180,24 +188,32 @@ NS_UPDATES = "updates_runner"
 # --- Button 1: Git Pull ---
 with u_col1:
     st.markdown("### Update App Code")
-    st.caption("Runs `git pull` to fetch the latest code from GitHub.")
-    if st.button("Update BEAR-HUB (Git Only)", disabled=not git_available, use_container_width=True):
-        if not git_available:
-            st.error("Git not found.")
-        else:
-            utils.start_async_runner_ns(CMD_GIT_PULL, NS_UPDATES)
+    if IS_FROZEN:
+        st.caption("Not available in AppImage.")
+        st.button("Update BEAR-HUB (Git Only)", disabled=True, use_container_width=True, help="Download a new AppImage to update.")
+    else:
+        st.caption("Runs `git pull` to fetch the latest code from GitHub.")
+        if st.button("Update BEAR-HUB (Git Only)", disabled=not git_available, use_container_width=True):
+            if not git_available:
+                st.error("Git not found.")
+            else:
+                utils.start_async_runner_ns(CMD_GIT_PULL, NS_UPDATES)
 
 # --- Button 2: Full Update ---
 with u_col2:
     st.markdown("### Full App Update")
-    st.caption("Runs `git pull` AND installs dependencies (`pip install`).")
-    if st.button("Update BEAR-HUB (Full)", disabled=not git_available, use_container_width=True):
-         if not git_available:
-            st.error("Git not found.")
-         else:
-            # Chain commands
-            full_cmd = f"{CMD_GIT_PULL} && {CMD_PIP_INSTALL}"
-            utils.start_async_runner_ns(full_cmd, NS_UPDATES)
+    if IS_FROZEN:
+        st.caption("Not available in AppImage.")
+        st.button("Update BEAR-HUB (Full)", disabled=True, use_container_width=True, help="Download a new AppImage to update.")
+    else:
+        st.caption("Runs `git pull` AND installs dependencies (`pip install`).")
+        if st.button("Update BEAR-HUB (Full)", disabled=not git_available, use_container_width=True):
+             if not git_available:
+                st.error("Git not found.")
+             else:
+                # Chain commands
+                full_cmd = f"{CMD_GIT_PULL} && {CMD_PIP_INSTALL}"
+                utils.start_async_runner_ns(full_cmd, NS_UPDATES)
 
 # --- Button 3: Bactopia Env ---
 with u_col3:
