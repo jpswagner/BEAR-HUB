@@ -12,7 +12,7 @@ on:
 jobs:
   build:
     # Use ubuntu-22.04 (GLIBC 2.35) which is compatible with recent systems but fixes the GLIBC 2.38 (ubuntu-24.04) error.
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04 
     permissions:
       contents: write
 
@@ -25,10 +25,12 @@ jobs:
         python-version: "3.11"
 
     - name: Install dependencies
+    # job failed due to missing Python modules added : pip install langchain pytest
       run: |
         python -m pip install --upgrade pip
         pip install pyinstaller
         pip install -r requirements.txt
+        pip install langchain pytest
 
     - name: Build Installer (bear-installer)
       run: |
