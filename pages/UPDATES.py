@@ -20,7 +20,22 @@ utils.bootstrap_bear_env_from_file()
 # --- Command Constants ---
 # Centralized commands for easier adaptation.
 
-CMD_GIT_PULL = "git pull"
+def get_git_pull_cmd():
+    """Returns a robust git pull command using the current branch."""
+    try:
+        # Get current branch
+        branch = subprocess.check_output(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            stderr=subprocess.DEVNULL, text=True
+        ).strip()
+        if branch and branch != "HEAD":
+            # Explicitly pull origin <branch>
+            return f"git pull origin {branch}"
+    except Exception:
+        pass
+    return "git pull"
+
+CMD_GIT_PULL = get_git_pull_cmd()
 CMD_PIP_INSTALL = f"{sys.executable} -m pip install -r requirements.txt"
 
 # For Bactopia, we need to run inside its conda environment.
@@ -134,7 +149,17 @@ with col2:
         if nf_bin and nf_bin != "nextflow":
              nf_v = get_command_output(f"{nf_bin} -version", shell=True)
 
-    st.text_input("Nextflow Version", value=nf_v.split('\n')[0], disabled=True)
+    # Parse Nextflow version - look for line with 'version'
+    nf_display = "Unknown"
+    for line in nf_v.splitlines():
+        if "version" in line.lower():
+            nf_display = line.strip()
+            break
+    if nf_display == "Unknown" and nf_v.strip():
+        # Fallback to first non-empty line
+        nf_display = nf_v.strip().splitlines()[0]
+
+    st.text_input("Nextflow Version", value=nf_display, disabled=True)
 
     # Docker
     docker_v = get_command_output(CMD_DOCKER_VERSION, shell=True)
