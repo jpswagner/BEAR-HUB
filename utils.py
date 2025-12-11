@@ -716,7 +716,7 @@ def discover_samples_from_outdir(outdir: str) -> List[str]:
         if not child.is_dir():
             continue
         # Ignore administrative directories
-        if child.name.startswith("bactopia-") or child.name in {"bactopia-runs", "work"}:
+        if child.name.startswith("bactopia-") or child.name in {"bactopia-runs", "work", ".nextflow"}:
             continue
         candidates.append(child.name)
         # Classic Bactopia structure
