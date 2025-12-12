@@ -9,6 +9,8 @@ import os
 import sys
 import shutil
 import utils
+import requests
+import json
 
 # ============================= Configuration =============================
 
@@ -107,6 +109,21 @@ def get_git_info():
     except Exception:
         return "Unknown", "Unknown", ""
 
+def get_latest_github_release(repo="jpswagner/BEAR-HUB"):
+    """
+    Fetches the latest release tag from GitHub API.
+    Returns (tag_name, html_url) or ("Unknown", link).
+    """
+    url = f"https://api.github.com/repos/{repo}/releases/latest"
+    try:
+        resp = requests.get(url, timeout=5)
+        if resp.status_code == 200:
+            data = resp.json()
+            return data.get("tag_name", "Unknown"), data.get("html_url", f"https://github.com/{repo}/releases")
+    except Exception:
+        pass
+    return "Unknown", f"https://github.com/{repo}/releases"
+
 # ============================= UI Layout =============================
 
 st.title("🔄 System Updates")
@@ -124,7 +141,16 @@ with col1:
 
     if IS_FROZEN:
         st.info("**Mode:** AppImage (Frozen)")
-        st.caption("You are running the packaged AppImage version.")
+
+        # Check for updates
+        latest_tag, release_url = get_latest_github_release()
+        if latest_tag != "Unknown":
+            st.metric("Latest GitHub Release", latest_tag)
+        else:
+            st.write("Could not fetch latest release info from GitHub.")
+
+        st.markdown(f"👉 [View Releases on GitHub]({release_url})")
+
         git_available = False
     else:
         # Get Git Info
@@ -189,8 +215,7 @@ NS_UPDATES = "updates_runner"
 with u_col1:
     st.markdown("### Update App Code")
     if IS_FROZEN:
-        st.caption("Not available in AppImage.")
-        st.button("Update BEAR-HUB (Git Only)", disabled=True, use_container_width=True, help="Download a new AppImage to update.")
+        st.info("To update the AppImage, please download the latest release.")
     else:
         st.caption("Runs `git pull` to fetch the latest code from GitHub.")
         if st.button("Update BEAR-HUB (Git Only)", disabled=not git_available, use_container_width=True):
@@ -203,8 +228,7 @@ with u_col1:
 with u_col2:
     st.markdown("### Full App Update")
     if IS_FROZEN:
-        st.caption("Not available in AppImage.")
-        st.button("Update BEAR-HUB (Full)", disabled=True, use_container_width=True, help="Download a new AppImage to update.")
+        st.write("Dependencies are bundled in the AppImage.")
     else:
         st.caption("Runs `git pull` AND installs dependencies (`pip install`).")
         if st.button("Update BEAR-HUB (Full)", disabled=not git_available, use_container_width=True):
