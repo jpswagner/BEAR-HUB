@@ -344,26 +344,45 @@ def _fs_browser_core(label: str, key: str, mode: str = "file",
         if mode == "dir":
             if st.button("Choose", key=f"{key}_choose_dir"):
                 st.session_state[key] = str(cur)
+                st.session_state[f"__open_{key}"] = False
+                _st_rerun()
 
     dirs, files = _list_dir(cur)
     st.markdown("**Folders**")
-    dcols = st.columns(2)
-    for i, d in enumerate(dirs):
-        did = _safe_id(str(d))
-        if dcols[i % 2].button("📁 " + d.name, key=f"{key}_d_{did}"):
-            set_cur(d)
-            _st_rerun()
+    if not dirs:
+        st.caption("No folders found")
+    else:
+        dcols = st.columns(2)
+        for i, d in enumerate(dirs):
+            did = _safe_id(str(d))
+            if dcols[i % 2].button("📁 " + d.name, key=f"{key}_d_{did}"):
+                set_cur(d)
+                _st_rerun()
 
-    if mode == "file":
+    # Show files if in "file" mode OR if "dir" mode + filter patterns (for context)
+    show_files = (mode == "file") or (mode == "dir" and patterns)
+
+    if show_files:
         if patterns:
             files = [f for f in files if any(fnmatch.fnmatch(f.name, pat) for pat in patterns)]
+
         st.markdown("**Files**")
-        for f in files:
-            fid = _safe_id(str(f))
-            if st.button("📄 " + f.name, key=f"{key}_f_{fid}"):
-                st.session_state[key] = str(f.resolve())
-                st.session_state[f"__open_{key}"] = False
-                _st_rerun()
+        if not files:
+            msg = "No matching files found" if patterns else "No files found"
+            st.caption(msg)
+        else:
+            for f in files:
+                fid = _safe_id(str(f))
+                label = f"📄 {f.name}"
+                if mode == "file":
+                    # Clickable to select the file
+                    if st.button(label, key=f"{key}_f_{fid}"):
+                        st.session_state[key] = str(f.resolve())
+                        st.session_state[f"__open_{key}"] = False
+                        _st_rerun()
+                else:
+                    # Read-only (context only)
+                    st.text(label)
 
 
 def path_picker(label: str, key: str, mode: str = "dir",
