@@ -89,20 +89,45 @@ def get_local_app_version():
         pass
     return "Unknown"
 
-def get_latest_github_release(repo="jpswagner/BEAR-HUB"):
+
+def get_latest_github_release(repo="jpswagner/BEAR-HUB", include_prerelease=True):
     """
-    Fetches the latest release tag from GitHub API.
+    Fetch the latest release tag from GitHub.
+    - First tries /releases/latest (stable only).
+    - If none exist and include_prerelease is True, falls back to /releases.
     Returns (tag_name, html_url) or (None, None) on failure.
     """
-    url = f"https://api.github.com/repos/{repo}/releases/latest"
+    base = f"https://api.github.com/repos/{repo}"
+
+    # 1) Try stable latest
     try:
-        resp = requests.get(url, timeout=3)
+        resp = requests.get(f"{base}/releases/latest", timeout=3)
         if resp.status_code == 200:
             data = resp.json()
             return data.get("tag_name"), data.get("html_url")
     except Exception:
+        # ignore and fall through to prerelease logic
         pass
+
+    if not include_prerelease:
+        return None, None
+
+    # 2) Fallback: look at the full releases list (includes pre-releases)
+    try:
+        resp = requests.get(f"{base}/releases", timeout=3)
+        if resp.status_code == 200:
+            releases = resp.json()
+            # releases is a list, newest first
+            for rel in releases:
+                if rel.get("draft"):
+                    continue  # skip drafts
+                # If we got here, accept both prerelease and normal
+                return rel.get("tag_name"), rel.get("html_url")
+    except Exception:
+        pass
+
     return None, None
+
 
 def clean_bactopia_version(raw_output):
     """Cleans up the bactopia version string."""
