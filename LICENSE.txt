@@ -1,4 +1,4 @@
-Este projeto é licenciado sob os termos da MIT License.
+This project is licensed under the terms of the MIT License.
 
 Copyright (c) 2025 João Pedro Stepan Wagner
 
