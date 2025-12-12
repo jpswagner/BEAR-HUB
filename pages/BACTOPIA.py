@@ -604,6 +604,7 @@ with st.expander("Generate FOFN", expanded=False):
         key="fofn_base",
         mode="dir",
         start=base_default,
+        patterns=FASTQ_PATTERNS + FA_PATTERNS,
         help=(
             "In local conda installs, use normal paths (e.g., /mnt/HD/...). "
             "If running inside Docker, your host filesystem may be mounted under /hostfs "
