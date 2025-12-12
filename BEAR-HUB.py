@@ -178,6 +178,14 @@ else:
             "- Docker or Singularity/Apptainer must be installed if you intend to run container profiles."
         )
 
+    st.divider()
+
+    st.markdown("### System")
+    cS, _ = st.columns([1, 3])
+    with cS:
+        if st.button("Updates & Status", icon="🔄", use_container_width=True):
+            st.switch_page("pages/UPDATES.py")
+
 # ============================= Footer (disclaimer) =============================
 st.markdown(
     "<hr style='opacity:0.3'/>"
