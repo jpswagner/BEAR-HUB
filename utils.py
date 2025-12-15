@@ -320,22 +320,16 @@ def _fs_browser_core(label: str, key: str, mode: str = "file",
     c_up, c_home, c_host, c_path, c_pick = st.columns([0.9, 0.9, 0.9, 6, 2])
 
     with c_up:
-        if st.button("⬆️ Up", key=f"{key}_up"):
-            parent = cur.parent if cur.parent != cur else cur
-            set_cur(parent)
-            _st_rerun()
+        parent = cur.parent if cur.parent != cur else cur
+        st.button("⬆️ Up", key=f"{key}_up", on_click=set_cur, args=(parent,))
 
     with c_home:
         home_base = pathlib.Path(start or pathlib.Path.home())
-        if st.button("🏠 Home", key=f"{key}_home"):
-            set_cur(home_base)
-            _st_rerun()
+        st.button("🏠 Home", key=f"{key}_home", on_click=set_cur, args=(home_base,))
 
     with c_host:
         if os.path.exists(hostfs_root):
-            if st.button("🖥 Host", key=f"{key}_host"):
-                set_cur(pathlib.Path(hostfs_root))
-                _st_rerun()
+            st.button("🖥 Host", key=f"{key}_host", on_click=set_cur, args=(pathlib.Path(hostfs_root),))
 
     with c_path:
         st.caption(str(cur))
@@ -350,9 +344,7 @@ def _fs_browser_core(label: str, key: str, mode: str = "file",
     dcols = st.columns(2)
     for i, d in enumerate(dirs):
         did = _safe_id(str(d))
-        if dcols[i % 2].button("📁 " + d.name, key=f"{key}_d_{did}"):
-            set_cur(d)
-            _st_rerun()
+        dcols[i % 2].button("📁 " + d.name, key=f"{key}_d_{did}", on_click=set_cur, args=(d,))
 
     if mode == "file":
         if patterns:
@@ -392,28 +384,34 @@ def path_picker(label: str, key: str, mode: str = "dir",
                     st.session_state[key] = val_abs
         except Exception:
             pass
-    clicked_browse = False
+    # Callback to handle "Browse" click
+    def _cb_open():
+        st.session_state[f"__just_opened_{key}"] = True
+        st.session_state[f"__open_{key}"] = True
+        try:
+            hint = pathlib.Path(st.session_state.get(key) or start or os.getcwd())
+            st.session_state[f"__picker_cur__{key}"] = str(
+                (hint if hint.is_dir() else hint.parent).expanduser().resolve()
+            )
+        except Exception:
+            st.session_state[f"__picker_cur__{key}"] = str(
+                pathlib.Path(start or os.getcwd()).expanduser().resolve()
+            )
+
     with col2:
-        if st.button("Browse…", key=f"open_{key}"):
-            clicked_browse = True
-            st.session_state[f"__open_{key}"] = True
-            try:
-                hint = pathlib.Path(st.session_state.get(key) or start or os.getcwd())
-                st.session_state[f"__picker_cur__{key}"] = str(
-                    (hint if hint.is_dir() else hint.parent).expanduser().resolve()
-                )
-            except Exception:
-                st.session_state[f"__picker_cur__{key}"] = str(
-                    pathlib.Path(start or os.getcwd()).expanduser().resolve()
-                )
+        st.button("Browse…", key=f"open_{key}", on_click=_cb_open)
 
     # If st.dialog is available (Streamlit 1.34+), use it as a modal.
     # Note: st.dialog functions run as fragments. Interactions inside them
     # do NOT rerun the main script. Interactions outside (main page) DO rerun the main script.
     # To prevent the dialog from popping up on every main-page rerun (e.g. slider change),
-    # we only open it if the "Browse" button was explicitly clicked in this run.
+    # we only open it if the "Browse" button was explicitly clicked (via callback flag).
     if hasattr(st, "dialog"):
-        if clicked_browse:
+        just_opened = st.session_state.get(f"__just_opened_{key}", False)
+        if just_opened:
+            # Consume the flag immediately so it doesn't persist to next runs
+            st.session_state[f"__just_opened_{key}"] = False
+            
             @st.dialog(label, width="large")
             def _dlg():
                 _fs_browser_core(label, key, mode=mode, start=start, patterns=patterns)
@@ -431,9 +429,9 @@ def path_picker(label: str, key: str, mode: str = "dir",
                         _st_rerun()
             _dlg()
         else:
-            # If main script is running and Browse wasn't clicked, ensure state is closed.
+            # If main script is running and Browse wasn't JUST clicked, ensure state is closed.
+            # This handles closing the dialog when user interacts with other widgets.
             st.session_state[f"__open_{key}"] = False
-
     elif st.session_state.get(f"__open_{key}", False):
         st.info(f"{label} (inline mode)")
         _fs_browser_core(label, key, mode=mode, start=start, patterns=patterns)
