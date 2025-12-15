@@ -861,9 +861,9 @@ with st.expander("fastp options", expanded=False):
             parts.append("--detect_adapter_for_pe")
         
         if (st.session_state.get("fastp_adapter_r1") or "").strip():
-             parts.append(f"-a {shlex.quote(st.session_state['fastp_adapter_r1'].strip())}")
+             parts += ["-a", shlex.quote(st.session_state['fastp_adapter_r1'].strip())]
         if (st.session_state.get("fastp_adapter_r2") or "").strip():
-             parts.append(f"--adapter_sequence_r2 {shlex.quote(st.session_state['fastp_adapter_r2'].strip())}")
+             parts += ["--adapter_sequence_r2", shlex.quote(st.session_state['fastp_adapter_r2'].strip())]
 
         if st.session_state.get("fastp_overrep"):
             parts.append("-p")
@@ -873,9 +873,9 @@ with st.expander("fastp options", expanded=False):
             loc = st.session_state.get("fastp_umi_loc")
             length = st.session_state.get("fastp_umi_len", 0)
             if loc:
-                parts.append(f"--umi_loc={loc}")
+                parts += ["--umi_loc", loc]
             if length > 0:
-                parts.append(f"--umi_len={length}")
+                parts += ["--umi_len", str(length)]
 
         if (st.session_state.get("fastp_extra") or "").strip():
             parts.append(st.session_state["fastp_extra"].strip())
