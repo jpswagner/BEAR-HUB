@@ -101,9 +101,16 @@ PRESET_KEYS_ALLOWLIST = {
     # Tools
     "fastp_mode", "fastp_dash3", "fastp_M", "fastp_W", "fastp_opts_text",
     "fastp_enable_5prime", "fastp_q_enable", "fastp_q", "fastp_l_enable", "fastp_l",
-    "fastp_n", "fastp_u", "fastp_cut_front", "fastp_cut_tail", "fastp_cut_meanq", "fastp_cut_win",
-    "fastp_detect_adapter_pe", "fastp_poly_g", "fastp_extra",
-    # Unicycler
+    "fastp_n", "fastp_u", "fastp_cut_right",
+    "fastp_dedup", "fastp_correction", "fastp_poly_x", "fastp_overrep", "fastp_umi",
+    "fastp_umi_loc", "fastp_umi_len",
+    "fastp_detect_adapter_pe", "fastp_adapter_r1", "fastp_adapter_r2", "fastp_poly_g", "fastp_extra",
+    # Assembler & Polishing
+    "use_unicycler", "hybrid_strategy",
+    "shovill_assembler", "shovill_opts", "shovill_kmers", "trim", "no_stitch", "no_corr",
+    "dragonflye_assembler", "dragonflye_opts", "nanohq",
+    "min_contig_len", "min_contig_cov", "reassemble", "no_rotate", "no_miniasm",
+    "no_polish", "polypolish_rounds", "pilon_rounds", "racon_rounds", "medaka_rounds", "medaka_model",
     "unicycler_mode", "unicycler_min_len", "unicycler_extra",
     # Extra params and reports
     "extra_params", "with_report", "with_timeline", "with_trace",
@@ -729,25 +736,32 @@ FASTP_HELP_MD = """
 
 This panel builds the `--fastp_opts` string used by Bactopia. Main options:
 
-- `-3` : enable trimming at the 3' end (read tail).
-- `-5` : enable trimming at the 5' end (read start).
-- `-M <int>` : minimum average quality of the sliding window.
-- `-W <int>` : window size for average quality.
-- `-q <int>` : minimum quality for a base to be considered "good".
-- `-l <int>` : minimum read length after trimming.
-- `-n <int>` : maximum number of Ns in a read.
-- `-u <int>` : maximum percentage of bases below given quality.
-- `--cut_front` / `--cut_tail` : dynamic trimming at read ends.
-- `--cut_mean_quality <int>` : minimum quality in the cutting window.
-- `--cut_window_size <int>` : window size for dynamic trimming.
-- `--detect_adapter_for_pe` : automatic adapter detection in PE.
-- `-g` : enable polyG tail trimming.
+- **Sliding Window Cutting**:
+  - `-3` (`--cut_tail`): Move sliding window from tail (3') to front.
+  - `-5` (`--cut_front`): Move sliding window from front (5') to tail.
+  - `-r` (`--cut_right`): Sliding window from front to tail, drop remaining if quality fail.
+  - `-M` (`--cut_mean_quality`): Min mean quality in the sliding window.
+  - `-W` (`--cut_window_size`): Size of the sliding window.
+- **Filters**:
+  - `-q`: Min quality value for a qualified base.
+  - `-l`: Min read length allowed.
+  - `-n`: Max N bases allowed.
+  - `-u`: Max % of unqualified bases allowed.
+  - `-p` (`--overrepresentation_analysis`): Enable overrepresented sequence analysis.
+- **Processing**:
+  - `-D` (`--dedup`): Enable deduplication.
+  - `-c` (`--correction`): Enable base correction in overlapped regions (PE only).
+  - `-g`: Trim polyG in 3' ends (NextSeq/NovaSeq).
+  - `-x` (`--trim_poly_x`): Trim polyX in 3' ends.
+  - `-U` (`--umi`): Enable UMI processing (requires location/length).
+  - `--detect_adapter_for_pe`: Detect adapters in PE data.
+  - `-a`: Adapter sequence for Read 1.
+  - `--adapter_sequence_r2`: Adapter sequence for Read 2.
 
-The "Advanced extra (append)" text field lets you add any extra fastp flags
-that are not explicitly mapped in the interface.
+The "Advanced extra (append)" text field lets you add any extra fastp flags.
 """
 
-st.subheader("FASTP / Unicycler settings", help=FASTP_HELP_MD)
+st.subheader("Read Cleaning (Fastp)", help=FASTP_HELP_MD)
 
 with st.expander("fastp options", expanded=False):
     fastp_mode = st.radio(
@@ -758,43 +772,56 @@ with st.expander("fastp options", expanded=False):
         horizontal=True,
     )
     if fastp_mode.startswith("Simple"):
-        topA, topB, topC = st.columns(3)
+        st.markdown("**Sliding Window / Cutting**")
+        topA, topB, topC = st.columns([2, 1, 1])
         with topA:
-            st.checkbox("Enable 3’ (-3)", value=True, key="fastp_dash3")
+            st.checkbox("Cut Tail (3') sliding window (-3)", value=True, key="fastp_dash3")
+            st.checkbox("Cut Front (5') sliding window (-5)", value=False, key="fastp_enable_5prime")
+            st.checkbox("Cut Right sliding window (-r)", value=False, key="fastp_cut_right")
         with topB:
-            st.slider("-M (min window avg quality)", 0, 40, 20, 1, key="fastp_M")
+            st.slider("Mean Quality Threshold (-M)", 0, 40, 20, 1, key="fastp_M")
         with topC:
-            st.slider("-W (window size)", 1, 50, 5, 1, key="fastp_W")
+            st.slider("Window Size (-W)", 1, 50, 5, 1, key="fastp_W")
 
-        st.markdown("**Additional options (optional)**")
-        c1, c2, c3, c4 = st.columns(4)
+        st.markdown("**Quality & Length Filters**")
+        c1, c2, c3 = st.columns(3)
         with c1:
-            st.checkbox("Enable 5’ (-5)", value=False, key="fastp_enable_5prime")
-            st.checkbox("Detect adapter in PE", value=False, key="fastp_detect_adapter_pe")
-        with c2:
-            st.checkbox("Quality (-q)", value=False, key="fastp_q_enable")
+            st.checkbox("Quality Filter (-q)", value=False, key="fastp_q_enable")
             if st.session_state.get("fastp_q_enable"):
                 st.slider("Value for -q", 0, 40, 20, 1, key="fastp_q")
-        with c3:
-            st.checkbox("Min length (-l)", value=False, key="fastp_l_enable")
+        with c2:
+            st.checkbox("Min Length Filter (-l)", value=False, key="fastp_l_enable")
             if st.session_state.get("fastp_l_enable"):
                 st.slider("Value for -l", 0, 500, 15, 1, key="fastp_l")
-        with c4:
-            st.number_input("Max Ns (-n)", min_value=0, max_value=10, value=0, step=1, key="fastp_n")
-            st.number_input("Max % low qual (-u)", min_value=0, max_value=100, value=0, step=1, key="fastp_u")
+        with c3:
+            st.number_input("Max N Bases (-n)", min_value=0, max_value=10, value=0, step=1, key="fastp_n")
+            st.number_input("Max % Unqualified Bases (-u)", min_value=0, max_value=100, value=0, step=1, key="fastp_u")
 
-        st.markdown("**Directed cuts (cut_*)**")
-        cc1, cc2, cc3, cc4 = st.columns(4)
-        with cc1:
-            st.checkbox("--cut_front", value=False, key="fastp_cut_front")
-        with cc2:
-            st.checkbox("--cut_tail", value=False, key="fastp_cut_tail")
-        with cc3:
-            st.number_input("cut_mean_quality", min_value=0, max_value=40, value=20, step=1, key="fastp_cut_meanq")
-        with cc4:
-            st.number_input("cut_window_size", min_value=1, max_value=100, value=4, step=1, key="fastp_cut_win")
+        st.markdown("**Adapters**")
+        ad1, ad2, ad3 = st.columns(3)
+        with ad1:
+             st.checkbox("Detect Adapters (PE)", value=False, key="fastp_detect_adapter_pe")
+        with ad2:
+             st.text_input("Adapter Sequence (R1)", key="fastp_adapter_r1", placeholder="AGATCGGAAG...")
+        with ad3:
+             st.text_input("Adapter Sequence (R2)", key="fastp_adapter_r2", placeholder="AGATCGGAAG...")
 
-        st.checkbox("polyG (-g)", value=False, key="fastp_poly_g")
+        st.markdown("**Additional Processing**")
+        ap1, ap2, ap3, ap4 = st.columns(4)
+        with ap1:
+            st.checkbox("Deduplication (-D)", value=False, key="fastp_dedup")
+            st.checkbox("Base Correction (-c)", value=False, key="fastp_correction", help="PE only")
+        with ap2:
+            st.checkbox("Trim polyG (-g)", value=False, key="fastp_poly_g")
+            st.checkbox("Trim polyX (-x)", value=False, key="fastp_poly_x")
+        with ap3:
+            st.checkbox("Overrepresentation (-p)", value=False, key="fastp_overrep")
+        with ap4:
+            st.checkbox("UMI Processing (-U)", value=False, key="fastp_umi")
+            if st.session_state.get("fastp_umi"):
+                st.selectbox("UMI Location", ["index1", "index2", "read1", "read2", "per_index", "per_read"], key="fastp_umi_loc")
+                st.number_input("UMI Length", min_value=0, max_value=50, value=0, step=1, key="fastp_umi_len")
+
         fastp_extra = st.text_input(
             "Advanced extra (append)",
             value=st.session_state.get("fastp_extra", ""),
@@ -802,33 +829,59 @@ with st.expander("fastp options", expanded=False):
         )
 
         parts = []
+        # Sliding window logic: -3, -5, -r share -M and -W
+        # fastp docs say -3/-5/-r use -M/-W if specific ones aren't set.
+        # We only expose the global -M/-W to simplify.
         if st.session_state.get("fastp_dash3", True):
             parts.append("-3")
         if st.session_state.get("fastp_enable_5prime"):
             parts.append("-5")
+        if st.session_state.get("fastp_cut_right"):
+            parts.append("-r")
+        
         parts += ["-M", str(st.session_state.get("fastp_M", 20))]
         parts += ["-W", str(st.session_state.get("fastp_W", 5))]
+
         if st.session_state.get("fastp_q_enable"):
             parts += ["-q", str(st.session_state.get("fastp_q", 20))]
         if st.session_state.get("fastp_l_enable"):
             parts += ["-l", str(st.session_state.get("fastp_l", 15))]
+        
         n_val = st.session_state.get("fastp_n", 0)
         u_val = st.session_state.get("fastp_u", 0)
         if n_val:
             parts += ["-n", str(n_val)]
         if u_val:
             parts += ["-u", str(u_val)]
-        if st.session_state.get("fastp_cut_front"):
-            parts.append("--cut_front")
-        if st.session_state.get("fastp_cut_tail"):
-            parts.append("--cut_tail")
-        if st.session_state.get("fastp_cut_front") or st.session_state.get("fastp_cut_tail"):
-            parts += ["--cut_mean_quality", str(st.session_state.get("fastp_cut_meanq", 20))]
-            parts += ["--cut_window_size", str(st.session_state.get("fastp_cut_win", 4))]
-        if st.session_state.get("fastp_detect_adapter_pe"):
-            parts.append("--detect_adapter_for_pe")
+
+        if st.session_state.get("fastp_dedup"):
+            parts.append("-D")
+        if st.session_state.get("fastp_correction"):
+            parts.append("-c")
         if st.session_state.get("fastp_poly_g"):
             parts.append("-g")
+        if st.session_state.get("fastp_poly_x"):
+            parts.append("-x")
+        if st.session_state.get("fastp_detect_adapter_pe"):
+            parts.append("--detect_adapter_for_pe")
+        
+        if (st.session_state.get("fastp_adapter_r1") or "").strip():
+             parts.append(f"-a {shlex.quote(st.session_state['fastp_adapter_r1'].strip())}")
+        if (st.session_state.get("fastp_adapter_r2") or "").strip():
+             parts.append(f"--adapter_sequence_r2 {shlex.quote(st.session_state['fastp_adapter_r2'].strip())}")
+
+        if st.session_state.get("fastp_overrep"):
+            parts.append("-p")
+        
+        if st.session_state.get("fastp_umi"):
+            parts.append("-U")
+            loc = st.session_state.get("fastp_umi_loc")
+            length = st.session_state.get("fastp_umi_len", 0)
+            if loc:
+                parts.append(f"--umi_loc={loc}")
+            if length > 0:
+                parts.append(f"--umi_len={length}")
+
         if (st.session_state.get("fastp_extra") or "").strip():
             parts.append(st.session_state["fastp_extra"].strip())
 
@@ -841,14 +894,105 @@ with st.expander("fastp options", expanded=False):
             key="fastp_opts_text",
         )
 
-with st.expander("Unicycler options", expanded=False):
-    st.radio("Mode", ["conservative", "normal", "bold"], index=1, key="unicycler_mode")
-    st.number_input("min_fasta_length", 0, 100000, 1000, 100, key="unicycler_min_len")
+# ============================= Assembler & Polishing =============================
+
+ASSEMBLER_HELP = """
+# ℹ️ Assembler & Polishing Configuration
+
+This section allows you to customize the assembly process for different read types and hybrid strategies.
+
+### Strategies
+- **Use Unicycler for PE**: Enables Unicycler for Illumina paired-end assembly instead of Shovill.
+- **Hybrid Strategy**:
+  - **Auto**: Bactopia defaults (usually Unicycler).
+  - **Unicycler (--hybrid)**: Short-read assembly -> Long-read bridging -> Short-read polish.
+  - **Dragonflye (--short_polish)**: Long-read assembly -> Short-read polish (Recommended for high coverage ONT).
+
+### Assemblers
+- **Shovill (Illumina)**: Default is `skesa`.
+- **Dragonflye (ONT)**: Default is `flye`.
+
+### Polishing
+- **Rounds**: Number of iterations for each polishing tool.
+- **No Polish**: Skips all polishing steps.
+"""
+
+st.subheader("Assembler & Polishing", help=ASSEMBLER_HELP)
+
+with st.expander("Assembler & Polishing Settings", expanded=False):
+    st.markdown("**Strategies**")
+    strat_col1, strat_col2 = st.columns(2)
+    with strat_col1:
+        st.checkbox("--use_unicycler (for PE)", value=False, key="use_unicycler", help="Use Unicycler instead of Shovill for paired-end reads.")
+    with strat_col2:
+        st.radio("Hybrid Strategy", ["(Auto)", "Unicycler (--hybrid)", "Dragonflye (--short_polish)"], index=0, key="hybrid_strategy", horizontal=True)
+
+    st.divider()
+
+    st.markdown("**Assembler Selection**")
+    ac1, ac2 = st.columns(2)
+    with ac1:
+        st.markdown("##### Shovill (Illumina)")
+        st.selectbox("Assembler", ["skesa", "spades", "velvet", "megahit"], index=0, key="shovill_assembler")
+        st.text_input("Extra Opts (--shovill_opts)", key="shovill_opts")
+        st.text_input("K-mers (--shovill_kmers)", key="shovill_kmers", placeholder="e.g. 21,33,55")
+        st.checkbox("--trim (Adaptor trimming)", value=False, key="trim")
+        st.checkbox("--no_stitch (Disable PE stitching)", value=False, key="no_stitch")
+        st.checkbox("--no_corr (Disable post-correction)", value=False, key="no_corr")
+
+    with ac2:
+        st.markdown("##### Dragonflye (ONT)")
+        st.selectbox("Assembler", ["flye", "miniasm", "raven"], index=0, key="dragonflye_assembler")
+        st.text_input("Extra Opts (--dragonflye_opts)", key="dragonflye_opts")
+        st.checkbox("--nanohq (Flye NanoHQ mode)", value=False, key="nanohq")
+        st.checkbox("--no_miniasm (Skip miniasm bridging)", value=False, key="no_miniasm")
+
+    st.divider()
+
+    st.markdown("**General Assembly Options**")
+    gc1, gc2, gc3, gc4, gc5 = st.columns(5)
+    with gc1:
+        st.number_input("Min Contig Len", min_value=0, value=500, key="min_contig_len", help="--min_contig_len")
+    with gc2:
+        st.number_input("Min Coverage", min_value=0, value=2, key="min_contig_cov", help="--min_contig_cov")
+    with gc3:
+        st.checkbox("--reassemble", value=False, key="reassemble", help="Re-assemble simulated reads")
+    with gc4:
+        st.checkbox("--no_rotate", value=False, key="no_rotate", help="Do not rotate to start gene")
+
+    st.divider()
+
+    st.markdown("**Polishing Options**")
+    st.checkbox("--no_polish (Skip all polishing)", value=False, key="no_polish")
+    
+    pc1, pc2, pc3, pc4 = st.columns(4)
+    with pc1:
+        st.number_input("Polypolish Rounds", min_value=0, value=1, key="polypolish_rounds")
+    with pc2:
+        st.number_input("Pilon Rounds", min_value=0, value=0, key="pilon_rounds", help="Default is usually 0 unless specified")
+    with pc3:
+        st.number_input("Racon Rounds", min_value=0, value=1, key="racon_rounds")
+    with pc4:
+        st.number_input("Medaka Rounds", min_value=0, value=0, key="medaka_rounds", help="Default usually 0 (auto)")
+    
+    st.text_input("Medaka Model (--medaka_model)", key="medaka_model")
+
+    st.divider()
+
+    st.markdown("**Unicycler Advanced Options**")
+    st.caption("These apply when Unicycler is used (either via --use_unicycler or --hybrid).")
+    uc1, uc2 = st.columns(2)
+    with uc1:
+        st.radio("Mode", ["conservative", "normal", "bold"], index=1, key="unicycler_mode", horizontal=True)
+    with uc2:
+        st.number_input("min_fasta_length (Unicycler)", 0, 100000, 1000, 100, key="unicycler_min_len")
     st.text_input(
-        "Extra (append)",
+        "Unicycler Extra (append)",
         value=st.session_state.get("unicycler_extra", ""),
         key="unicycler_extra",
     )
+    
+    # Build Unicycler Opts String
     uni_parts = ["--mode", st.session_state.get("unicycler_mode", "normal")]
     if st.session_state.get("unicycler_min_len", 1000):
         uni_parts += ["--min_fasta_length", str(int(st.session_state["unicycler_min_len"]))]
@@ -892,6 +1036,10 @@ def build_bactopia_cmd(params: dict) -> str:
     fastp_opts = params.get("fastp_opts")
     unicycler_opts = params.get("unicycler_opts")
     extra = params.get("extra_params")
+    
+    # Assembler & Polishing flags
+    assembler_flags = params.get("assembler_flags", [])
+    
     resume = params.get("resume", True)
     threads = params.get("threads")
     memory = params.get("memory")
@@ -927,6 +1075,9 @@ def build_bactopia_cmd(params: dict) -> str:
         base += ["--fastp_opts", fastp_opts]
     if unicycler_opts:
         base += ["--unicycler_opts", unicycler_opts]
+    
+    if assembler_flags:
+        base += assembler_flags
 
     if threads:
         base += ["--max_cpus", str(threads)]
@@ -951,6 +1102,7 @@ params = {
     "fastp_opts": (fastp_opts_value.strip() if "fastp_opts_value" in locals() and fastp_opts_value.strip() else None),
     "unicycler_opts": (unicycler_opts_value.strip() if "unicycler_opts_value" in locals() and unicycler_opts_value.strip() else None),
     "extra_params": computed_extra or None,
+    "assembler_flags": [], # Populated below
     "resume": st.session_state.get("resume", True),
     "threads": st.session_state.get("threads") or None,
     "memory": (f"{st.session_state.get('memory_gb')} GB" if st.session_state.get("memory_gb") else None),
@@ -958,6 +1110,62 @@ params = {
     "with_timeline": st.session_state.get("with_timeline", True),
     "with_trace": st.session_state.get("with_trace", True),
 }
+
+# --- Populate Assembler Flags ---
+af = []
+if st.session_state.get("use_unicycler"):
+    af.append("--use_unicycler")
+
+hyb = st.session_state.get("hybrid_strategy")
+if hyb == "Unicycler (--hybrid)":
+    af.append("--hybrid")
+elif hyb == "Dragonflye (--short_polish)":
+    af.append("--short_polish")
+
+if st.session_state.get("shovill_assembler") and st.session_state.get("shovill_assembler") != "skesa":
+    af.append(f"--shovill_assembler {st.session_state['shovill_assembler']}")
+
+if st.session_state.get("dragonflye_assembler") and st.session_state.get("dragonflye_assembler") != "flye":
+    af.append(f"--dragonflye_assembler {st.session_state['dragonflye_assembler']}")
+
+if st.session_state.get("shovill_opts"):
+    af.append(f"--shovill_opts {shlex.quote(st.session_state['shovill_opts'])}")
+if st.session_state.get("shovill_kmers"):
+    af.append(f"--shovill_kmers {shlex.quote(st.session_state['shovill_kmers'])}")
+if st.session_state.get("dragonflye_opts"):
+    af.append(f"--dragonflye_opts {shlex.quote(st.session_state['dragonflye_opts'])}")
+
+if st.session_state.get("trim"): af.append("--trim")
+if st.session_state.get("no_stitch"): af.append("--no_stitch")
+if st.session_state.get("no_corr"): af.append("--no_corr")
+if st.session_state.get("nanohq"): af.append("--nanohq")
+if st.session_state.get("no_miniasm"): af.append("--no_miniasm")
+if st.session_state.get("reassemble"): af.append("--reassemble")
+if st.session_state.get("no_rotate"): af.append("--no_rotate")
+
+if st.session_state.get("min_contig_len") != 500:
+    af.append(f"--min_contig_len {st.session_state.get('min_contig_len')}")
+if st.session_state.get("min_contig_cov") != 2:
+    af.append(f"--min_contig_cov {st.session_state.get('min_contig_cov')}")
+
+if st.session_state.get("no_polish"):
+    af.append("--no_polish")
+
+# Polishing rounds (only add if diff from defaults or explicit)
+# Defaults: polypolish=1, racon=1. pilon/medaka usually conditional/0.
+if st.session_state.get("polypolish_rounds", 1) != 1:
+    af.append(f"--polypolish_rounds {st.session_state.get('polypolish_rounds')}")
+if st.session_state.get("pilon_rounds", 0) > 0:
+    af.append(f"--pilon_rounds {st.session_state.get('pilon_rounds')}")
+if st.session_state.get("racon_rounds", 1) != 1:
+    af.append(f"--racon_rounds {st.session_state.get('racon_rounds')}")
+if st.session_state.get("medaka_rounds", 0) > 0:
+    af.append(f"--medaka_rounds {st.session_state.get('medaka_rounds')}")
+if st.session_state.get("medaka_model"):
+    af.append(f"--medaka_model {st.session_state.get('medaka_model')}")
+
+params["assembler_flags"] = af
+
 cmd = build_bactopia_cmd(params)
 
 st.caption(f"Profile: {params['profile']} | Outdir: {params['outdir']}")
