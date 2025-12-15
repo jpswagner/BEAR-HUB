@@ -105,7 +105,12 @@ PRESET_KEYS_ALLOWLIST = {
     "fastp_dedup", "fastp_correction", "fastp_poly_x", "fastp_overrep", "fastp_umi",
     "fastp_umi_loc", "fastp_umi_len",
     "fastp_detect_adapter_pe", "fastp_adapter_r1", "fastp_adapter_r2", "fastp_poly_g", "fastp_extra",
-    # Unicycler
+    # Assembler & Polishing
+    "use_unicycler", "hybrid_strategy",
+    "shovill_assembler", "shovill_opts", "shovill_kmers", "trim", "no_stitch", "no_corr",
+    "dragonflye_assembler", "dragonflye_opts", "nanohq",
+    "min_contig_len", "min_contig_cov", "reassemble", "no_rotate", "no_miniasm",
+    "no_polish", "polypolish_rounds", "pilon_rounds", "racon_rounds", "medaka_rounds", "medaka_model",
     "unicycler_mode", "unicycler_min_len", "unicycler_extra",
     # Extra params and reports
     "extra_params", "with_report", "with_timeline", "with_trace",
@@ -756,7 +761,7 @@ This panel builds the `--fastp_opts` string used by Bactopia. Main options:
 The "Advanced extra (append)" text field lets you add any extra fastp flags.
 """
 
-st.subheader("FASTP / Unicycler settings", help=FASTP_HELP_MD)
+st.subheader("Read Cleaning (Fastp)", help=FASTP_HELP_MD)
 
 with st.expander("fastp options", expanded=False):
     fastp_mode = st.radio(
@@ -861,9 +866,9 @@ with st.expander("fastp options", expanded=False):
             parts.append("--detect_adapter_for_pe")
         
         if (st.session_state.get("fastp_adapter_r1") or "").strip():
-             parts += ["-a", shlex.quote(st.session_state['fastp_adapter_r1'].strip())]
+             parts.append(f"-a {shlex.quote(st.session_state['fastp_adapter_r1'].strip())}")
         if (st.session_state.get("fastp_adapter_r2") or "").strip():
-             parts += ["--adapter_sequence_r2", shlex.quote(st.session_state['fastp_adapter_r2'].strip())]
+             parts.append(f"--adapter_sequence_r2 {shlex.quote(st.session_state['fastp_adapter_r2'].strip())}")
 
         if st.session_state.get("fastp_overrep"):
             parts.append("-p")
@@ -873,9 +878,9 @@ with st.expander("fastp options", expanded=False):
             loc = st.session_state.get("fastp_umi_loc")
             length = st.session_state.get("fastp_umi_len", 0)
             if loc:
-                parts += ["--umi_loc", loc]
+                parts.append(f"--umi_loc={loc}")
             if length > 0:
-                parts += ["--umi_len", str(length)]
+                parts.append(f"--umi_len={length}")
 
         if (st.session_state.get("fastp_extra") or "").strip():
             parts.append(st.session_state["fastp_extra"].strip())
@@ -889,14 +894,105 @@ with st.expander("fastp options", expanded=False):
             key="fastp_opts_text",
         )
 
-with st.expander("Unicycler options", expanded=False):
-    st.radio("Mode", ["conservative", "normal", "bold"], index=1, key="unicycler_mode")
-    st.number_input("min_fasta_length", 0, 100000, 1000, 100, key="unicycler_min_len")
+# ============================= Assembler & Polishing =============================
+
+ASSEMBLER_HELP = """
+# ℹ️ Assembler & Polishing Configuration
+
+This section allows you to customize the assembly process for different read types and hybrid strategies.
+
+### Strategies
+- **Use Unicycler for PE**: Enables Unicycler for Illumina paired-end assembly instead of Shovill.
+- **Hybrid Strategy**:
+  - **Auto**: Bactopia defaults (usually Unicycler).
+  - **Unicycler (--hybrid)**: Short-read assembly -> Long-read bridging -> Short-read polish.
+  - **Dragonflye (--short_polish)**: Long-read assembly -> Short-read polish (Recommended for high coverage ONT).
+
+### Assemblers
+- **Shovill (Illumina)**: Default is `skesa`.
+- **Dragonflye (ONT)**: Default is `flye`.
+
+### Polishing
+- **Rounds**: Number of iterations for each polishing tool.
+- **No Polish**: Skips all polishing steps.
+"""
+
+st.subheader("Assembler & Polishing", help=ASSEMBLER_HELP)
+
+with st.expander("Assembler & Polishing Settings", expanded=False):
+    st.markdown("**Strategies**")
+    strat_col1, strat_col2 = st.columns(2)
+    with strat_col1:
+        st.checkbox("--use_unicycler (for PE)", value=False, key="use_unicycler", help="Use Unicycler instead of Shovill for paired-end reads.")
+    with strat_col2:
+        st.radio("Hybrid Strategy", ["(Auto)", "Unicycler (--hybrid)", "Dragonflye (--short_polish)"], index=0, key="hybrid_strategy", horizontal=True)
+
+    st.divider()
+
+    st.markdown("**Assembler Selection**")
+    ac1, ac2 = st.columns(2)
+    with ac1:
+        st.markdown("##### Shovill (Illumina)")
+        st.selectbox("Assembler", ["skesa", "spades", "velvet", "megahit"], index=0, key="shovill_assembler")
+        st.text_input("Extra Opts (--shovill_opts)", key="shovill_opts")
+        st.text_input("K-mers (--shovill_kmers)", key="shovill_kmers", placeholder="e.g. 21,33,55")
+        st.checkbox("--trim (Adaptor trimming)", value=False, key="trim")
+        st.checkbox("--no_stitch (Disable PE stitching)", value=False, key="no_stitch")
+        st.checkbox("--no_corr (Disable post-correction)", value=False, key="no_corr")
+
+    with ac2:
+        st.markdown("##### Dragonflye (ONT)")
+        st.selectbox("Assembler", ["flye", "miniasm", "raven"], index=0, key="dragonflye_assembler")
+        st.text_input("Extra Opts (--dragonflye_opts)", key="dragonflye_opts")
+        st.checkbox("--nanohq (Flye NanoHQ mode)", value=False, key="nanohq")
+        st.checkbox("--no_miniasm (Skip miniasm bridging)", value=False, key="no_miniasm")
+
+    st.divider()
+
+    st.markdown("**General Assembly Options**")
+    gc1, gc2, gc3, gc4, gc5 = st.columns(5)
+    with gc1:
+        st.number_input("Min Contig Len", min_value=0, value=500, key="min_contig_len", help="--min_contig_len")
+    with gc2:
+        st.number_input("Min Coverage", min_value=0, value=2, key="min_contig_cov", help="--min_contig_cov")
+    with gc3:
+        st.checkbox("--reassemble", value=False, key="reassemble", help="Re-assemble simulated reads")
+    with gc4:
+        st.checkbox("--no_rotate", value=False, key="no_rotate", help="Do not rotate to start gene")
+
+    st.divider()
+
+    st.markdown("**Polishing Options**")
+    st.checkbox("--no_polish (Skip all polishing)", value=False, key="no_polish")
+    
+    pc1, pc2, pc3, pc4 = st.columns(4)
+    with pc1:
+        st.number_input("Polypolish Rounds", min_value=0, value=1, key="polypolish_rounds")
+    with pc2:
+        st.number_input("Pilon Rounds", min_value=0, value=0, key="pilon_rounds", help="Default is usually 0 unless specified")
+    with pc3:
+        st.number_input("Racon Rounds", min_value=0, value=1, key="racon_rounds")
+    with pc4:
+        st.number_input("Medaka Rounds", min_value=0, value=0, key="medaka_rounds", help="Default usually 0 (auto)")
+    
+    st.text_input("Medaka Model (--medaka_model)", key="medaka_model")
+
+    st.divider()
+
+    st.markdown("**Unicycler Advanced Options**")
+    st.caption("These apply when Unicycler is used (either via --use_unicycler or --hybrid).")
+    uc1, uc2 = st.columns(2)
+    with uc1:
+        st.radio("Mode", ["conservative", "normal", "bold"], index=1, key="unicycler_mode", horizontal=True)
+    with uc2:
+        st.number_input("min_fasta_length (Unicycler)", 0, 100000, 1000, 100, key="unicycler_min_len")
     st.text_input(
-        "Extra (append)",
+        "Unicycler Extra (append)",
         value=st.session_state.get("unicycler_extra", ""),
         key="unicycler_extra",
     )
+    
+    # Build Unicycler Opts String
     uni_parts = ["--mode", st.session_state.get("unicycler_mode", "normal")]
     if st.session_state.get("unicycler_min_len", 1000):
         uni_parts += ["--min_fasta_length", str(int(st.session_state["unicycler_min_len"]))]
@@ -940,6 +1036,10 @@ def build_bactopia_cmd(params: dict) -> str:
     fastp_opts = params.get("fastp_opts")
     unicycler_opts = params.get("unicycler_opts")
     extra = params.get("extra_params")
+    
+    # Assembler & Polishing flags
+    assembler_flags = params.get("assembler_flags", [])
+    
     resume = params.get("resume", True)
     threads = params.get("threads")
     memory = params.get("memory")
@@ -975,6 +1075,9 @@ def build_bactopia_cmd(params: dict) -> str:
         base += ["--fastp_opts", fastp_opts]
     if unicycler_opts:
         base += ["--unicycler_opts", unicycler_opts]
+    
+    if assembler_flags:
+        base += assembler_flags
 
     if threads:
         base += ["--max_cpus", str(threads)]
@@ -999,6 +1102,7 @@ params = {
     "fastp_opts": (fastp_opts_value.strip() if "fastp_opts_value" in locals() and fastp_opts_value.strip() else None),
     "unicycler_opts": (unicycler_opts_value.strip() if "unicycler_opts_value" in locals() and unicycler_opts_value.strip() else None),
     "extra_params": computed_extra or None,
+    "assembler_flags": [], # Populated below
     "resume": st.session_state.get("resume", True),
     "threads": st.session_state.get("threads") or None,
     "memory": (f"{st.session_state.get('memory_gb')} GB" if st.session_state.get("memory_gb") else None),
@@ -1006,6 +1110,62 @@ params = {
     "with_timeline": st.session_state.get("with_timeline", True),
     "with_trace": st.session_state.get("with_trace", True),
 }
+
+# --- Populate Assembler Flags ---
+af = []
+if st.session_state.get("use_unicycler"):
+    af.append("--use_unicycler")
+
+hyb = st.session_state.get("hybrid_strategy")
+if hyb == "Unicycler (--hybrid)":
+    af.append("--hybrid")
+elif hyb == "Dragonflye (--short_polish)":
+    af.append("--short_polish")
+
+if st.session_state.get("shovill_assembler") and st.session_state.get("shovill_assembler") != "skesa":
+    af.append(f"--shovill_assembler {st.session_state['shovill_assembler']}")
+
+if st.session_state.get("dragonflye_assembler") and st.session_state.get("dragonflye_assembler") != "flye":
+    af.append(f"--dragonflye_assembler {st.session_state['dragonflye_assembler']}")
+
+if st.session_state.get("shovill_opts"):
+    af.append(f"--shovill_opts {shlex.quote(st.session_state['shovill_opts'])}")
+if st.session_state.get("shovill_kmers"):
+    af.append(f"--shovill_kmers {shlex.quote(st.session_state['shovill_kmers'])}")
+if st.session_state.get("dragonflye_opts"):
+    af.append(f"--dragonflye_opts {shlex.quote(st.session_state['dragonflye_opts'])}")
+
+if st.session_state.get("trim"): af.append("--trim")
+if st.session_state.get("no_stitch"): af.append("--no_stitch")
+if st.session_state.get("no_corr"): af.append("--no_corr")
+if st.session_state.get("nanohq"): af.append("--nanohq")
+if st.session_state.get("no_miniasm"): af.append("--no_miniasm")
+if st.session_state.get("reassemble"): af.append("--reassemble")
+if st.session_state.get("no_rotate"): af.append("--no_rotate")
+
+if st.session_state.get("min_contig_len") != 500:
+    af.append(f"--min_contig_len {st.session_state.get('min_contig_len')}")
+if st.session_state.get("min_contig_cov") != 2:
+    af.append(f"--min_contig_cov {st.session_state.get('min_contig_cov')}")
+
+if st.session_state.get("no_polish"):
+    af.append("--no_polish")
+
+# Polishing rounds (only add if diff from defaults or explicit)
+# Defaults: polypolish=1, racon=1. pilon/medaka usually conditional/0.
+if st.session_state.get("polypolish_rounds", 1) != 1:
+    af.append(f"--polypolish_rounds {st.session_state.get('polypolish_rounds')}")
+if st.session_state.get("pilon_rounds", 0) > 0:
+    af.append(f"--pilon_rounds {st.session_state.get('pilon_rounds')}")
+if st.session_state.get("racon_rounds", 1) != 1:
+    af.append(f"--racon_rounds {st.session_state.get('racon_rounds')}")
+if st.session_state.get("medaka_rounds", 0) > 0:
+    af.append(f"--medaka_rounds {st.session_state.get('medaka_rounds')}")
+if st.session_state.get("medaka_model"):
+    af.append(f"--medaka_model {st.session_state.get('medaka_model')}")
+
+params["assembler_flags"] = af
+
 cmd = build_bactopia_cmd(params)
 
 st.caption(f"Profile: {params['profile']} | Outdir: {params['outdir']}")
