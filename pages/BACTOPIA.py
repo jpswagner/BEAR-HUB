@@ -104,7 +104,7 @@ PRESET_KEYS_ALLOWLIST = {
     "fastp_n", "fastp_u", "fastp_cut_right",
     "fastp_dedup", "fastp_correction", "fastp_poly_x", "fastp_overrep", "fastp_umi",
     "fastp_umi_loc", "fastp_umi_len",
-    "fastp_detect_adapter_pe", "fastp_poly_g", "fastp_extra",
+    "fastp_detect_adapter_pe", "fastp_adapter_r1", "fastp_adapter_r2", "fastp_poly_g", "fastp_extra",
     # Unicycler
     "unicycler_mode", "unicycler_min_len", "unicycler_extra",
     # Extra params and reports
@@ -750,6 +750,8 @@ This panel builds the `--fastp_opts` string used by Bactopia. Main options:
   - `-x` (`--trim_poly_x`): Trim polyX in 3' ends.
   - `-U` (`--umi`): Enable UMI processing (requires location/length).
   - `--detect_adapter_for_pe`: Detect adapters in PE data.
+  - `-a`: Adapter sequence for Read 1.
+  - `--adapter_sequence_r2`: Adapter sequence for Read 2.
 
 The "Advanced extra (append)" text field lets you add any extra fastp flags.
 """
@@ -790,6 +792,15 @@ with st.expander("fastp options", expanded=False):
             st.number_input("Max N Bases (-n)", min_value=0, max_value=10, value=0, step=1, key="fastp_n")
             st.number_input("Max % Unqualified Bases (-u)", min_value=0, max_value=100, value=0, step=1, key="fastp_u")
 
+        st.markdown("**Adapters**")
+        ad1, ad2, ad3 = st.columns(3)
+        with ad1:
+             st.checkbox("Detect Adapters (PE)", value=False, key="fastp_detect_adapter_pe")
+        with ad2:
+             st.text_input("Adapter Sequence (R1)", key="fastp_adapter_r1", placeholder="AGATCGGAAG...")
+        with ad3:
+             st.text_input("Adapter Sequence (R2)", key="fastp_adapter_r2", placeholder="AGATCGGAAG...")
+
         st.markdown("**Additional Processing**")
         ap1, ap2, ap3, ap4 = st.columns(4)
         with ap1:
@@ -799,7 +810,6 @@ with st.expander("fastp options", expanded=False):
             st.checkbox("Trim polyG (-g)", value=False, key="fastp_poly_g")
             st.checkbox("Trim polyX (-x)", value=False, key="fastp_poly_x")
         with ap3:
-            st.checkbox("Detect Adapters (PE)", value=False, key="fastp_detect_adapter_pe")
             st.checkbox("Overrepresentation (-p)", value=False, key="fastp_overrep")
         with ap4:
             st.checkbox("UMI Processing (-U)", value=False, key="fastp_umi")
@@ -849,6 +859,12 @@ with st.expander("fastp options", expanded=False):
             parts.append("-x")
         if st.session_state.get("fastp_detect_adapter_pe"):
             parts.append("--detect_adapter_for_pe")
+
+        if (st.session_state.get("fastp_adapter_r1") or "").strip():
+             parts += ["-a", shlex.quote(st.session_state['fastp_adapter_r1'].strip())]
+        if (st.session_state.get("fastp_adapter_r2") or "").strip():
+             parts += ["--adapter_sequence_r2", shlex.quote(st.session_state['fastp_adapter_r2'].strip())]
+
         if st.session_state.get("fastp_overrep"):
             parts.append("-p")
 
@@ -857,9 +873,9 @@ with st.expander("fastp options", expanded=False):
             loc = st.session_state.get("fastp_umi_loc")
             length = st.session_state.get("fastp_umi_len", 0)
             if loc:
-                parts.append(f"--umi_loc={loc}")
+                parts += ["--umi_loc", loc]
             if length > 0:
-                parts.append(f"--umi_len={length}")
+                parts += ["--umi_len", str(length)]
 
         if (st.session_state.get("fastp_extra") or "").strip():
             parts.append(st.session_state["fastp_extra"].strip())
