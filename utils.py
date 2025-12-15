@@ -392,8 +392,10 @@ def path_picker(label: str, key: str, mode: str = "dir",
                     st.session_state[key] = val_abs
         except Exception:
             pass
+    clicked_browse = False
     with col2:
         if st.button("Browse…", key=f"open_{key}"):
+            clicked_browse = True
             st.session_state[f"__open_{key}"] = True
             try:
                 hint = pathlib.Path(st.session_state.get(key) or start or os.getcwd())
@@ -405,23 +407,33 @@ def path_picker(label: str, key: str, mode: str = "dir",
                     pathlib.Path(start or os.getcwd()).expanduser().resolve()
                 )
 
-    if st.session_state.get(f"__open_{key}", False) and hasattr(st, "dialog"):
-        @st.dialog(label, width="large")
-        def _dlg():
-            _fs_browser_core(label, key, mode=mode, start=start, patterns=patterns)
-            c_ok, c_cancel = st.columns(2)
-            with c_ok:
-                if st.button("✅ Use this path", key=f"use_{key}"):
-                    if mode == "dir":
-                        cur = pathlib.Path(st.session_state.get(f"__picker_cur__{key}", start or os.getcwd()))
-                        st.session_state[key] = str(cur.expanduser().resolve())
-                    st.session_state[f"__open_{key}"] = False
-                    _st_rerun()
-            with c_cancel:
-                if st.button("Cancel", key=f"cancel_{key}"):
-                    st.session_state[f"__open_{key}"] = False
-                    _st_rerun()
-        _dlg()
+    # If st.dialog is available (Streamlit 1.34+), use it as a modal.
+    # Note: st.dialog functions run as fragments. Interactions inside them
+    # do NOT rerun the main script. Interactions outside (main page) DO rerun the main script.
+    # To prevent the dialog from popping up on every main-page rerun (e.g. slider change),
+    # we only open it if the "Browse" button was explicitly clicked in this run.
+    if hasattr(st, "dialog"):
+        if clicked_browse:
+            @st.dialog(label, width="large")
+            def _dlg():
+                _fs_browser_core(label, key, mode=mode, start=start, patterns=patterns)
+                c_ok, c_cancel = st.columns(2)
+                with c_ok:
+                    if st.button("✅ Use this path", key=f"use_{key}"):
+                        if mode == "dir":
+                            cur = pathlib.Path(st.session_state.get(f"__picker_cur__{key}", start or os.getcwd()))
+                            st.session_state[key] = str(cur.expanduser().resolve())
+                        st.session_state[f"__open_{key}"] = False
+                        _st_rerun()
+                with c_cancel:
+                    if st.button("Cancel", key=f"cancel_{key}"):
+                        st.session_state[f"__open_{key}"] = False
+                        _st_rerun()
+            _dlg()
+        else:
+            # If main script is running and Browse wasn't clicked, ensure state is closed.
+            st.session_state[f"__open_{key}"] = False
+
     elif st.session_state.get(f"__open_{key}", False):
         st.info(f"{label} (inline mode)")
         _fs_browser_core(label, key, mode=mode, start=start, patterns=patterns)
