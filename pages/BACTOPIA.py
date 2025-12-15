@@ -101,8 +101,10 @@ PRESET_KEYS_ALLOWLIST = {
     # Tools
     "fastp_mode", "fastp_dash3", "fastp_M", "fastp_W", "fastp_opts_text",
     "fastp_enable_5prime", "fastp_q_enable", "fastp_q", "fastp_l_enable", "fastp_l",
-    "fastp_n", "fastp_u", "fastp_cut_front", "fastp_cut_tail", "fastp_cut_meanq", "fastp_cut_win",
-    "fastp_detect_adapter_pe", "fastp_poly_g", "fastp_extra",
+    "fastp_n", "fastp_u", "fastp_cut_right",
+    "fastp_dedup", "fastp_correction", "fastp_poly_x", "fastp_overrep", "fastp_umi",
+    "fastp_umi_loc", "fastp_umi_len",
+    "fastp_detect_adapter_pe", "fastp_adapter_r1", "fastp_adapter_r2", "fastp_poly_g", "fastp_extra",
     # Unicycler
     "unicycler_mode", "unicycler_min_len", "unicycler_extra",
     # Extra params and reports
@@ -729,22 +731,29 @@ FASTP_HELP_MD = """
 
 This panel builds the `--fastp_opts` string used by Bactopia. Main options:
 
-- `-3` : enable trimming at the 3' end (read tail).
-- `-5` : enable trimming at the 5' end (read start).
-- `-M <int>` : minimum average quality of the sliding window.
-- `-W <int>` : window size for average quality.
-- `-q <int>` : minimum quality for a base to be considered "good".
-- `-l <int>` : minimum read length after trimming.
-- `-n <int>` : maximum number of Ns in a read.
-- `-u <int>` : maximum percentage of bases below given quality.
-- `--cut_front` / `--cut_tail` : dynamic trimming at read ends.
-- `--cut_mean_quality <int>` : minimum quality in the cutting window.
-- `--cut_window_size <int>` : window size for dynamic trimming.
-- `--detect_adapter_for_pe` : automatic adapter detection in PE.
-- `-g` : enable polyG tail trimming.
+- **Sliding Window Cutting**:
+  - `-3` (`--cut_tail`): Move sliding window from tail (3') to front.
+  - `-5` (`--cut_front`): Move sliding window from front (5') to tail.
+  - `-r` (`--cut_right`): Sliding window from front to tail, drop remaining if quality fail.
+  - `-M` (`--cut_mean_quality`): Min mean quality in the sliding window.
+  - `-W` (`--cut_window_size`): Size of the sliding window.
+- **Filters**:
+  - `-q`: Min quality value for a qualified base.
+  - `-l`: Min read length allowed.
+  - `-n`: Max N bases allowed.
+  - `-u`: Max % of unqualified bases allowed.
+  - `-p` (`--overrepresentation_analysis`): Enable overrepresented sequence analysis.
+- **Processing**:
+  - `-D` (`--dedup`): Enable deduplication.
+  - `-c` (`--correction`): Enable base correction in overlapped regions (PE only).
+  - `-g`: Trim polyG in 3' ends (NextSeq/NovaSeq).
+  - `-x` (`--trim_poly_x`): Trim polyX in 3' ends.
+  - `-U` (`--umi`): Enable UMI processing (requires location/length).
+  - `--detect_adapter_for_pe`: Detect adapters in PE data.
+  - `-a`: Adapter sequence for Read 1.
+  - `--adapter_sequence_r2`: Adapter sequence for Read 2.
 
-The "Advanced extra (append)" text field lets you add any extra fastp flags
-that are not explicitly mapped in the interface.
+The "Advanced extra (append)" text field lets you add any extra fastp flags.
 """
 
 st.subheader("FASTP / Unicycler settings", help=FASTP_HELP_MD)
@@ -758,43 +767,56 @@ with st.expander("fastp options", expanded=False):
         horizontal=True,
     )
     if fastp_mode.startswith("Simple"):
-        topA, topB, topC = st.columns(3)
+        st.markdown("**Sliding Window / Cutting**")
+        topA, topB, topC = st.columns([2, 1, 1])
         with topA:
-            st.checkbox("Enable 3’ (-3)", value=True, key="fastp_dash3")
+            st.checkbox("Cut Tail (3') sliding window (-3)", value=True, key="fastp_dash3")
+            st.checkbox("Cut Front (5') sliding window (-5)", value=False, key="fastp_enable_5prime")
+            st.checkbox("Cut Right sliding window (-r)", value=False, key="fastp_cut_right")
         with topB:
-            st.slider("-M (min window avg quality)", 0, 40, 20, 1, key="fastp_M")
+            st.slider("Mean Quality Threshold (-M)", 0, 40, 20, 1, key="fastp_M")
         with topC:
-            st.slider("-W (window size)", 1, 50, 5, 1, key="fastp_W")
+            st.slider("Window Size (-W)", 1, 50, 5, 1, key="fastp_W")
 
-        st.markdown("**Additional options (optional)**")
-        c1, c2, c3, c4 = st.columns(4)
+        st.markdown("**Quality & Length Filters**")
+        c1, c2, c3 = st.columns(3)
         with c1:
-            st.checkbox("Enable 5’ (-5)", value=False, key="fastp_enable_5prime")
-            st.checkbox("Detect adapter in PE", value=False, key="fastp_detect_adapter_pe")
-        with c2:
-            st.checkbox("Quality (-q)", value=False, key="fastp_q_enable")
+            st.checkbox("Quality Filter (-q)", value=False, key="fastp_q_enable")
             if st.session_state.get("fastp_q_enable"):
                 st.slider("Value for -q", 0, 40, 20, 1, key="fastp_q")
-        with c3:
-            st.checkbox("Min length (-l)", value=False, key="fastp_l_enable")
+        with c2:
+            st.checkbox("Min Length Filter (-l)", value=False, key="fastp_l_enable")
             if st.session_state.get("fastp_l_enable"):
                 st.slider("Value for -l", 0, 500, 15, 1, key="fastp_l")
-        with c4:
-            st.number_input("Max Ns (-n)", min_value=0, max_value=10, value=0, step=1, key="fastp_n")
-            st.number_input("Max % low qual (-u)", min_value=0, max_value=100, value=0, step=1, key="fastp_u")
+        with c3:
+            st.number_input("Max N Bases (-n)", min_value=0, max_value=10, value=0, step=1, key="fastp_n")
+            st.number_input("Max % Unqualified Bases (-u)", min_value=0, max_value=100, value=0, step=1, key="fastp_u")
 
-        st.markdown("**Directed cuts (cut_*)**")
-        cc1, cc2, cc3, cc4 = st.columns(4)
-        with cc1:
-            st.checkbox("--cut_front", value=False, key="fastp_cut_front")
-        with cc2:
-            st.checkbox("--cut_tail", value=False, key="fastp_cut_tail")
-        with cc3:
-            st.number_input("cut_mean_quality", min_value=0, max_value=40, value=20, step=1, key="fastp_cut_meanq")
-        with cc4:
-            st.number_input("cut_window_size", min_value=1, max_value=100, value=4, step=1, key="fastp_cut_win")
+        st.markdown("**Adapters**")
+        ad1, ad2, ad3 = st.columns(3)
+        with ad1:
+             st.checkbox("Detect Adapters (PE)", value=False, key="fastp_detect_adapter_pe")
+        with ad2:
+             st.text_input("Adapter Sequence (R1)", key="fastp_adapter_r1", placeholder="AGATCGGAAG...")
+        with ad3:
+             st.text_input("Adapter Sequence (R2)", key="fastp_adapter_r2", placeholder="AGATCGGAAG...")
 
-        st.checkbox("polyG (-g)", value=False, key="fastp_poly_g")
+        st.markdown("**Additional Processing**")
+        ap1, ap2, ap3, ap4 = st.columns(4)
+        with ap1:
+            st.checkbox("Deduplication (-D)", value=False, key="fastp_dedup")
+            st.checkbox("Base Correction (-c)", value=False, key="fastp_correction", help="PE only")
+        with ap2:
+            st.checkbox("Trim polyG (-g)", value=False, key="fastp_poly_g")
+            st.checkbox("Trim polyX (-x)", value=False, key="fastp_poly_x")
+        with ap3:
+            st.checkbox("Overrepresentation (-p)", value=False, key="fastp_overrep")
+        with ap4:
+            st.checkbox("UMI Processing (-U)", value=False, key="fastp_umi")
+            if st.session_state.get("fastp_umi"):
+                st.selectbox("UMI Location", ["index1", "index2", "read1", "read2", "per_index", "per_read"], key="fastp_umi_loc")
+                st.number_input("UMI Length", min_value=0, max_value=50, value=0, step=1, key="fastp_umi_len")
+
         fastp_extra = st.text_input(
             "Advanced extra (append)",
             value=st.session_state.get("fastp_extra", ""),
@@ -802,33 +824,59 @@ with st.expander("fastp options", expanded=False):
         )
 
         parts = []
+        # Sliding window logic: -3, -5, -r share -M and -W
+        # fastp docs say -3/-5/-r use -M/-W if specific ones aren't set.
+        # We only expose the global -M/-W to simplify.
         if st.session_state.get("fastp_dash3", True):
             parts.append("-3")
         if st.session_state.get("fastp_enable_5prime"):
             parts.append("-5")
+        if st.session_state.get("fastp_cut_right"):
+            parts.append("-r")
+        
         parts += ["-M", str(st.session_state.get("fastp_M", 20))]
         parts += ["-W", str(st.session_state.get("fastp_W", 5))]
+
         if st.session_state.get("fastp_q_enable"):
             parts += ["-q", str(st.session_state.get("fastp_q", 20))]
         if st.session_state.get("fastp_l_enable"):
             parts += ["-l", str(st.session_state.get("fastp_l", 15))]
+        
         n_val = st.session_state.get("fastp_n", 0)
         u_val = st.session_state.get("fastp_u", 0)
         if n_val:
             parts += ["-n", str(n_val)]
         if u_val:
             parts += ["-u", str(u_val)]
-        if st.session_state.get("fastp_cut_front"):
-            parts.append("--cut_front")
-        if st.session_state.get("fastp_cut_tail"):
-            parts.append("--cut_tail")
-        if st.session_state.get("fastp_cut_front") or st.session_state.get("fastp_cut_tail"):
-            parts += ["--cut_mean_quality", str(st.session_state.get("fastp_cut_meanq", 20))]
-            parts += ["--cut_window_size", str(st.session_state.get("fastp_cut_win", 4))]
-        if st.session_state.get("fastp_detect_adapter_pe"):
-            parts.append("--detect_adapter_for_pe")
+
+        if st.session_state.get("fastp_dedup"):
+            parts.append("-D")
+        if st.session_state.get("fastp_correction"):
+            parts.append("-c")
         if st.session_state.get("fastp_poly_g"):
             parts.append("-g")
+        if st.session_state.get("fastp_poly_x"):
+            parts.append("-x")
+        if st.session_state.get("fastp_detect_adapter_pe"):
+            parts.append("--detect_adapter_for_pe")
+        
+        if (st.session_state.get("fastp_adapter_r1") or "").strip():
+             parts.append(f"-a {shlex.quote(st.session_state['fastp_adapter_r1'].strip())}")
+        if (st.session_state.get("fastp_adapter_r2") or "").strip():
+             parts.append(f"--adapter_sequence_r2 {shlex.quote(st.session_state['fastp_adapter_r2'].strip())}")
+
+        if st.session_state.get("fastp_overrep"):
+            parts.append("-p")
+        
+        if st.session_state.get("fastp_umi"):
+            parts.append("-U")
+            loc = st.session_state.get("fastp_umi_loc")
+            length = st.session_state.get("fastp_umi_len", 0)
+            if loc:
+                parts.append(f"--umi_loc={loc}")
+            if length > 0:
+                parts.append(f"--umi_len={length}")
+
         if (st.session_state.get("fastp_extra") or "").strip():
             parts.append(st.session_state["fastp_extra"].strip())
 
