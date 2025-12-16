@@ -337,7 +337,12 @@ def _fs_browser_core(label: str, key: str, mode: str = "file",
     dirs, files = _list_dir(cur)
 
     if patterns:
-        files = [f for f in files if any(fnmatch.fnmatch(f.name, pat) for pat in patterns)]
+        # Normalize patterns: ensure they are globs if they look like extensions
+        norm_patterns = [p if p.startswith("*") else f"*{p}" for p in patterns]
+        files = [f for f in files if any(fnmatch.fnmatch(f.name, pat) for pat in norm_patterns)]
+    elif mode == "dir":
+        # In directory mode with no patterns, do not show files (reduce clutter)
+        files = []
 
     st.markdown("**Folders**")
     if not dirs:
