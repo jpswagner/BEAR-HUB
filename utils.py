@@ -334,28 +334,35 @@ def _fs_browser_core(label: str, key: str, mode: str = "file",
     with c_path:
         st.caption(str(cur))
 
-    with c_pick:
-        if mode == "dir":
-            if st.button("Choose", key=f"{key}_choose_dir"):
-                st.session_state[key] = str(cur)
-
     dirs, files = _list_dir(cur)
-    st.markdown("**Folders**")
-    dcols = st.columns(2)
-    for i, d in enumerate(dirs):
-        did = _safe_id(str(d))
-        dcols[i % 2].button("📁 " + d.name, key=f"{key}_d_{did}", on_click=set_cur, args=(d,))
 
-    if mode == "file":
-        if patterns:
-            files = [f for f in files if any(fnmatch.fnmatch(f.name, pat) for pat in patterns)]
-        st.markdown("**Files**")
-        for f in files:
-            fid = _safe_id(str(f))
-            if st.button("📄 " + f.name, key=f"{key}_f_{fid}"):
-                st.session_state[key] = str(f.resolve())
-                st.session_state[f"__open_{key}"] = False
-                _st_rerun()
+    if patterns:
+        files = [f for f in files if any(fnmatch.fnmatch(f.name, pat) for pat in patterns)]
+
+    st.markdown("**Folders**")
+    if not dirs:
+        st.caption("No folders found")
+    else:
+        dcols = st.columns(2)
+        for i, d in enumerate(dirs):
+            did = _safe_id(str(d))
+            dcols[i % 2].button("📁 " + d.name, key=f"{key}_d_{did}", on_click=set_cur, args=(d,))
+
+    st.markdown("**Files**")
+    if not files:
+        st.caption("No matching files found")
+    else:
+        if mode == "file":
+            for f in files:
+                fid = _safe_id(str(f))
+                if st.button("📄 " + f.name, key=f"{key}_f_{fid}"):
+                    st.session_state[key] = str(f.resolve())
+                    st.session_state[f"__open_{key}"] = False
+                    _st_rerun()
+        else:
+            # In directory mode, show files as read-only items (grayed out)
+            for f in files:
+                st.markdown(f"<span style='color:gray; margin-left: 4px;'>📄 {html.escape(f.name)}</span>", unsafe_allow_html=True)
 
 
 def path_picker(label: str, key: str, mode: str = "dir",
