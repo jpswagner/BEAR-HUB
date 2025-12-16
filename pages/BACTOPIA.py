@@ -242,8 +242,9 @@ apply_preset_before_widgets()
 
 # ============================= Discovery / FOFN =============================
 
-FASTQ_PATTERNS = [".fastq.gz", ".fq.gz", ".fastq", ".fq"]
-FA_PATTERNS = [".fna.gz", ".fa.gz", ".fasta.gz", ".fna", ".fa", ".fasta"]
+FASTQ_PATTERNS = ["*.fastq.gz", "*.fq.gz", "*.fastq", "*.fq"]
+FA_PATTERNS = ["*.fna.gz", "*.fa.gz", "*.fasta.gz", "*.fna", "*.fa", "*.fasta"]
+
 
 PE1_PATTERNS = [
     re.compile(r"^(?P<root>.+?)[._-](?:R?1|1|[Aa])(?:_[0-9]{3})?$", re.IGNORECASE),
