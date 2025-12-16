@@ -560,6 +560,41 @@ if ICON_PATH_BACTOPIA.is_file():
 else:
     st.title("🧬 Bactopia UI")
 
+# ============================= Main parameters =============================
+
+st.subheader("Main parameters")
+with st.expander("Global parameters", expanded=False):
+    colA, colB = st.columns(2)
+    with colA:
+        # Force '-profile docker' always
+        st.session_state["profile"] = "docker"
+        st.text_input(
+            "Profile (-profile)",
+            value="docker",
+            key="profile",
+            disabled=True,
+            help="This app always uses '-profile docker' for Bactopia.",
+        )
+
+        outdir = utils.path_picker(
+            "Outdir (results root)",
+            key="outdir",
+            mode="dir",
+            start=DEFAULT_OUTDIR,
+            help="Folder where Nextflow/Bactopia will write output.",
+        )
+        datasets = utils.path_picker(
+            "datasets/ (optional)",
+            key="datasets",
+            mode="dir",
+            start=str(pathlib.Path.home()),
+        )
+    with colB:
+        resume = st.checkbox("-resume (resume previous runs)", value=True, key="resume")
+        max_cpus_default = min(os.cpu_count() or 64, 128)
+        threads = st.slider("--max_cpus", 0, max_cpus_default, 0, 1, key="threads")
+        memory_gb = st.slider("--max_memory (GB)", 0, 256, 0, 1, key="memory_gb")
+
 # ============================= FOFN (multi-sample) =============================
 
 FOFN_HELP_MD = r"""
@@ -693,41 +728,6 @@ if st.button("🔎 Scan base folder and build FOFN", key="btn_scan_fofn"):
         st.error(f"Failed to generate FOFN: {e}")
 
 st.session_state["fofn_use"] = True
-
-# ============================= Main parameters =============================
-
-st.subheader("Main parameters")
-with st.expander("Global parameters", expanded=False):
-    colA, colB = st.columns(2)
-    with colA:
-        # Force '-profile docker' always
-        st.session_state["profile"] = "docker"
-        st.text_input(
-            "Profile (-profile)",
-            value="docker",
-            key="profile",
-            disabled=True,
-            help="This app always uses '-profile docker' for Bactopia.",
-        )
-
-        outdir = utils.path_picker(
-            "Outdir (results root)",
-            key="outdir",
-            mode="dir",
-            start=DEFAULT_OUTDIR,
-            help="Folder where Nextflow/Bactopia will write output.",
-        )
-        datasets = utils.path_picker(
-            "datasets/ (optional)",
-            key="datasets",
-            mode="dir",
-            start=str(pathlib.Path.home()),
-        )
-    with colB:
-        resume = st.checkbox("-resume (resume previous runs)", value=True, key="resume")
-        max_cpus_default = min(os.cpu_count() or 64, 128)
-        threads = st.slider("--max_cpus", 0, max_cpus_default, 0, 1, key="threads")
-        memory_gb = st.slider("--max_memory (GB)", 0, 256, 0, 1, key="memory_gb")
 
 # ============================= FASTP / Unicycler =============================
 
