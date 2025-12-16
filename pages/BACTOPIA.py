@@ -697,36 +697,36 @@ with st.expander("Generate FOFN", expanded=False):
     fofn_out = str((pathlib.Path(st.session_state.get("outdir", DEFAULT_OUTDIR)) / "samples.txt").resolve())
     st.caption(f"FOFN will be saved/updated at: `{fofn_out}`")
 
-if st.button("🔎 Scan base folder and build FOFN", key="btn_scan_fofn"):
-    try:
-        res = discover_runs_and_build_fofn(
-            base_dir=base_dir,
-            recursive=recursive,
-            species=species_in,
-            gsize=gsize_in,
-            fofn_path=fofn_out,
-            treat_se_as_ont=st.session_state.get("fofn_long_reads", False),
-            infer_ont_by_name=st.session_state.get("fofn_infer_ont_by_name", True),
-            merge_multi=st.session_state.get("fofn_merge_multi", True),
-            include_assemblies=st.session_state.get("fofn_include_assemblies", True),
-        )
-        st.success(f"FOFN saved/updated: {res['fofn_path']}")
+    if st.button("🔎 Scan base folder and build FOFN", key="btn_scan_fofn"):
         try:
-            import pandas as pd
-            df = pd.DataFrame(res["rows"], columns=res["header"])
-            st.dataframe(df.head(1000), use_container_width=True)
-        except Exception:
-            st.write("Total rows:", len(res["rows"]))
-        st.info(
-            "Runtype summary: "
-            + ", ".join([f"{k}={v}" for k, v in res["counts"].items()])
-        )
-        if res["issues"]:
-            st.warning("Potential issues detected:")
-            for msg in res["issues"]:
-                st.markdown(f"- {msg}")
-    except Exception as e:
-        st.error(f"Failed to generate FOFN: {e}")
+            res = discover_runs_and_build_fofn(
+                base_dir=base_dir,
+                recursive=recursive,
+                species=species_in,
+                gsize=gsize_in,
+                fofn_path=fofn_out,
+                treat_se_as_ont=st.session_state.get("fofn_long_reads", False),
+                infer_ont_by_name=st.session_state.get("fofn_infer_ont_by_name", True),
+                merge_multi=st.session_state.get("fofn_merge_multi", True),
+                include_assemblies=st.session_state.get("fofn_include_assemblies", True),
+            )
+            st.success(f"FOFN saved/updated: {res['fofn_path']}")
+            try:
+                import pandas as pd
+                df = pd.DataFrame(res["rows"], columns=res["header"])
+                st.dataframe(df.head(1000), use_container_width=True)
+            except Exception:
+                st.write("Total rows:", len(res["rows"]))
+            st.info(
+                "Runtype summary: "
+                + ", ".join([f"{k}={v}" for k, v in res["counts"].items()])
+            )
+            if res["issues"]:
+                st.warning("Potential issues detected:")
+                for msg in res["issues"]:
+                    st.markdown(f"- {msg}")
+        except Exception as e:
+            st.error(f"Failed to generate FOFN: {e}")
 
 st.session_state["fofn_use"] = True
 
