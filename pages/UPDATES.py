@@ -11,6 +11,7 @@ import shutil
 import utils
 import requests
 import pathlib
+import re
 
 # ============================= Configuration =============================
 
