@@ -230,7 +230,7 @@ def install_java(conda_bin, env_name="bactopia"):
 
 # =================================================
 
-def ensure_nextflow(prefix, conda_bin, is_mamba, java_home=None):
+def ensure_nextflow(prefix, conda_bin, is_mamba, java_home=None, java_cmd=None):
     """Ensures nextflow is installed in the environment."""
     print("\nLocating final prefix for 'bactopia' environment...")
 
@@ -269,6 +269,10 @@ def ensure_nextflow(prefix, conda_bin, is_mamba, java_home=None):
         env_copy["JAVA_HOME"] = java_home
         # Prepend to PATH just in case
         env_copy["PATH"] = os.path.join(java_home, "bin") + os.pathsep + env_copy["PATH"]
+
+    if java_cmd:
+        print(f"Using JAVA_CMD={java_cmd} for installation...")
+        env_copy["JAVA_CMD"] = java_cmd
 
     # Try curl
     dl_cmd = None
@@ -368,10 +372,14 @@ def main():
     # For conda: prefix/bin/java -> prefix is technically the conda env root, but standard JAVA_HOME logic usually expects bin/..
     # So dirname(dirname(java_bin)) is safe.
     # IMPORTANT: Resolve symlinks (e.g. /usr/bin/java -> /etc/alternatives/java -> /usr/lib/jvm/...)
-    final_java_home = os.path.dirname(os.path.dirname(os.path.realpath(java_bin)))
+    real_java_bin = os.path.realpath(java_bin)
+    final_java_home = os.path.dirname(os.path.dirname(real_java_bin))
+
+    print(f"Detected JAVA_HOME: {final_java_home}")
+    print(f"Detected JAVA_CMD: {real_java_bin}")
 
     # Ensure Nextflow (passing java_home if needed for the install script)
-    ensure_nextflow(prefix, conda_bin, is_mamba, java_home=final_java_home)
+    ensure_nextflow(prefix, conda_bin, is_mamba, java_home=final_java_home, java_cmd=real_java_bin)
 
     # Suppress Streamlit Prompts
     suppress_streamlit_prompts()
@@ -389,6 +397,7 @@ def main():
         f.write(f"export BACTOPIA_ENV_PREFIX=\"{prefix}\"\n")
         f.write(f"export NXF_CONDA_EXE=\"{conda_bin}\"\n")
         f.write(f"export JAVA_HOME=\"{final_java_home}\"\n")
+        f.write(f"export JAVA_CMD=\"{real_java_bin}\"\n")
         # Also ensure PATH includes Java
         f.write(f"export PATH=\"{final_java_home}/bin:$PATH\"\n")
 

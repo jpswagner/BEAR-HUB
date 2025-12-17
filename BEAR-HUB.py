@@ -147,7 +147,6 @@ else:
         if st.button("BACTOPIA", type="primary", icon="🦠", use_container_width=True):
             st.switch_page("pages/BACTOPIA.py")
 
-
     with cB:
         st.markdown("### Bactopia Tools")
         st.caption(
@@ -156,7 +155,6 @@ else:
         )
         if st.button("BACTOPIA TOOLS", type="primary", icon="🧰", use_container_width=True):
             st.switch_page("pages/BACTOPIA-TOOLS.py")
-        
 
     cA1, cB2 = st.columns(2)
 
