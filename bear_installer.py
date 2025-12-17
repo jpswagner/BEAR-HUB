@@ -18,6 +18,7 @@ import platform
 import json
 import traceback
 import datetime
+import re
 
 # Configuration
 APP_NAME = "BEAR-HUB"
@@ -172,7 +173,64 @@ def create_bactopia_env(conda_bin, is_mamba):
 
     return prefix
 
-def ensure_nextflow(prefix, conda_bin, is_mamba):
+# ================= Java Handling =================
+
+def get_java_version(java_bin):
+    """Returns the major version of Java or 0 if not found/parseable."""
+    try:
+        # java -version prints to stderr
+        res = subprocess.run([java_bin, "-version"], capture_output=True, text=True)
+        # Output example: openjdk version "17.0.9" ...
+        output = res.stderr + "\n" + res.stdout
+
+        # Match version "1.8... or version "17...
+        match = re.search(r'version "(\d+)', output)
+        if match:
+            v = int(match.group(1))
+            if v == 1: # Handle 1.8 etc
+                match = re.search(r'version "1\.(\d+)', output)
+                if match:
+                    return int(match.group(1))
+            return v
+        return 0
+    except Exception:
+        return 0
+
+def find_java(env_prefix):
+    """
+    Checks for Java in the env prefix first, then system.
+    Returns (path_to_java, version_int, is_system_fallback).
+    """
+    # 1. Check Env
+    if env_prefix:
+        env_java = os.path.join(env_prefix, "bin", "java")
+        if os.path.exists(env_java) and os.access(env_java, os.X_OK):
+            v = get_java_version(env_java)
+            if v >= 17:
+                return env_java, v, False
+            else:
+                print(f"Java found in env but too old: version {v}")
+
+    # 2. Check System
+    sys_java = shutil.which("java")
+    if sys_java:
+        v = get_java_version(sys_java)
+        if v >= 17:
+            return sys_java, v, True
+        else:
+            print(f"System Java found but too old: version {v}")
+
+    return None, 0, False
+
+def install_java(conda_bin, env_name="bactopia"):
+    """Installs OpenJDK 17 into the specified environment."""
+    print(f"\nInstalling OpenJDK 17 into '{env_name}' environment...")
+    cmd = [conda_bin, "install", "-n", env_name, "-c", "conda-forge", "openjdk=17", "-y"]
+    subprocess.check_call(cmd)
+
+# =================================================
+
+def ensure_nextflow(prefix, conda_bin, is_mamba, java_home=None):
     """Ensures nextflow is installed in the environment."""
     print("\nLocating final prefix for 'bactopia' environment...")
 
@@ -204,16 +262,25 @@ def ensure_nextflow(prefix, conda_bin, is_mamba):
     bin_dir = os.path.join(prefix, "bin")
     os.makedirs(bin_dir, exist_ok=True)
 
+    # Prepare environment for the curl command (needs JAVA)
+    env_copy = os.environ.copy()
+    if java_home:
+        print(f"Using JAVA_HOME={java_home} for installation...")
+        env_copy["JAVA_HOME"] = java_home
+        # Prepend to PATH just in case
+        env_copy["PATH"] = os.path.join(java_home, "bin") + os.pathsep + env_copy["PATH"]
+
     # Try curl
+    dl_cmd = None
     if check_command("curl"):
-        # Pipe to bash to run the installer script, which downloads the binary into CWD
-        subprocess.call(f"cd \"{bin_dir}\" && curl -fsSL https://get.nextflow.io | bash", shell=True)
+        dl_cmd = f"cd \"{bin_dir}\" && curl -fsSL https://get.nextflow.io | bash"
     elif check_command("wget"):
-        subprocess.call(f"cd \"{bin_dir}\" && wget -qO- https://get.nextflow.io | bash", shell=True)
+        dl_cmd = f"cd \"{bin_dir}\" && wget -qO- https://get.nextflow.io | bash"
     else:
         print("ERROR: Neither curl nor wget found. Cannot download nextflow.")
         sys.exit(1)
 
+    subprocess.call(dl_cmd, shell=True, env=env_copy)
     os.chmod(os.path.join(bin_dir, "nextflow"), 0o755)
 
     if os.path.exists(nf_path) and os.access(nf_path, os.X_OK):
@@ -276,8 +343,35 @@ def main():
     # Create Bactopia Env
     prefix = create_bactopia_env(conda_bin, is_mamba)
 
-    # Ensure Nextflow
-    ensure_nextflow(prefix, conda_bin, is_mamba)
+    # --- Java Check & Install ---
+    print("\nChecking for Java (required for Nextflow)...")
+    java_bin, java_ver, is_sys = find_java(prefix)
+
+    if not java_bin:
+        print("Java not found or too old (<17).")
+        try:
+            install_java(conda_bin, "bactopia")
+            # Re-check
+            java_bin, java_ver, is_sys = find_java(prefix)
+            if not java_bin:
+                print("ERROR: Failed to install Java. Please install OpenJDK 17+ manually.")
+                sys.exit(1)
+        except Exception as e:
+            print(f"ERROR: Failed to install Java: {e}")
+            sys.exit(1)
+
+    print(f"Using Java: {java_bin} (Version {java_ver})")
+
+    # Determine JAVA_HOME
+    # For standard Linux java/openjdk, binary is often in bin/java, so home is parent/parent
+    # e.g. /usr/lib/jvm/java-17/bin/java -> /usr/lib/jvm/java-17
+    # For conda: prefix/bin/java -> prefix is technically the conda env root, but standard JAVA_HOME logic usually expects bin/..
+    # So dirname(dirname(java_bin)) is safe.
+    # IMPORTANT: Resolve symlinks (e.g. /usr/bin/java -> /etc/alternatives/java -> /usr/lib/jvm/...)
+    final_java_home = os.path.dirname(os.path.dirname(os.path.realpath(java_bin)))
+
+    # Ensure Nextflow (passing java_home if needed for the install script)
+    ensure_nextflow(prefix, conda_bin, is_mamba, java_home=final_java_home)
 
     # Suppress Streamlit Prompts
     suppress_streamlit_prompts()
@@ -294,6 +388,9 @@ def main():
         f.write("\n# Environment for Nextflow/Bactopia\n")
         f.write(f"export BACTOPIA_ENV_PREFIX=\"{prefix}\"\n")
         f.write(f"export NXF_CONDA_EXE=\"{conda_bin}\"\n")
+        f.write(f"export JAVA_HOME=\"{final_java_home}\"\n")
+        # Also ensure PATH includes Java
+        f.write(f"export PATH=\"{final_java_home}/bin:$PATH\"\n")
 
     print(f"\nConfig saved to: {CONFIG_FILE}")
     print("\nInstallation complete.")

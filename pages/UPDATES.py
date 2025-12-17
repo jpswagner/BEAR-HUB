@@ -153,6 +153,42 @@ def clean_nextflow_version(raw_output):
     lines = raw_output.strip().splitlines()
     return lines[0] if lines else "Unknown"
 
+def get_java_info():
+    """
+    Detects Java version.
+    Checks JAVA_HOME, then bactopia env, then system PATH.
+    """
+    # 1. Check JAVA_HOME
+    jh = os.environ.get("JAVA_HOME")
+    if jh:
+        bin_path = os.path.join(jh, "bin", "java")
+        if os.path.exists(bin_path):
+            return get_command_output(f"{bin_path} -version", shell=True)
+
+    # 2. Check Bactopia Env
+    bact_env = os.environ.get("BACTOPIA_ENV_PREFIX")
+    if bact_env:
+        bin_path = os.path.join(bact_env, "bin", "java")
+        if os.path.exists(bin_path):
+            return get_command_output(f"{bin_path} -version", shell=True)
+
+    # 3. Check PATH
+    return get_command_output("java -version", shell=True)
+
+def clean_java_version(raw_output):
+    """Parses java -version output."""
+    if "Not installed" in raw_output:
+        return raw_output
+
+    # Output is usually on stderr, but get_command_output merges it.
+    # "openjdk version "17.0.9" ..."
+    for line in raw_output.splitlines():
+        if "version" in line:
+            return line.strip()
+
+    return raw_output.splitlines()[0] if raw_output else "Unknown"
+
+
 # ============================= UI Layout =============================
 
 st.title("🔄 System Status & Versions")
@@ -205,6 +241,11 @@ with col2:
 
     nf_display = clean_nextflow_version(nf_v_raw)
     st.text_input("Nextflow Version", value=nf_display, disabled=True)
+
+    # Java
+    raw_java = get_java_info()
+    java_display = clean_java_version(raw_java)
+    st.text_input("Java Version", value=java_display, disabled=True)
 
     # Docker
     docker_v = get_command_output(CMD_DOCKER_VERSION, shell=True)
