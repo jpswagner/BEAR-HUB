@@ -43,3 +43,11 @@ If the test fails, check the output in the terminal. The script `tests/smoke/ins
 Common issues:
 *   **Docker Socket Permissions**: Ensure the user running the script has permission to access `/var/run/docker.sock`.
 *   **Network**: The test downloads Miniforge and Nextflow. Ensure internet access is available.
+
+## Cleaning Up
+
+To remove the generated artifacts and the Docker images created by the tests, run:
+
+```bash
+./ci/clean_tests.sh
+```
