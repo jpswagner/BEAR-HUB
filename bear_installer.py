@@ -24,6 +24,11 @@ import re
 APP_NAME = "BEAR-HUB"
 
 def get_root_dir():
+    # Allow override via environment variable (for testing)
+    env_root = os.environ.get("BEAR_HUB_ROOT")
+    if env_root:
+        return os.path.abspath(env_root)
+
     if getattr(sys, 'frozen', False):
         # AppImage/Frozen: Use user home directory to ensure we can write files
         # The executable is inside a read-only SquashFS mount
@@ -406,7 +411,12 @@ if __name__ == "__main__":
         # Pause so user can read the terminal output if launched via GUI
         # Even with AppRun pause, this double pause is harmless and safe
         print("\n")
-        try:
-            input("Press Enter to close this window...")
-        except:
-            pass
+
+        # Check for non-interactive mode
+        non_interactive = os.environ.get("BEAR_NONINTERACTIVE") == "1"
+
+        if not non_interactive:
+            try:
+                input("Press Enter to close this window...")
+            except:
+                pass

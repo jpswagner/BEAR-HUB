@@ -1,0 +1,30 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install minimal prerequisites for the installer (and for bootstrapping conda)
+# - curl: to download conda
+# - bash: to run scripts
+# - ca-certificates: for SSL
+# - git: usually good to have
+# - sudo: if needed
+# - python3: to run the bear_installer.py initially (before conda python)
+# - docker.io: Docker CLI (client) to communicate with host daemon
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    git \
+    ca-certificates \
+    sudo \
+    python3 \
+    python3-pip \
+    docker.io \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a user to simulate non-root installation (optional but realistic)
+# However, for simplicity in CI, running as root is often easier for docker socket access.
+# But `bear_installer.py` is often run by user.
+# Let's run as root for now to avoid permission headaches with /var/run/docker.sock,
+# or we can rely on GHA to map user.
+
+WORKDIR /app

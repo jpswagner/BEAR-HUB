@@ -1,0 +1,40 @@
+name: Installer Smoke Test
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        distro: [ubuntu22, debian12]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build Docker Image
+        run: |
+          docker build -t bear-hub-test:${{ matrix.distro }} -f docker/test/Dockerfile.${{ matrix.distro }} .
+
+      - name: Run Smoke Test
+        run: |
+          docker run --rm \
+            -v "$(pwd):/app" \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -w /app \
+            -e BEAR_NONINTERACTIVE=1 \
+            bear-hub-test:${{ matrix.distro }} \
+            /bin/bash tests/smoke/install_smoke.sh
+
+      - name: Upload Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: install-logs-${{ matrix.distro }}
+          path: artifacts/
