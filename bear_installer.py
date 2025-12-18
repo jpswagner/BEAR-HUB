@@ -149,6 +149,31 @@ def get_env_prefix(conda_bin, env_name):
 
     return None
 
+def create_bear_hub_env(conda_bin):
+    """Creates the bear-hub environment for the UI."""
+    print("\nVerifying environment 'bear-hub'...")
+
+    prefix = get_env_prefix(conda_bin, "bear-hub")
+
+    if prefix:
+        print(f"Environment 'bear-hub' already exists at: {prefix}")
+        return prefix
+
+    print("Creating environment 'bear-hub' (Python 3.11, Streamlit, PyYAML)...")
+
+    cmd = [conda_bin, "create", "-y", "-n", "bear-hub", "-c", "conda-forge",
+           "python=3.11", "streamlit", "pyyaml"]
+
+    subprocess.check_call(cmd)
+
+    prefix = get_env_prefix(conda_bin, "bear-hub")
+    if prefix:
+        print(f"Environment 'bear-hub' created at: {prefix}")
+    else:
+        print("WARNING: 'bear-hub' environment created but prefix could not be determined.")
+
+    return prefix
+
 def create_bactopia_env(conda_bin, is_mamba):
     """Creates the bactopia environment."""
     print("\nVerifying environment 'bactopia'...")
@@ -206,24 +231,26 @@ def find_java(env_prefix):
     Checks for Java in the env prefix first, then system.
     Returns (path_to_java, version_int, is_system_fallback).
     """
+    min_java = 17
+
     # 1. Check Env
     if env_prefix:
         env_java = os.path.join(env_prefix, "bin", "java")
         if os.path.exists(env_java) and os.access(env_java, os.X_OK):
             v = get_java_version(env_java)
-            if v >= 11:
+            if v >= min_java:
                 return env_java, v, False
             else:
-                print(f"Java found in env but too old: version {v}")
+                print(f"Java found in env but too old: version {v} (required >= {min_java})")
 
     # 2. Check System
     sys_java = shutil.which("java")
     if sys_java:
         v = get_java_version(sys_java)
-        if v >= 11:
+        if v >= min_java:
             return sys_java, v, True
         else:
-            print(f"System Java found but too old: version {v}")
+            print(f"System Java found but too old: version {v} (required >= {min_java})")
 
     return None, 0, False
 
@@ -345,7 +372,8 @@ def main():
         print("BEAR-HUB requires Conda or Mamba to manage bioinformatics environments.")
         sys.exit(1)
 
-    # Create Bactopia Env
+    # Create Environments
+    create_bear_hub_env(conda_bin)
     prefix = create_bactopia_env(conda_bin, is_mamba)
 
     # --- Java Check & Install ---
@@ -353,7 +381,7 @@ def main():
     java_bin, java_ver, is_sys = find_java(prefix)
 
     if not java_bin:
-        print("Java not found or too old (<11).")
+        print("Java not found or too old (<17).")
         try:
             install_java(conda_bin, "bactopia")
             # Re-check

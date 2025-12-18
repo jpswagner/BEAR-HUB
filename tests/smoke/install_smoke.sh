@@ -99,11 +99,35 @@ echo ">>> Checking Streamlit..."
 # The installer creates 'bear-hub' env but doesn't activate it for the shell.
 # We need to find where streamlit is.
 # The installer creates 'bear-hub' env.
-BEAR_ENV_PYTHON=$(conda run -n bear-hub which python)
+echo "Debug: Listing conda envs:"
+conda env list
+
+# Try to resolve bear-hub python more reliably
+# First try asking conda
+BEAR_ENV_PYTHON=$(conda run -n bear-hub which python 2>/dev/null || true)
+echo "Debug: conda run returned: '$BEAR_ENV_PYTHON'"
+
+# Fallback to guessing if conda run failed or gave suspicious result (like system python)
+if [[ ! "$BEAR_ENV_PYTHON" =~ "envs/bear-hub" ]]; then
+    # Try finding it in known location
+    POSSIBLE_PATH="${HOME}/miniforge3/envs/bear-hub/bin/python"
+    if [ -x "$POSSIBLE_PATH" ]; then
+        echo "Debug: Found python at known location: $POSSIBLE_PATH"
+        BEAR_ENV_PYTHON="$POSSIBLE_PATH"
+    fi
+fi
+
 if [ -x "$BEAR_ENV_PYTHON" ]; then
-    echo "PASS: bear-hub environment python found."
-    $BEAR_ENV_PYTHON -m streamlit --version
-    if $BEAR_ENV_PYTHON -m streamlit run "${REPO_ROOT}/BEAR-HUB.py" --help > /dev/null 2>&1; then
+    echo "PASS: bear-hub environment python found at: $BEAR_ENV_PYTHON"
+
+    if "$BEAR_ENV_PYTHON" -m streamlit --version; then
+        echo "PASS: streamlit is installed"
+    else
+        echo "FAIL: streamlit import/version check failed"
+        FAILED=1
+    fi
+
+    if "$BEAR_ENV_PYTHON" -m streamlit run "${REPO_ROOT}/BEAR-HUB.py" --help > /dev/null 2>&1; then
          echo "PASS: streamlit run BEAR-HUB.py --help works"
     else
          echo "FAIL: streamlit run failed"
