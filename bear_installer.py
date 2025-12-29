@@ -313,7 +313,7 @@ def suppress_streamlit_prompts():
         with open(config_file, "w") as f:
             f.write('[browser]\ngatherUsageStats = false\n')
             f.write('[server]\nheadless = false\n')
-            f.write('[theme]\nbase="dark"\nprimaryColor="#1C83E1"\ntextColor="#FFFFFF"\n')
+            f.write('[theme]\nbase="dark"\nprimaryColor="#368AC8"\nsecondaryBackgroundColor="#1D4A6B"\ntextColor="#FFFFFF"\n')
 
 def main():
     setup_logging()
