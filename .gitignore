@@ -21,6 +21,7 @@ env/
 
 # Streamlit
 .streamlit/
+!.streamlit/config.toml
 
 # ------------------
 # IDE / SO
