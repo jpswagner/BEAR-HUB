@@ -79,6 +79,20 @@ def check_command(command):
     """Checks if a command exists in the PATH."""
     return shutil.which(command)
 
+def install_docker_if_missing():
+    """Attempts to install docker on Debian/Ubuntu systems."""
+    if not check_command("apt-get"):
+        return False
+
+    print("Attempting to install Docker via apt-get (requires sudo)...")
+    try:
+        subprocess.check_call(["sudo", "apt-get", "update"])
+        subprocess.check_call(["sudo", "apt-get", "install", "-y", "docker.io"])
+        return True
+    except Exception as e:
+        print(f"Docker installation failed: {e}")
+        return False
+
 def get_conda_bin():
     """Finds conda or mamba binary."""
     # 1. Check PATH
@@ -321,30 +335,51 @@ def ensure_nextflow(prefix, conda_bin, is_mamba, java_home=None):
         print("ERROR: Failed to ensure a usable 'nextflow'.")
         sys.exit(1)
 
-def suppress_streamlit_prompts():
+def deploy_streamlit_config():
     """
-    Creates ~/.streamlit/credentials.toml and config.toml to suppress
-    first-run email prompt and usage stats.
+    Deploys the bundled .streamlit/config.toml to the installation directory.
+    Also ensures credentials.toml exists to suppress email prompt.
     """
-    home = os.path.expanduser("~")
-    st_dir = os.path.join(home, ".streamlit")
-    os.makedirs(st_dir, exist_ok=True)
+    # 1. Determine Source Directory (Frozen vs Script)
+    if getattr(sys, 'frozen', False):
+        source_base = sys._MEIPASS
+    else:
+        source_base = os.path.dirname(os.path.abspath(__file__))
 
-    creds_file = os.path.join(st_dir, "credentials.toml")
+    source_config = os.path.join(source_base, ".streamlit", "config.toml")
+
+    # 2. Determine Target Directory (ROOT_DIR/.streamlit)
+    target_dir = os.path.join(ROOT_DIR, ".streamlit")
+    os.makedirs(target_dir, exist_ok=True)
+    target_config = os.path.join(target_dir, "config.toml")
+
+    # 3. Copy config.toml
+    if os.path.exists(source_config):
+        print(f"\nDeploying Streamlit config to {target_config}...")
+        try:
+            shutil.copy2(source_config, target_config)
+        except Exception as e:
+            print(f"WARNING: Failed to copy config.toml: {e}")
+    else:
+        print(f"\nWARNING: Source config not found at {source_config}. Skipping deployment.")
+
+    # 4. Create credentials.toml to suppress email prompt
+    # We still check ~/.streamlit for credentials as that is global,
+    # but we can also put it in the local dir if we set STREAMLIT_CONFIG_FILE?
+    # Actually, credentials are usually global. Let's stick to the existing logic
+    # for credentials but put them in the global home dir as Streamlit expects them there
+    # unless we override everything.
+    # However, to be safe and consistent with previous logic, let's keep the ~/.streamlit check for credentials.
+
+    home = os.path.expanduser("~")
+    global_st_dir = os.path.join(home, ".streamlit")
+    os.makedirs(global_st_dir, exist_ok=True)
+
+    creds_file = os.path.join(global_st_dir, "credentials.toml")
     if not os.path.exists(creds_file):
-        print(f"\nCreating {creds_file} to suppress email prompt...")
+        print(f"Creating {creds_file} to suppress email prompt...")
         with open(creds_file, "w") as f:
             f.write('[general]\nemail = ""\n')
-
-    config_file = os.path.join(st_dir, "config.toml")
-    # We append or create. If it exists, we don't want to overwrite user settings,
-    # but we want to ensure gatherUsageStats is false if not set.
-    # For simplicity in this installer, we just create it if missing, or warn.
-    if not os.path.exists(config_file):
-        print(f"Creating {config_file} to suppress usage stats...")
-        with open(config_file, "w") as f:
-            f.write('[browser]\ngatherUsageStats = false\n')
-            f.write('[server]\nheadless = false\n')
 
 def main():
     setup_logging()
@@ -358,10 +393,17 @@ def main():
     # Check Docker
     docker_bin = check_command("docker")
     if not docker_bin:
-        print("\nERROR: 'docker' not found in PATH.")
-        print("BEAR-HUB requires Docker to run Bactopia.")
-        print("Please install Docker and try again.")
-        sys.exit(1)
+        print("\n'docker' not found in PATH.")
+        if install_docker_if_missing():
+            docker_bin = check_command("docker")
+
+        if not docker_bin:
+            print("\nERROR: 'docker' not found and automatic installation failed.")
+            print("BEAR-HUB requires Docker to run Bactopia.")
+            print("Please install Docker manually (e.g. 'sudo apt install docker.io') and try again.")
+            sys.exit(1)
+        else:
+            print(f"Docker installed successfully at: {docker_bin}")
     else:
         print(f"\nDocker found at: {docker_bin}")
 
@@ -405,8 +447,8 @@ def main():
     # Ensure Nextflow (passing java_home if needed for the install script)
     ensure_nextflow(prefix, conda_bin, is_mamba, java_home=final_java_home)
 
-    # Suppress Streamlit Prompts
-    suppress_streamlit_prompts()
+    # Deploy Streamlit Config
+    deploy_streamlit_config()
 
     # Write Config
     print(f"\nNXF_CONDA_EXE will use: {conda_bin}")
