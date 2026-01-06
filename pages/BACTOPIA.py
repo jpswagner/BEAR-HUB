@@ -571,7 +571,6 @@ with st.expander("Global parameters", expanded=False):
         st.session_state["profile"] = "docker"
         st.text_input(
             "Profile (-profile)",
-            value="docker",
             key="profile",
             disabled=True,
             help="This app always uses '-profile docker' for Bactopia.",
