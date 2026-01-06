@@ -354,6 +354,30 @@ else
     # Opcional: checar se gatherUsageStats já está lá, mas não vamos sobrescrever configs do usuário
 fi
 
+# ---------------------------------------------------------
+# App-local Streamlit config (applies when running inside $ROOT_DIR)
+# Creates: $ROOT_DIR/.streamlit/config.toml
+# ---------------------------------------------------------
+APP_ST_DIR="${ROOT_DIR}/.streamlit"
+mkdir -p "${APP_ST_DIR}"
+
+APP_CONFIG_FILE="${APP_ST_DIR}/config.toml"
+echo "Criando/atualizando ${APP_CONFIG_FILE} (config do BEAR-HUB)..."
+cat > "${APP_CONFIG_FILE}" <<'TOML'
+[browser]
+gatherUsageStats = false
+
+[server]
+headless = false
+
+[theme]
+base="dark"
+primaryColor="#1C83E1"
+textColor="#FFFFFF"
+TOML
+
+
+
 echo
 echo "Instalação do BEAR-HUB finalizada."
 echo "Lembre-se: o Bactopia será executado sempre com '-profile docker' pelo app."
