@@ -20,7 +20,7 @@ env/
 .env
 
 # Streamlit
-.streamlit/
+
 
 # ------------------
 # IDE / SO
