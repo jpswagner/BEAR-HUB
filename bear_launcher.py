@@ -67,6 +67,18 @@ def main():
 
     print(f"Launching BEAR-HUB from {app_path}...")
 
+    # Set STREAMLIT_CONFIG_FILE to the local deployed config if it exists
+    # If frozen, ROOT_DIR is ~/BEAR-HUB. If not, it's ./
+    if getattr(sys, 'frozen', False):
+        user_root = os.path.join(os.path.expanduser("~"), "BEAR-HUB")
+    else:
+        user_root = base_path
+
+    local_config = os.path.join(user_root, ".streamlit", "config.toml")
+    if os.path.exists(local_config):
+        print(f"Using Streamlit config from: {local_config}")
+        os.environ["STREAMLIT_CONFIG_FILE"] = local_config
+
     # Construct the argument list for streamlit
     # We mimic 'streamlit run BEAR-HUB.py'
     # We REMOVE headless=true so the browser opens automatically
