@@ -20,7 +20,8 @@ env/
 .env
 
 # Streamlit
-.streamlit/
+!.streamlit/config.
+!.streamlit/config.toml
 
 # ------------------
 # IDE / SO
@@ -30,6 +31,7 @@ env/
 *.swp
 *.swo
 .DS_Store
+.code-workspace
 
 # ------------------
 # Nextflow / Bactopia / PORT
@@ -64,3 +66,9 @@ data/
 *.log
 *.tmp
 *.bak
+
+# ------------------
+# Testing
+# ------------------
+ci/
+tests/

@@ -1,0 +1,199 @@
+# .streamlit/config.toml
+# Template with ALL options present but EMPTY (commented placeholders).
+# Fill a value and UNCOMMENT the line you want to apply.
+
+[global]
+# disableWidgetStateDuplicationWarning =
+# showWarningOnDirectExecution =
+
+[logger]
+# level =
+# messageFormat =
+
+[client]
+# showErrorDetails =
+# toolbarMode =
+# showSidebarNavigation =
+
+[runner]
+# magicEnabled =
+# fastReruns =
+# enforceSerializableSessionState =
+# enumCoercion =
+
+[server]
+# folderWatchList =
+# folderWatchBlacklist =
+# fileWatcherType =
+# cookieSecret =
+headless = false
+# showEmailPrompt =
+# runOnSave =
+# address =
+# port =
+# baseUrlPath =
+# enableCORS =
+# corsAllowedOrigins =
+# enableXsrfProtection =
+# maxUploadSize =
+# maxMessageSize =
+# enableWebsocketCompression =
+# websocketPingInterval =
+# enableStaticServing =
+# disconnectedSessionTTL =
+# sslCertFile =
+# sslKeyFile =
+
+[browser]
+# serverAddress =
+gatherUsageStats = false
+# serverPort =
+
+[mapbox]
+# token =
+
+[theme.light]
+# base =
+primaryColor = "#1D4A6B"
+backgroundColor = "#CDCDC8"
+secondaryBackgroundColor = "#2A6FA1"
+textColor = "#00000"
+# redColor =
+# orangeColor =
+# yellowColor =
+# blueColor =
+# greenColor =
+# violetColor =
+# grayColor =
+# redBackgroundColor =
+# orangeBackgroundColor =
+# yellowBackgroundColor =
+# blueBackgroundColor =
+# greenBackgroundColor =
+# violetBackgroundColor =
+# grayBackgroundColor =
+# redTextColor =
+# orangeTextColor =
+# yellowTextColor =
+# blueTextColor =
+# greenTextColor =
+# violetTextColor =
+# grayTextColor =
+# linkColor =
+# linkUnderline =
+# codeTextColor =
+# codeBackgroundColor =
+# font =
+# fontFaces =
+# baseFontSize =
+# baseFontWeight =
+# headingFont =
+# headingFontSizes =
+# headingFontWeights =
+# codeFont =
+# codeFontSize =
+# codeFontWeight =
+# baseRadius =
+# buttonRadius =
+# borderColor =
+# dataframeBorderColor =
+# dataframeHeaderBackgroundColor =
+# showWidgetBorder =
+# showSidebarBorder =
+# chartCategoricalColors =
+# chartSequentialColors =
+
+[theme.dark]
+# base =
+primaryColor = "#368AC8"
+backgroundColor = "#282a36"
+secondaryBackgroundColor = "#44475a"
+textColor = "#f8f8f2"
+# redColor =
+# orangeColor =
+# yellowColor =
+# blueColor =
+# greenColor =
+# violetColor =
+# grayColor =
+# redBackgroundColor =
+# orangeBackgroundColor =
+# yellowBackgroundColor =
+# blueBackgroundColor =
+# greenBackgroundColor =
+# violetBackgroundColor =
+# grayBackgroundColor =
+# redTextColor =
+# orangeTextColor =
+# yellowTextColor =
+# blueTextColor =
+# greenTextColor =
+# violetTextColor =
+# grayTextColor =
+# linkColor =
+# linkUnderline =
+# codeTextColor =
+# codeBackgroundColor =
+# font =
+# fontFaces =
+# baseFontSize =
+# baseFontWeight =
+# headingFont =
+# headingFontSizes =
+# headingFontWeights =
+# codeFont =
+# codeFontSize =
+# codeFontWeight =
+# baseRadius =
+# buttonRadius =
+# borderColor =
+# dataframeBorderColor =
+# dataframeHeaderBackgroundColor =
+# showWidgetBorder =
+# showSidebarBorder =
+# chartCategoricalColors =
+# chartSequentialColors =
+
+[theme.sidebar]
+# primaryColor =
+# backgroundColor =
+# secondaryBackgroundColor =
+# textColor =
+# redColor =
+# orangeColor =
+# yellowColor =
+# blueColor =
+# greenColor =
+# violetColor =
+# grayColor =
+# redBackgroundColor =
+# orangeBackgroundColor =
+# yellowBackgroundColor =
+# blueBackgroundColor =
+# greenBackgroundColor =
+# violetBackgroundColor =
+# grayBackgroundColor =
+# redTextColor =
+# orangeTextColor =
+# yellowTextColor =
+# blueTextColor =
+# greenTextColor =
+# violetTextColor =
+# grayTextColor =
+# linkColor =
+# linkUnderline =
+# codeTextColor =
+# codeBackgroundColor =
+# font =
+# headingFont =
+# headingFontSizes =
+# headingFontWeights =
+# codeFont =
+# codeFontSize =
+# codeFontWeight =
+# baseRadius =
+# buttonRadius =
+# borderColor =
+# dataframeBorderColor =
+# dataframeHeaderBackgroundColor =
+# showWidgetBorder =
