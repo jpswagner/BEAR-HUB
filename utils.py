@@ -389,7 +389,10 @@ def path_picker(label: str, key: str, mode: str = "dir",
     """
     col1, col2 = st.columns([7, 2])
     with col1:
-        val = st.text_input(label, value=st.session_state.get(key, start or ""), key=key, help=help)
+        if key in st.session_state:
+            val = st.text_input(label, key=key, help=help)
+        else:
+            val = st.text_input(label, value=start or "", key=key, help=help)
         try:
             if val:
                 val_abs = str(pathlib.Path(val).expanduser().resolve())

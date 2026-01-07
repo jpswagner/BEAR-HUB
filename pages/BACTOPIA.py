@@ -84,8 +84,6 @@ if env_out:
 else:
     DEFAULT_OUTDIR = str((BASE_DIR / "bactopia_out").resolve())
 
-st.session_state.setdefault("outdir", DEFAULT_OUTDIR)
-
 # Guarantee NXF_HOME on module load
 utils.ensure_nxf_home()
 
