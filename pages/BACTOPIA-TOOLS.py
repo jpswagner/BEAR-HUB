@@ -343,9 +343,6 @@ help_popover("❓ Help", HELP["amostras"])
 bt_root_default = utils.guess_bactopia_root_default(PROJECT_ROOT)
 
 # bt_outdir is initially defined only here, so we don't fight with the widget
-if "bt_outdir" not in st.session_state or not st.session_state["bt_outdir"]:
-    st.session_state["bt_outdir"] = bt_root_default
-
 bt_outdir = utils.path_picker(
     "Bactopia results folder",
     key="bt_outdir",
@@ -385,7 +382,6 @@ if samples:
     sel = st.multiselect(
         "Samples",
         options=samples,
-        default=default_sel,
         key="bt_selected_samples",
     )
 else:
