@@ -662,11 +662,36 @@ with st.expander("Generate FOFN", expanded=False):
             key="fofn_species",
         )
     with cB:
-        gsize_in = st.text_input(
+        # Predefined sizes from utils.GENOME_SIZES plus a Custom option
+        _gsize_opts = ["(Select or Custom)"] + utils.GENOME_SIZES + ["Custom"]
+        _gsize_sel = st.selectbox(
             "genome_size (optional)",
-            value=st.session_state.get("fofn_gsize", "0"),
-            key="fofn_gsize",
+            options=_gsize_opts,
+            index=0,
+            key="_fofn_gsize_select",
+            help="Select a common genome size or enter a custom value (e.g., '2.8m' or bytes).",
         )
+        if _gsize_sel == "Custom":
+            gsize_in = st.text_input(
+                "Custom genome size",
+                value=st.session_state.get("fofn_gsize", "0"),
+                key="fofn_gsize",
+            )
+        elif _gsize_sel and _gsize_sel != "(Select or Custom)":
+            # Convert "2.0 Mb" -> "2000000" approx, or just pass the string if Bactopia accepts it.
+            # Bactopia usually expects an integer (bytes) or string with unit.
+            # We will strip " Mb" and multiply by 1,000,000 for safety, as '2.0 Mb' string might not be parsed correctly by all tools.
+            try:
+                val_float = float(_gsize_sel.replace(" Mb", ""))
+                gsize_in = str(int(val_float * 1000000))
+            except Exception:
+                gsize_in = _gsize_sel
+            # Update the underlying key used by the scanner
+            st.session_state["fofn_gsize"] = gsize_in
+        else:
+            # Fallback or empty
+            gsize_in = st.session_state.get("fofn_gsize", "0")
+
     with cC:
         st.checkbox("Include assemblies (FASTA)", value=True, key="fofn_include_assemblies")
 
@@ -949,15 +974,18 @@ with st.expander("Assembler & Polishing Settings", expanded=False):
     st.divider()
 
     st.markdown("**General Assembly Options**")
+    # Ensuring 5 columns are allocated
     gc1, gc2, gc3, gc4, gc5 = st.columns(5)
     with gc1:
         st.number_input("Min Contig Len", min_value=0, value=500, key="min_contig_len", help="--min_contig_len")
     with gc2:
-        st.number_input("Min Coverage", min_value=0, value=2, key="min_contig_cov", help="--min_contig_cov")
+        st.number_input("Min Coverage", min_value=0, value=10, key="min_contig_cov", help="--min_contig_cov")
     with gc3:
         st.checkbox("--reassemble", value=False, key="reassemble", help="Re-assemble simulated reads")
     with gc4:
         st.checkbox("--no_rotate", value=False, key="no_rotate", help="Do not rotate to start gene")
+    with gc5:
+        st.checkbox("--skip_qc_plot", value=True, key="skip_qc_plot", help="Skip the QC plot generation")
 
     st.divider()
 
@@ -999,6 +1027,30 @@ with st.expander("Assembler & Polishing Settings", expanded=False):
         uni_parts.append(st.session_state["unicycler_extra"].strip())
     unicycler_opts_value = " ".join(uni_parts)
     st.caption(f"unicycler_opts: `{unicycler_opts_value}`")
+
+# ============================= Annotation & Typing (AMRFinder+ / MLST) =============================
+
+with st.expander("Annotation & Typing (AMRFinder+ / MLST)", expanded=False):
+    st.markdown("#### AMRFinder+")
+    amr1, amr2, amr3 = st.columns(3)
+    with amr1:
+        st.number_input("--ident_min (AMRFinder)", 0.0, 100.0, 90.0, 0.5, key="amr_ident_min")
+    with amr2:
+        st.number_input("--coverage_min (AMRFinder)", 0.0, 100.0, 60.0, 0.5, key="amr_coverage_min")
+    with amr3:
+        st.number_input("--minscore (AMRFinder)", 0.0, 100.0, 50.0, 0.5, key="amr_minscore")
+
+    st.divider()
+
+    st.markdown("#### MLST")
+    # Use utils.MLST_SCHEMES for the dropdown
+    st.selectbox(
+        "Scheme (--scheme)",
+        options=["(auto/none)"] + utils.MLST_SCHEMES,
+        index=0,
+        key="mlst_scheme",
+        help="Specify an MLST scheme. Leave as (auto/none) to skip or use default detection."
+    )
 
 # ============================= Extra params + reports =============================
 
@@ -1147,8 +1199,30 @@ if st.session_state.get("min_contig_len") != 500:
 if st.session_state.get("min_contig_cov") != 2:
     af.append(f"--min_contig_cov {st.session_state.get('min_contig_cov')}")
 
+if st.session_state.get("skip_qc_plot"):
+    af.append("--skip_qc_plot")
+
 if st.session_state.get("no_polish"):
     af.append("--no_polish")
+
+# AMRFinder+ params
+# We compare against the tool's underlying defaults (not our UI defaults) to ensure flags are passed when needed.
+# Default ident_min is 90.0 (so pass if changed)
+if st.session_state.get("amr_ident_min") != 90.0:
+    af.append(f"--amrfinderplus_ident_min {st.session_state.get('amr_ident_min')}")
+# Default coverage_min is usually 50.0. Our UI default is 60.0.
+# If it is not 50.0, we pass the flag. This ensures 60.0 is passed.
+if st.session_state.get("amr_coverage_min") != 50.0:
+    af.append(f"--amrfinderplus_coverage_min {st.session_state.get('amr_coverage_min')}")
+# Default minscore is usually 0 or unset. Our UI default is 50.0.
+# We pass it if it is > 0 to be safe.
+if st.session_state.get("amr_minscore", 0) > 0:
+        af.append(f"--amrfinderplus_minscore {st.session_state.get('amr_minscore')}")
+
+# MLST params
+_scheme = st.session_state.get("mlst_scheme")
+if _scheme and _scheme != "(auto/none)":
+    af.append(f"--scheme {shlex.quote(_scheme)}")
 
 # Polishing rounds (only add if diff from defaults or explicit)
 # Defaults: polypolish=1, racon=1. pilon/medaka usually conditional/0.

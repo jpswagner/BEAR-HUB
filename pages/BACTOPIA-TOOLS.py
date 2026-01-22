@@ -461,7 +461,7 @@ if st.session_state.get("bt_run_amrfinderplus"):
             "--coverage_min",
             0.0,
             100.0,
-            value=st.session_state.get("bt_amrfinderplus_coverage_min", 50.0),
+            value=st.session_state.get("bt_amrfinderplus_coverage_min", 60.0),
             step=0.5,
             key="bt_amrfinderplus_coverage_min",
         )
@@ -470,6 +470,14 @@ if st.session_state.get("bt_run_amrfinderplus"):
             "--organism (e.g. Enterobacteriaceae)",
             value=st.session_state.get("bt_amrfinderplus_organism", ""),
             key="bt_amrfinderplus_organism",
+        )
+        st.number_input(
+            "--minscore",
+            0.0,
+            100.0,
+            value=st.session_state.get("bt_amrfinderplus_minscore", 50.0),
+            step=0.5,
+            key="bt_amrfinderplus_minscore",
         )
     c4, c5, c6 = st.columns(3)
     with c4:
@@ -543,7 +551,13 @@ if st.session_state.get("bt_run_mlst"):
     help_header("**MLST — options**", "mlst")
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
-        st.text_input("--scheme", value=st.session_state.get("bt_mlst_scheme", ""), key="bt_mlst_scheme")
+        st.selectbox(
+            "--scheme",
+            options=["(auto/none)"] + utils.MLST_SCHEMES,
+            index=0,
+            key="bt_mlst_scheme",
+            help="Select an MLST scheme (start typing to search)."
+        )
     with c2:
         st.number_input(
             "--minid",
@@ -1074,6 +1088,9 @@ if start_tools:
                     v = (st.session_state.get("bt_amrfinderplus_organism", "")).strip()
                     if v:
                         extra += ["--amrfinderplus_organism", v]
+                    v = st.session_state.get("bt_amrfinderplus_minscore")
+                    if v not in (None, ""):
+                        extra += ["--amrfinderplus_minscore", str(v)]
                     if st.session_state.get("bt_amrfinderplus_report_common"):
                         extra.append("--amrfinderplus_report_common")
                     if st.session_state.get("bt_amrfinderplus_report_all_equal_best"):
@@ -1124,8 +1141,8 @@ if start_tools:
                 # MLST
                 if st.session_state.get("bt_run_mlst"):
                     extra = []
-                    v = (st.session_state.get("bt_mlst_scheme", "")).strip()
-                    if v:
+                    v = st.session_state.get("bt_mlst_scheme")
+                    if v and v != "(auto/none)":
                         extra += ["--scheme", v]
                     v = st.session_state.get("bt_mlst_minid")
                     if v not in (None, ""):
