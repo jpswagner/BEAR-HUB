@@ -452,17 +452,17 @@ if st.session_state.get("bt_run_amrfinderplus"):
         st.number_input(
             "--ident_min",
             0.0,
-            100.0,
-            value=st.session_state.get("bt_amrfinderplus_ident_min", 90.0),
-            step=0.5,
+            1.0,
+            value=st.session_state.get("bt_amrfinderplus_ident_min", 0.9),
+            step=0.01,
             key="bt_amrfinderplus_ident_min",
         )
         st.number_input(
             "--coverage_min",
             0.0,
-            100.0,
-            value=st.session_state.get("bt_amrfinderplus_coverage_min", 60.0),
-            step=0.5,
+            1.0,
+            value=st.session_state.get("bt_amrfinderplus_coverage_min", 0.6),
+            step=0.01,
             key="bt_amrfinderplus_coverage_min",
         )
     with c3:
@@ -474,9 +474,9 @@ if st.session_state.get("bt_run_amrfinderplus"):
         st.number_input(
             "--minscore",
             0.0,
-            100.0,
+            1000.0,
             value=st.session_state.get("bt_amrfinderplus_minscore", 50.0),
-            step=0.5,
+            step=1.0,
             key="bt_amrfinderplus_minscore",
         )
     c4, c5, c6 = st.columns(3)
@@ -1143,7 +1143,7 @@ if start_tools:
                     extra = []
                     v = st.session_state.get("bt_mlst_scheme")
                     if v and v != "(auto/none)":
-                        extra += ["--scheme", v]
+                        extra += ["--scheme", shlex.quote(v)]
                     v = st.session_state.get("bt_mlst_minid")
                     if v not in (None, ""):
                         extra += ["--minid", str(v)]

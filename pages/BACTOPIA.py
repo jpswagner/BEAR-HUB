@@ -1034,11 +1034,11 @@ with st.expander("Annotation & Typing (AMRFinder+ / MLST)", expanded=False):
     st.markdown("#### AMRFinder+")
     amr1, amr2, amr3 = st.columns(3)
     with amr1:
-        st.number_input("--ident_min (AMRFinder)", 0.0, 100.0, 90.0, 0.5, key="amr_ident_min")
+        st.number_input("--ident_min (AMRFinder)", 0.0, 1.0, 0.9, 0.01, key="amr_ident_min")
     with amr2:
-        st.number_input("--coverage_min (AMRFinder)", 0.0, 100.0, 60.0, 0.5, key="amr_coverage_min")
+        st.number_input("--coverage_min (AMRFinder)", 0.0, 1.0, 0.6, 0.01, key="amr_coverage_min")
     with amr3:
-        st.number_input("--minscore (AMRFinder)", 0.0, 100.0, 50.0, 0.5, key="amr_minscore")
+        st.number_input("--minscore (AMRFinder)", 0.0, 1000.0, 50.0, 1.0, key="amr_minscore")
 
     st.divider()
 
@@ -1208,12 +1208,12 @@ if st.session_state.get("no_polish"):
 
 # AMRFinder+ params
 # We compare against the tool's underlying defaults (not our UI defaults) to ensure flags are passed when needed.
-# Default ident_min is 90.0 (so pass if changed)
-if st.session_state.get("amr_ident_min") != 90.0:
+# Default ident_min is 0.9 (so pass if changed)
+if st.session_state.get("amr_ident_min") != 0.9:
     af.extend(["--amrfinderplus_ident_min", str(st.session_state.get("amr_ident_min"))])
-# Default coverage_min is usually 50.0. Our UI default is 60.0.
-# If it is not 50.0, we pass the flag. This ensures 60.0 is passed.
-if st.session_state.get("amr_coverage_min") != 50.0:
+# Default coverage_min is usually 0.5. Our UI default is 0.6.
+# If it is not 0.5, we pass the flag. This ensures 0.6 is passed.
+if st.session_state.get("amr_coverage_min") != 0.5:
     af.extend(["--amrfinderplus_coverage_min", str(st.session_state.get("amr_coverage_min"))])
 # Default minscore is usually 0 or unset. Our UI default is 50.0.
 # We pass it if it is > 0 to be safe.
@@ -1223,8 +1223,9 @@ if st.session_state.get("amr_minscore", 0) > 0:
 # MLST params
 _scheme = st.session_state.get("mlst_scheme")
 if _scheme and _scheme != "(auto/none)":
-    # Do NOT use shlex.quote here; the final command builder will quote the list element.
-    af.extend(["--scheme", str(_scheme)])
+    # Explicitly quote the value so it survives Nextflow's shell handling if it has spaces
+    # 'A B' -> "'A B'" -> passed to command as one token containing quotes.
+    af.extend(["--scheme", shlex.quote(_scheme)])
 
 # Polishing rounds (only add if diff from defaults or explicit)
 # Defaults: polypolish=1, racon=1. pilon/medaka usually conditional/0.
