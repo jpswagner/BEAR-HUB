@@ -1174,17 +1174,18 @@ elif hyb == "Dragonflye (--short_polish)":
     af.append("--short_polish")
 
 if st.session_state.get("shovill_assembler") and st.session_state.get("shovill_assembler") != "skesa":
-    af.append(f"--shovill_assembler {st.session_state['shovill_assembler']}")
+    af.extend(["--shovill_assembler", str(st.session_state["shovill_assembler"])])
 
 if st.session_state.get("dragonflye_assembler") and st.session_state.get("dragonflye_assembler") != "flye":
-    af.append(f"--dragonflye_assembler {st.session_state['dragonflye_assembler']}")
+    af.extend(["--dragonflye_assembler", str(st.session_state["dragonflye_assembler"])])
 
 if st.session_state.get("shovill_opts"):
-    af.append(f"--shovill_opts {shlex.quote(st.session_state['shovill_opts'])}")
+    # opts are strings that might contain spaces; they are one argument to the flag
+    af.extend(["--shovill_opts", str(st.session_state["shovill_opts"])])
 if st.session_state.get("shovill_kmers"):
-    af.append(f"--shovill_kmers {shlex.quote(st.session_state['shovill_kmers'])}")
+    af.extend(["--shovill_kmers", str(st.session_state["shovill_kmers"])])
 if st.session_state.get("dragonflye_opts"):
-    af.append(f"--dragonflye_opts {shlex.quote(st.session_state['dragonflye_opts'])}")
+    af.extend(["--dragonflye_opts", str(st.session_state["dragonflye_opts"])])
 
 if st.session_state.get("trim"): af.append("--trim")
 if st.session_state.get("no_stitch"): af.append("--no_stitch")
@@ -1195,9 +1196,9 @@ if st.session_state.get("reassemble"): af.append("--reassemble")
 if st.session_state.get("no_rotate"): af.append("--no_rotate")
 
 if st.session_state.get("min_contig_len") != 500:
-    af.append(f"--min_contig_len {st.session_state.get('min_contig_len')}")
+    af.extend(["--min_contig_len", str(st.session_state.get("min_contig_len"))])
 if st.session_state.get("min_contig_cov") != 2:
-    af.append(f"--min_contig_cov {st.session_state.get('min_contig_cov')}")
+    af.extend(["--min_contig_cov", str(st.session_state.get("min_contig_cov"))])
 
 if st.session_state.get("skip_qc_plot"):
     af.append("--skip_qc_plot")
@@ -1209,33 +1210,34 @@ if st.session_state.get("no_polish"):
 # We compare against the tool's underlying defaults (not our UI defaults) to ensure flags are passed when needed.
 # Default ident_min is 90.0 (so pass if changed)
 if st.session_state.get("amr_ident_min") != 90.0:
-    af.append(f"--amrfinderplus_ident_min {st.session_state.get('amr_ident_min')}")
+    af.extend(["--amrfinderplus_ident_min", str(st.session_state.get("amr_ident_min"))])
 # Default coverage_min is usually 50.0. Our UI default is 60.0.
 # If it is not 50.0, we pass the flag. This ensures 60.0 is passed.
 if st.session_state.get("amr_coverage_min") != 50.0:
-    af.append(f"--amrfinderplus_coverage_min {st.session_state.get('amr_coverage_min')}")
+    af.extend(["--amrfinderplus_coverage_min", str(st.session_state.get("amr_coverage_min"))])
 # Default minscore is usually 0 or unset. Our UI default is 50.0.
 # We pass it if it is > 0 to be safe.
 if st.session_state.get("amr_minscore", 0) > 0:
-        af.append(f"--amrfinderplus_minscore {st.session_state.get('amr_minscore')}")
+    af.extend(["--amrfinderplus_minscore", str(st.session_state.get("amr_minscore"))])
 
 # MLST params
 _scheme = st.session_state.get("mlst_scheme")
 if _scheme and _scheme != "(auto/none)":
-    af.append(f"--scheme {shlex.quote(_scheme)}")
+    # Do NOT use shlex.quote here; the final command builder will quote the list element.
+    af.extend(["--scheme", str(_scheme)])
 
 # Polishing rounds (only add if diff from defaults or explicit)
 # Defaults: polypolish=1, racon=1. pilon/medaka usually conditional/0.
 if st.session_state.get("polypolish_rounds", 1) != 1:
-    af.append(f"--polypolish_rounds {st.session_state.get('polypolish_rounds')}")
+    af.extend(["--polypolish_rounds", str(st.session_state.get("polypolish_rounds"))])
 if st.session_state.get("pilon_rounds", 0) > 0:
-    af.append(f"--pilon_rounds {st.session_state.get('pilon_rounds')}")
+    af.extend(["--pilon_rounds", str(st.session_state.get("pilon_rounds"))])
 if st.session_state.get("racon_rounds", 1) != 1:
-    af.append(f"--racon_rounds {st.session_state.get('racon_rounds')}")
+    af.extend(["--racon_rounds", str(st.session_state.get("racon_rounds"))])
 if st.session_state.get("medaka_rounds", 0) > 0:
-    af.append(f"--medaka_rounds {st.session_state.get('medaka_rounds')}")
+    af.extend(["--medaka_rounds", str(st.session_state.get("medaka_rounds"))])
 if st.session_state.get("medaka_model"):
-    af.append(f"--medaka_model {st.session_state.get('medaka_model')}")
+    af.extend(["--medaka_model", str(st.session_state.get("medaka_model"))])
 
 params["assembler_flags"] = af
 
