@@ -1221,9 +1221,8 @@ if _scheme_disp and _scheme_disp != "(auto/none)":
     # Retrieve the code from the map
     _code = utils.MLST_SCHEMES.get(_scheme_disp)
     if _code:
-        # User requested explicitly one pair of quotes around the value in the final command.
-        # e.g. --scheme "kpneumoniae"
-        af.extend(["--scheme", f'"{_code}"'])
+        # Wrap in single quotes as requested
+        af.extend(["--scheme", f"'{_code}'"])
 
 # Polishing rounds (only add if diff from defaults or explicit)
 # Defaults: polypolish=1, racon=1. pilon/medaka usually conditional/0.
