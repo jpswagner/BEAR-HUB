@@ -1032,11 +1032,13 @@ with st.expander("Assembler & Polishing Settings", expanded=False):
 
 with st.expander("Annotation & Typing (AMRFinder+ / MLST)", expanded=False):
     st.markdown("#### AMRFinder+")
-    amr1, amr2, amr3 = st.columns(3)
+    amr1, amr2 = st.columns(2)
     with amr1:
         st.number_input("--ident_min (AMRFinder)", 0.0, 1.0, 0.9, 0.01, key="amr_ident_min")
     with amr2:
         st.number_input("--coverage_min (AMRFinder)", 0.0, 1.0, 0.6, 0.01, key="amr_coverage_min")
+
+    st.number_input("--minscore (AMRFinder)", 0.0, 1000.0, 50.0, 1.0, key="amr_minscore", help="Minimum score to report a hit (default: 50)")
 
     st.divider()
 
@@ -1214,6 +1216,9 @@ if st.session_state.get("amr_ident_min") != -1:
 # If it is not 0.5, we pass the flag. This ensures 0.6 is passed.
 if st.session_state.get("amr_coverage_min") != 0.5:
     af.extend(["--amrfinderplus_coverage_min", str(st.session_state.get("amr_coverage_min"))])
+# Default minscore is 50.0 (as requested). Pass only if changed.
+if st.session_state.get("amr_minscore") != 50.0:
+    af.extend(["--amrfinderplus_minscore", str(st.session_state.get("amr_minscore"))])
 
 # MLST params
 _scheme_disp = st.session_state.get("mlst_scheme_display")
@@ -1222,6 +1227,10 @@ if _scheme_disp and _scheme_disp != "(auto/none)":
     _code = utils.MLST_SCHEMES.get(_scheme_disp)
     if _code:
         # Pass the code directly. No quotes needed for single-word codes.
+        # Use utils.run_cmd's quoting mechanism, we pass the raw string.
+        # For standard shell args with spaces, shlex will quote it.
+        # But mlst codes like 'kpneumoniae' have no spaces, so no quotes in display.
+        # This is correct.
         af.extend(["--scheme", _code])
 
 # Polishing rounds (only add if diff from defaults or explicit)

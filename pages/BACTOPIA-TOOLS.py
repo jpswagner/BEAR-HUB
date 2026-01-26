@@ -471,6 +471,14 @@ if st.session_state.get("bt_run_amrfinderplus"):
             value=st.session_state.get("bt_amrfinderplus_organism", ""),
             key="bt_amrfinderplus_organism",
         )
+        st.number_input(
+            "--minscore",
+            0.0,
+            1000.0,
+            value=st.session_state.get("bt_amrfinderplus_minscore", 50.0),
+            step=1.0,
+            key="bt_amrfinderplus_minscore",
+        )
     c4, c5, c6 = st.columns(3)
     with c4:
         st.checkbox(
@@ -1080,6 +1088,9 @@ if start_tools:
                     v = (st.session_state.get("bt_amrfinderplus_organism", "")).strip()
                     if v:
                         extra += ["--amrfinderplus_organism", v]
+                    v = st.session_state.get("bt_amrfinderplus_minscore")
+                    if v is not None and float(v) != 50.0:
+                        extra += ["--amrfinderplus_minscore", str(v)]
                     if st.session_state.get("bt_amrfinderplus_report_common"):
                         extra.append("--amrfinderplus_report_common")
                     if st.session_state.get("bt_amrfinderplus_report_all_equal_best"):
@@ -1134,6 +1145,7 @@ if start_tools:
                     if v_disp and v_disp != "(auto/none)":
                         v_code = utils.MLST_SCHEMES.get(v_disp)
                         if v_code:
+                            # Pass raw code (no manual quoting)
                             extra += ["--scheme", v_code]
                     v = st.session_state.get("bt_mlst_minid")
                     if v not in (None, ""):
