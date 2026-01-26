@@ -1221,8 +1221,9 @@ if _scheme_disp and _scheme_disp != "(auto/none)":
     # Retrieve the code from the map
     _code = utils.MLST_SCHEMES.get(_scheme_disp)
     if _code:
-        # Wrap in single quotes as requested
-        af.extend(["--scheme", f"'{_code}'"])
+        # Pass the code directly. No quotes needed for single-word codes.
+        # utils.run_cmd will handle shell quoting (e.g. 'kpneumoniae').
+        af.extend(["--scheme", _code])
 
 # Polishing rounds (only add if diff from defaults or explicit)
 # Defaults: polypolish=1, racon=1. pilon/medaka usually conditional/0.

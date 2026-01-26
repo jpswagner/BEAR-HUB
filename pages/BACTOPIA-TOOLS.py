@@ -1134,8 +1134,8 @@ if start_tools:
                     if v_disp and v_disp != "(auto/none)":
                         v_code = utils.MLST_SCHEMES.get(v_disp)
                         if v_code:
-                            # Pass code wrapped in single quotes
-                            extra += ["--scheme", f"'{v_code}'"]
+                            # Pass raw code (no manual quoting)
+                            extra += ["--scheme", v_code]
                     v = st.session_state.get("bt_mlst_minid")
                     if v not in (None, ""):
                         extra += ["--minid", str(v)]
