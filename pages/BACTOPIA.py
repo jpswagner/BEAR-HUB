@@ -1041,12 +1041,13 @@ with st.expander("Annotation & Typing (AMRFinder+ / MLST)", expanded=False):
     st.divider()
 
     st.markdown("#### MLST")
-    # Use utils.MLST_SCHEMES for the dropdown
+    # Use utils.MLST_SCHEMES keys for the dropdown (Display Names)
+    _mlst_opts = ["(auto/none)"] + sorted(utils.MLST_SCHEMES.keys())
     st.selectbox(
         "Scheme (--scheme)",
-        options=["(auto/none)"] + utils.MLST_SCHEMES,
+        options=_mlst_opts,
         index=0,
-        key="mlst_scheme",
+        key="mlst_scheme_display",
         help="Specify an MLST scheme. Leave as (auto/none) to skip or use default detection."
     )
 
@@ -1178,13 +1179,12 @@ if st.session_state.get("dragonflye_assembler") and st.session_state.get("dragon
     af.extend(["--dragonflye_assembler", str(st.session_state["dragonflye_assembler"])])
 
 if st.session_state.get("shovill_opts"):
-    # opts are strings that might contain spaces; they are one argument to the flag
-    # We wrap them in double quotes to preserve spaces, consistent with MLST scheme handling.
-    af.extend(["--shovill_opts", f'"{st.session_state["shovill_opts"]}"'])
+    # Pass the raw string; utils.run_cmd handles quoting of arguments.
+    af.extend(["--shovill_opts", str(st.session_state["shovill_opts"])])
 if st.session_state.get("shovill_kmers"):
-    af.extend(["--shovill_kmers", f'"{st.session_state["shovill_kmers"]}"'])
+    af.extend(["--shovill_kmers", str(st.session_state["shovill_kmers"])])
 if st.session_state.get("dragonflye_opts"):
-    af.extend(["--dragonflye_opts", f'"{st.session_state["dragonflye_opts"]}"'])
+    af.extend(["--dragonflye_opts", str(st.session_state["dragonflye_opts"])])
 
 if st.session_state.get("trim"): af.append("--trim")
 if st.session_state.get("no_stitch"): af.append("--no_stitch")
@@ -1216,11 +1216,13 @@ if st.session_state.get("amr_coverage_min") != 0.5:
     af.extend(["--amrfinderplus_coverage_min", str(st.session_state.get("amr_coverage_min"))])
 
 # MLST params
-_scheme = st.session_state.get("mlst_scheme")
-if _scheme and _scheme != "(auto/none)":
-    # Use double quotes for cleaner shell output while preserving spaces.
-    # e.g. "Klebsiella pneumoniae"
-    af.extend(["--scheme", f'"{_scheme}"'])
+_scheme_disp = st.session_state.get("mlst_scheme_display")
+if _scheme_disp and _scheme_disp != "(auto/none)":
+    # Retrieve the code from the map
+    _code = utils.MLST_SCHEMES.get(_scheme_disp)
+    if _code:
+        # Pass the code directly. No quotes needed for single-word codes.
+        af.extend(["--scheme", _code])
 
 # Polishing rounds (only add if diff from defaults or explicit)
 # Defaults: polypolish=1, racon=1. pilon/medaka usually conditional/0.

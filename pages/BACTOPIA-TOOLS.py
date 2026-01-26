@@ -545,9 +545,9 @@ if st.session_state.get("bt_run_mlst"):
     with c1:
         st.selectbox(
             "--scheme",
-            options=["(auto/none)"] + utils.MLST_SCHEMES,
+            options=["(auto/none)"] + sorted(utils.MLST_SCHEMES.keys()),
             index=0,
-            key="bt_mlst_scheme",
+            key="bt_mlst_scheme_display",
             help="Select an MLST scheme (start typing to search)."
         )
     with c2:
@@ -1130,9 +1130,11 @@ if start_tools:
                 # MLST
                 if st.session_state.get("bt_run_mlst"):
                     extra = []
-                    v = st.session_state.get("bt_mlst_scheme")
-                    if v and v != "(auto/none)":
-                        extra += ["--scheme", f'"{v}"']
+                    v_disp = st.session_state.get("bt_mlst_scheme_display")
+                    if v_disp and v_disp != "(auto/none)":
+                        v_code = utils.MLST_SCHEMES.get(v_disp)
+                        if v_code:
+                            extra += ["--scheme", v_code]
                     v = st.session_state.get("bt_mlst_minid")
                     if v not in (None, ""):
                         extra += ["--minid", str(v)]
