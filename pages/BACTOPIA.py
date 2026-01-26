@@ -1037,8 +1037,6 @@ with st.expander("Annotation & Typing (AMRFinder+ / MLST)", expanded=False):
         st.number_input("--ident_min (AMRFinder)", 0.0, 1.0, 0.9, 0.01, key="amr_ident_min")
     with amr2:
         st.number_input("--coverage_min (AMRFinder)", 0.0, 1.0, 0.6, 0.01, key="amr_coverage_min")
-    with amr3:
-        st.number_input("--minscore (AMRFinder)", 0.0, 1000.0, 50.0, 1.0, key="amr_minscore")
 
     st.divider()
 
@@ -1181,11 +1179,12 @@ if st.session_state.get("dragonflye_assembler") and st.session_state.get("dragon
 
 if st.session_state.get("shovill_opts"):
     # opts are strings that might contain spaces; they are one argument to the flag
-    af.extend(["--shovill_opts", str(st.session_state["shovill_opts"])])
+    # We wrap them in double quotes to preserve spaces, consistent with MLST scheme handling.
+    af.extend(["--shovill_opts", f'"{st.session_state["shovill_opts"]}"'])
 if st.session_state.get("shovill_kmers"):
-    af.extend(["--shovill_kmers", str(st.session_state["shovill_kmers"])])
+    af.extend(["--shovill_kmers", f'"{st.session_state["shovill_kmers"]}"'])
 if st.session_state.get("dragonflye_opts"):
-    af.extend(["--dragonflye_opts", str(st.session_state["dragonflye_opts"])])
+    af.extend(["--dragonflye_opts", f'"{st.session_state["dragonflye_opts"]}"'])
 
 if st.session_state.get("trim"): af.append("--trim")
 if st.session_state.get("no_stitch"): af.append("--no_stitch")
@@ -1208,24 +1207,20 @@ if st.session_state.get("no_polish"):
 
 # AMRFinder+ params
 # We compare against the tool's underlying defaults (not our UI defaults) to ensure flags are passed when needed.
-# Default ident_min is 0.9 (so pass if changed)
-if st.session_state.get("amr_ident_min") != 0.9:
+# Default ident_min is -1 (per docs), so pass if different (e.g. our 0.9 default).
+if st.session_state.get("amr_ident_min") != -1:
     af.extend(["--amrfinderplus_ident_min", str(st.session_state.get("amr_ident_min"))])
-# Default coverage_min is usually 0.5. Our UI default is 0.6.
+# Default coverage_min is 0.5 (per docs). Our UI default is 0.6.
 # If it is not 0.5, we pass the flag. This ensures 0.6 is passed.
 if st.session_state.get("amr_coverage_min") != 0.5:
     af.extend(["--amrfinderplus_coverage_min", str(st.session_state.get("amr_coverage_min"))])
-# Default minscore is usually 0 or unset. Our UI default is 50.0.
-# We pass it if it is > 0 to be safe.
-if st.session_state.get("amr_minscore", 0) > 0:
-    af.extend(["--amrfinderplus_minscore", str(st.session_state.get("amr_minscore"))])
 
 # MLST params
 _scheme = st.session_state.get("mlst_scheme")
 if _scheme and _scheme != "(auto/none)":
-    # Explicitly quote the value so it survives Nextflow's shell handling if it has spaces
-    # 'A B' -> "'A B'" -> passed to command as one token containing quotes.
-    af.extend(["--scheme", shlex.quote(_scheme)])
+    # Use double quotes for cleaner shell output while preserving spaces.
+    # e.g. "Klebsiella pneumoniae"
+    af.extend(["--scheme", f'"{_scheme}"'])
 
 # Polishing rounds (only add if diff from defaults or explicit)
 # Defaults: polypolish=1, racon=1. pilon/medaka usually conditional/0.

@@ -471,14 +471,6 @@ if st.session_state.get("bt_run_amrfinderplus"):
             value=st.session_state.get("bt_amrfinderplus_organism", ""),
             key="bt_amrfinderplus_organism",
         )
-        st.number_input(
-            "--minscore",
-            0.0,
-            1000.0,
-            value=st.session_state.get("bt_amrfinderplus_minscore", 50.0),
-            step=1.0,
-            key="bt_amrfinderplus_minscore",
-        )
     c4, c5, c6 = st.columns(3)
     with c4:
         st.checkbox(
@@ -1088,9 +1080,6 @@ if start_tools:
                     v = (st.session_state.get("bt_amrfinderplus_organism", "")).strip()
                     if v:
                         extra += ["--amrfinderplus_organism", v]
-                    v = st.session_state.get("bt_amrfinderplus_minscore")
-                    if v not in (None, ""):
-                        extra += ["--amrfinderplus_minscore", str(v)]
                     if st.session_state.get("bt_amrfinderplus_report_common"):
                         extra.append("--amrfinderplus_report_common")
                     if st.session_state.get("bt_amrfinderplus_report_all_equal_best"):
@@ -1143,7 +1132,7 @@ if start_tools:
                     extra = []
                     v = st.session_state.get("bt_mlst_scheme")
                     if v and v != "(auto/none)":
-                        extra += ["--scheme", shlex.quote(v)]
+                        extra += ["--scheme", f'"{v}"']
                     v = st.session_state.get("bt_mlst_minid")
                     if v not in (None, ""):
                         extra += ["--minid", str(v)]
