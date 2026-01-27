@@ -636,6 +636,24 @@ adds a warning about this in the summary.
 
 st.subheader("Generate FOFN (multiple samples)", help=FOFN_HELP_MD)
 
+GENOME_SIZE_MD = r"""
+### How Genome Size Affects Quality Control
+
+The `genome_size` parameter is the reference point for all data calculations in the QC module. It determines how much data to keep and when to fail a sample.
+
+**1. Calculates the "Subsampling Ceiling"**
+Bactopia multiplies your genome size by the target coverage (Default: 100x).
+* **Action:** Any data exceeding this limit is discarded to prevent assembler memory crashes.
+
+**2. Calculates the "Minimum Floor"**
+Bactopia multiplies your genome size by the minimum required coverage (Default: 20x).
+* **Action:** If a sample has less data than this threshold after cleaning, it is flagged as **FAILED** and assembly is stopped.
+
+**3. Acts as the Subsampling Switch**
+* **Size > 0:** Subsampling is **active**.
+* **Size = 0:** Subsampling is **skipped**. All raw reads are sent to the assembler (High risk of failure for deep sequencing).
+"""
+
 with st.expander("Generate FOFN", expanded=False):
     # Default base: BEAR_HUB_DATA (if any) or BASE_DIR
     base_default = os.getenv("BEAR_HUB_DATA", str(BASE_DIR))
@@ -654,6 +672,7 @@ with st.expander("Generate FOFN", expanded=False):
 
     recursive = st.checkbox("Include subfolders", value=True, key="fofn_recursive")
 
+
     cA, cB, cC = st.columns(3)
     with cA:
         species_in = st.text_input(
@@ -666,31 +685,10 @@ with st.expander("Generate FOFN", expanded=False):
         _gsize_opts = ["(Select or Custom)"] + utils.GENOME_SIZES + ["Custom"]
         _gsize_sel = st.selectbox(
             "genome_size (optional)",
-            options=_gsize_opts,
-            index=0,
-            key="_fofn_gsize_select",
-            help="Select a common genome size or enter a custom value (e.g., '2.8m' or bytes).",
-        )
-        if _gsize_sel == "Custom":
-            gsize_in = st.text_input(
-                "Custom genome size",
-                value=st.session_state.get("fofn_gsize", "0"),
-                key="fofn_gsize",
+            value=st.session_state.get("fofn_gsize", "0"),
+            key="fofn_gsize",
+            help = GENOME_SIZE_MD 
             )
-        elif _gsize_sel and _gsize_sel != "(Select or Custom)":
-            # Convert "2.0 Mb" -> "2000000" approx, or just pass the string if Bactopia accepts it.
-            # Bactopia usually expects an integer (bytes) or string with unit.
-            # We will strip " Mb" and multiply by 1,000,000 for safety, as '2.0 Mb' string might not be parsed correctly by all tools.
-            try:
-                val_float = float(_gsize_sel.replace(" Mb", ""))
-                gsize_in = str(int(val_float * 1000000))
-            except Exception:
-                gsize_in = _gsize_sel
-            # Update the underlying key used by the scanner
-            st.session_state["fofn_gsize"] = gsize_in
-        else:
-            # Fallback or empty
-            gsize_in = st.session_state.get("fofn_gsize", "0")
 
     with cC:
         st.checkbox("Include assemblies (FASTA)", value=True, key="fofn_include_assemblies")
@@ -947,7 +945,7 @@ with st.expander("Assembler & Polishing Settings", expanded=False):
     st.markdown("**Strategies**")
     strat_col1, strat_col2 = st.columns(2)
     with strat_col1:
-        st.checkbox("--use_unicycler (for PE)", value=False, key="use_unicycler", help="Use Unicycler instead of Shovill for paired-end reads.")
+        st.checkbox("--use_unicycler (for PE)", value=True, key="use_unicycler", help="Use Unicycler instead of Shovill for paired-end reads.")
     with strat_col2:
         st.radio("Hybrid Strategy", ["(Auto)", "Unicycler (--hybrid)", "Dragonflye (--short_polish)"], index=0, key="hybrid_strategy", horizontal=True)
 

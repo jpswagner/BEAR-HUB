@@ -193,7 +193,7 @@ st.markdown(
     "<hr style='opacity:0.3'/>"
     "<small>"
     """
-BPT-BR
+PT-BR
 
 Este projeto fornece apenas uma interface (hub/UI) para orquestrar análises com o Bactopia (https://github.com/bactopia).
 Bactopia é um software de terceiros, desenvolvido e mantido independentemente por seus autores originais.
