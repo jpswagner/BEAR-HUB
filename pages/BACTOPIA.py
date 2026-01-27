@@ -1209,11 +1209,11 @@ if st.session_state.get("no_polish"):
 # We compare against the tool's underlying defaults (not our UI defaults) to ensure flags are passed when needed.
 # Default ident_min is -1 (per docs), so pass if different (e.g. our 0.9 default).
 if st.session_state.get("amr_ident_min") != -1:
-    af.extend(["--amrfinderplus_ident_min", str(st.session_state.get("amr_ident_min"))])
+    af.extend(["--ident_min", str(st.session_state.get("amr_ident_min"))])
 # Default coverage_min is 0.5 (per docs). Our UI default is 0.6.
 # If it is not 0.5, we pass the flag. This ensures 0.6 is passed.
 if st.session_state.get("amr_coverage_min") != 0.5:
-    af.extend(["--amrfinderplus_coverage_min", str(st.session_state.get("amr_coverage_min"))])
+    af.extend(["--coverage_min", str(st.session_state.get("amr_coverage_min"))])
 
 # MLST params
 _scheme_disp = st.session_state.get("mlst_scheme_display")
@@ -1224,6 +1224,9 @@ if _scheme_disp and _scheme_disp != "(auto/none)":
         # Pass the code directly. No quotes needed for single-word codes.
         # utils.run_cmd will handle shell quoting (e.g. 'kpneumoniae').
         af.extend(["--scheme", _code])
+
+if st.session_state.get("mlst_minscore"):
+    af.extend(["--minscore", str(st.session_state.get("mlst_minscore"))])
 
 # Polishing rounds (only add if diff from defaults or explicit)
 # Defaults: polypolish=1, racon=1. pilon/medaka usually conditional/0.
