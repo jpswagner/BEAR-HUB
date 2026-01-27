@@ -681,7 +681,9 @@ with st.expander("Generate FOFN", expanded=False):
             key="fofn_species",
         )
     with cB:
-        gsize_in = st.text_input(
+        # Predefined sizes from utils.GENOME_SIZES plus a Custom option
+        _gsize_opts = ["(Select or Custom)"] + utils.GENOME_SIZES + ["Custom"]
+        _gsize_sel = st.selectbox(
             "genome_size (optional)",
             value=st.session_state.get("fofn_gsize", "0"),
             key="fofn_gsize",
@@ -970,15 +972,18 @@ with st.expander("Assembler & Polishing Settings", expanded=False):
     st.divider()
 
     st.markdown("**General Assembly Options**")
+    # Ensuring 5 columns are allocated
     gc1, gc2, gc3, gc4, gc5 = st.columns(5)
     with gc1:
         st.number_input("Min Contig Len", min_value=0, value=500, key="min_contig_len", help="--min_contig_len")
     with gc2:
-        st.number_input("Min Coverage", min_value=0, value=2, key="min_contig_cov", help="--min_contig_cov")
+        st.number_input("Min Coverage", min_value=0, value=10, key="min_contig_cov", help="--min_contig_cov")
     with gc3:
         st.checkbox("--reassemble", value=False, key="reassemble", help="Re-assemble simulated reads")
     with gc4:
         st.checkbox("--no_rotate", value=False, key="no_rotate", help="Do not rotate to start gene")
+    with gc5:
+        st.checkbox("--skip_qc_plot", value=True, key="skip_qc_plot", help="Skip the QC plot generation")
 
     st.divider()
 
@@ -1020,6 +1025,29 @@ with st.expander("Assembler & Polishing Settings", expanded=False):
         uni_parts.append(st.session_state["unicycler_extra"].strip())
     unicycler_opts_value = " ".join(uni_parts)
     st.caption(f"unicycler_opts: `{unicycler_opts_value}`")
+
+# ============================= Annotation & Typing (AMRFinder+ / MLST) =============================
+
+with st.expander("Annotation & Typing (AMRFinder+ / MLST)", expanded=False):
+    st.markdown("#### AMRFinder+")
+    amr1, amr2 = st.columns(2)
+    with amr1:
+        st.number_input("--ident_min (AMRFinder)", 0.0, 1.0, 0.9, 0.01, key="amr_ident_min")
+    with amr2:
+        st.number_input("--coverage_min (AMRFinder)", 0.0, 1.0, 0.6, 0.01, key="amr_coverage_min")
+
+    st.divider()
+
+    st.markdown("#### MLST")
+    # Use utils.MLST_SCHEMES keys for the dropdown (Display Names)
+    _mlst_opts = ["(auto/none)"] + sorted(utils.MLST_SCHEMES.keys())
+    st.selectbox(
+        "Scheme (--scheme)",
+        options=_mlst_opts,
+        index=0,
+        key="mlst_scheme_display",
+        help="Specify an MLST scheme. Leave as (auto/none) to skip or use default detection."
+    )
 
 # ============================= Extra params + reports =============================
 
@@ -1143,17 +1171,18 @@ elif hyb == "Dragonflye (--short_polish)":
     af.append("--short_polish")
 
 if st.session_state.get("shovill_assembler") and st.session_state.get("shovill_assembler") != "skesa":
-    af.append(f"--shovill_assembler {st.session_state['shovill_assembler']}")
+    af.extend(["--shovill_assembler", str(st.session_state["shovill_assembler"])])
 
 if st.session_state.get("dragonflye_assembler") and st.session_state.get("dragonflye_assembler") != "flye":
-    af.append(f"--dragonflye_assembler {st.session_state['dragonflye_assembler']}")
+    af.extend(["--dragonflye_assembler", str(st.session_state["dragonflye_assembler"])])
 
 if st.session_state.get("shovill_opts"):
-    af.append(f"--shovill_opts {shlex.quote(st.session_state['shovill_opts'])}")
+    # Wrap in double quotes to preserve spaces in shell flags (e.g. "--mode normal")
+    af.extend(["--shovill_opts", f'"{st.session_state["shovill_opts"]}"'])
 if st.session_state.get("shovill_kmers"):
-    af.append(f"--shovill_kmers {shlex.quote(st.session_state['shovill_kmers'])}")
+    af.extend(["--shovill_kmers", f'"{st.session_state["shovill_kmers"]}"'])
 if st.session_state.get("dragonflye_opts"):
-    af.append(f"--dragonflye_opts {shlex.quote(st.session_state['dragonflye_opts'])}")
+    af.extend(["--dragonflye_opts", f'"{st.session_state["dragonflye_opts"]}"'])
 
 if st.session_state.get("trim"): af.append("--trim")
 if st.session_state.get("no_stitch"): af.append("--no_stitch")
@@ -1164,25 +1193,51 @@ if st.session_state.get("reassemble"): af.append("--reassemble")
 if st.session_state.get("no_rotate"): af.append("--no_rotate")
 
 if st.session_state.get("min_contig_len") != 500:
-    af.append(f"--min_contig_len {st.session_state.get('min_contig_len')}")
+    af.extend(["--min_contig_len", str(st.session_state.get("min_contig_len"))])
 if st.session_state.get("min_contig_cov") != 2:
-    af.append(f"--min_contig_cov {st.session_state.get('min_contig_cov')}")
+    af.extend(["--min_contig_cov", str(st.session_state.get("min_contig_cov"))])
+
+if st.session_state.get("skip_qc_plot"):
+    af.append("--skip_qc_plot")
 
 if st.session_state.get("no_polish"):
     af.append("--no_polish")
 
+# AMRFinder+ params
+# We compare against the tool's underlying defaults (not our UI defaults) to ensure flags are passed when needed.
+# Default ident_min is -1 (per docs), so pass if different (e.g. our 0.9 default).
+if st.session_state.get("amr_ident_min") != -1:
+    af.extend(["--ident_min", str(st.session_state.get("amr_ident_min"))])
+# Default coverage_min is 0.5 (per docs). Our UI default is 0.6.
+# If it is not 0.5, we pass the flag. This ensures 0.6 is passed.
+if st.session_state.get("amr_coverage_min") != 0.5:
+    af.extend(["--coverage_min", str(st.session_state.get("amr_coverage_min"))])
+
+# MLST params
+_scheme_disp = st.session_state.get("mlst_scheme_display")
+if _scheme_disp and _scheme_disp != "(auto/none)":
+    # Retrieve the code from the map
+    _code = utils.MLST_SCHEMES.get(_scheme_disp)
+    if _code:
+        # Pass the code directly. No quotes needed for single-word codes.
+        # utils.run_cmd will handle shell quoting (e.g. 'kpneumoniae').
+        af.extend(["--scheme", _code])
+
+if st.session_state.get("mlst_minscore"):
+    af.extend(["--minscore", str(st.session_state.get("mlst_minscore"))])
+
 # Polishing rounds (only add if diff from defaults or explicit)
 # Defaults: polypolish=1, racon=1. pilon/medaka usually conditional/0.
 if st.session_state.get("polypolish_rounds", 1) != 1:
-    af.append(f"--polypolish_rounds {st.session_state.get('polypolish_rounds')}")
+    af.extend(["--polypolish_rounds", str(st.session_state.get("polypolish_rounds"))])
 if st.session_state.get("pilon_rounds", 0) > 0:
-    af.append(f"--pilon_rounds {st.session_state.get('pilon_rounds')}")
+    af.extend(["--pilon_rounds", str(st.session_state.get("pilon_rounds"))])
 if st.session_state.get("racon_rounds", 1) != 1:
-    af.append(f"--racon_rounds {st.session_state.get('racon_rounds')}")
+    af.extend(["--racon_rounds", str(st.session_state.get("racon_rounds"))])
 if st.session_state.get("medaka_rounds", 0) > 0:
-    af.append(f"--medaka_rounds {st.session_state.get('medaka_rounds')}")
+    af.extend(["--medaka_rounds", str(st.session_state.get("medaka_rounds"))])
 if st.session_state.get("medaka_model"):
-    af.append(f"--medaka_model {st.session_state.get('medaka_model')}")
+    af.extend(["--medaka_model", str(st.session_state.get("medaka_model"))])
 
 params["assembler_flags"] = af
 

@@ -452,17 +452,17 @@ if st.session_state.get("bt_run_amrfinderplus"):
         st.number_input(
             "--ident_min",
             0.0,
-            100.0,
-            value=st.session_state.get("bt_amrfinderplus_ident_min", 90.0),
-            step=0.5,
+            1.0,
+            value=st.session_state.get("bt_amrfinderplus_ident_min", 0.9),
+            step=0.01,
             key="bt_amrfinderplus_ident_min",
         )
         st.number_input(
             "--coverage_min",
             0.0,
-            100.0,
-            value=st.session_state.get("bt_amrfinderplus_coverage_min", 50.0),
-            step=0.5,
+            1.0,
+            value=st.session_state.get("bt_amrfinderplus_coverage_min", 0.6),
+            step=0.01,
             key="bt_amrfinderplus_coverage_min",
         )
     with c3:
@@ -543,7 +543,13 @@ if st.session_state.get("bt_run_mlst"):
     help_header("**MLST — options**", "mlst")
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
-        st.text_input("--scheme", value=st.session_state.get("bt_mlst_scheme", ""), key="bt_mlst_scheme")
+        st.selectbox(
+            "--scheme",
+            options=["(auto/none)"] + sorted(utils.MLST_SCHEMES.keys()),
+            index=0,
+            key="bt_mlst_scheme_display",
+            help="Select an MLST scheme (start typing to search)."
+        )
     with c2:
         st.number_input(
             "--minid",
@@ -1124,9 +1130,12 @@ if start_tools:
                 # MLST
                 if st.session_state.get("bt_run_mlst"):
                     extra = []
-                    v = (st.session_state.get("bt_mlst_scheme", "")).strip()
-                    if v:
-                        extra += ["--scheme", v]
+                    v_disp = st.session_state.get("bt_mlst_scheme_display")
+                    if v_disp and v_disp != "(auto/none)":
+                        v_code = utils.MLST_SCHEMES.get(v_disp)
+                        if v_code:
+                            # Pass raw code (no manual quoting)
+                            extra += ["--scheme", v_code]
                     v = st.session_state.get("bt_mlst_minid")
                     if v not in (None, ""):
                         extra += ["--minid", str(v)]
