@@ -683,12 +683,61 @@ with st.expander("Generate FOFN", expanded=False):
     with cB:
         # Predefined sizes from utils.GENOME_SIZES plus a Custom option
         _gsize_opts = ["(Select or Custom)"] + utils.GENOME_SIZES + ["Custom"]
+
+        # Ensure session state is seeded properly for the key
+        if "fofn_gsize" not in st.session_state:
+            st.session_state["fofn_gsize"] = _gsize_opts[0]
+        elif st.session_state["fofn_gsize"] not in _gsize_opts:
+            st.session_state["fofn_gsize"] = _gsize_opts[0]
+
         _gsize_sel = st.selectbox(
             "genome_size (optional)",
-            value=st.session_state.get("fofn_gsize", "0"),
+            options=_gsize_opts,
             key="fofn_gsize",
-            help = GENOME_SIZE_MD 
-            )
+            help=GENOME_SIZE_MD
+        )
+
+        # Logic to compute gsize_in (base pairs integer string)
+        gsize_in = "0"
+        if _gsize_sel == "Custom":
+            custom_g = st.text_input("Custom size (e.g. 2800000 or 2.8m)", key="fofn_gsize_custom")
+            if custom_g:
+                # Basic parsing logic (inline to avoid global helpers)
+                s = custom_g.strip().lower()
+                try:
+                    mult = 1
+                    if s.endswith("mb"):
+                        mult = 1_000_000
+                        s = s[:-2]
+                    elif s.endswith("m"):
+                        mult = 1_000_000
+                        s = s[:-1]
+                    elif s.endswith("kb"):
+                        mult = 1_000
+                        s = s[:-2]
+                    elif s.endswith("k"):
+                        mult = 1_000
+                        s = s[:-1]
+                    elif s.endswith("bp"):
+                        s = s[:-2]
+
+                    val = float(s.replace("_", "").replace(",", "")) * mult
+                    gsize_in = str(int(val))
+                except Exception:
+                    gsize_in = "0"
+        elif _gsize_sel == "(Select or Custom)":
+            gsize_in = "0"
+        else:
+            # Predefined: e.g. "2.0 Mb"
+            # We trust utils.GENOME_SIZES format "X.X Mb"
+            try:
+                parts = _gsize_sel.split()
+                val = float(parts[0])
+                if len(parts) > 1 and parts[1].lower().startswith("m"):
+                    val *= 1_000_000
+                gsize_in = str(int(val))
+            except Exception:
+                gsize_in = "0"
 
     with cC:
         st.checkbox("Include assemblies (FASTA)", value=True, key="fofn_include_assemblies")
