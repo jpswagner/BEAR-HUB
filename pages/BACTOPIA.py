@@ -684,12 +684,19 @@ with st.expander("Generate FOFN", expanded=False):
     with cB:
         # Predefined sizes from utils.GENOME_SIZES plus a Custom option
         _gsize_opts = ["(Select or Custom)"] + utils.GENOME_SIZES + ["Custom"]
+
+        # Ensure default "0" is handled if not in options (it maps to index 0: "(Select or Custom)")
+        # If "fofn_gsize" is in state, st.selectbox uses it. If it's "0", it might not be in _gsize_opts.
+        # We manually init the state if missing, ensuring it matches an option or we rely on index.
+        if "fofn_gsize" not in st.session_state:
+            st.session_state["fofn_gsize"] = "(Select or Custom)"
+
         _gsize_sel = st.selectbox(
             "genome_size (optional)",
-            value=st.session_state.get("fofn_gsize", "0"),
+            options=_gsize_opts,
             key="fofn_gsize",
-            help = GENOME_SIZE_MD 
-            )
+            help=GENOME_SIZE_MD
+        )
 
     with cC:
         st.checkbox("Include assemblies (FASTA)", value=True, key="fofn_include_assemblies")
