@@ -586,6 +586,7 @@ with st.expander("Global parameters", expanded=False):
             key="datasets",
             mode="dir",
             start=str(pathlib.Path.home()),
+            help="Folder containing pre-downloaded databases (MLST, Ariba, etc.). Use the 'Datasets' page to download/update.",
         )
     with colB:
         resume = st.checkbox("-resume (resume previous runs)", value=True, key="resume")
