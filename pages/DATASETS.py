@@ -236,11 +236,72 @@ if start_btn:
         status_box.info("Running `bactopia datasets` (async)...")
         utils.start_async_runner_ns(full_cmd, "ds")
 
+def check_dataset_completion(ns: str, status_box, target_dir: str):
+    """
+    Custom status checker for datasets.
+    Handles 'partial success' where the command returns error (e.g. config download fail)
+    but critical data (MLST) is present.
+    """
+    sq: Queue = st.session_state.get(f"{ns}_status_q")
+    if not sq:
+        return False
+
+    finalized = False
+    msg = None
+    rc = None
+
+    try:
+        while True:
+            kind, payload = sq.get_nowait()
+            if kind == "error":
+                msg = payload
+                finalized = True
+                rc = -1
+            elif kind == "rc":
+                rc = int(payload)
+                finalized = True
+    except Empty:
+        pass
+
+    if finalized:
+        st.session_state[f"{ns}_running"] = False
+        st.session_state[f"{ns}_thread"] = None
+        st.session_state[f"{ns}_stop_event"] = None
+
+        # Verify MLST presence
+        mlst_found = False
+        try:
+            target = pathlib.Path(target_dir).expanduser().resolve()
+            if (target / "mlst").is_dir() or (target / "mlst.tar.gz").is_file():
+                mlst_found = True
+        except Exception:
+            pass
+
+        if rc == 0:
+            status_box.success("Finished successfully.")
+        else:
+            # Check if MLST is present despite failure
+            if mlst_found:
+                status_box.warning(
+                    f"⚠️ The process finished with an error code ({rc}), but the **MLST database** "
+                    "appears to have been downloaded successfully. "
+                    "You can likely use this folder in Bactopia despite the error."
+                )
+                if msg:
+                    st.error(f"Details: {msg}")
+            else:
+                status_box.error(msg or f"Run finished with code {rc}. See the log below.")
+
+    return finalized
+
 # Log Viewer
 if st.session_state.get("ds_running", False):
     utils.drain_log_queue_ns("ds", tail_limit=500)
     utils.render_log_box_ns("ds", height=500)
-    finished = utils.check_status_and_finalize_ns("ds", status_box)
+
+    # We pass the current output directory to verify
+    finished = check_dataset_completion("ds", status_box, outdir)
+
     if not finished:
         time.sleep(0.5)
         utils._st_rerun()
