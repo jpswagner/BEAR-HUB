@@ -728,11 +728,30 @@ with st.expander("Generate FOFN", expanded=False):
 
     if st.button("🔎 Scan base folder and build FOFN", key="btn_scan_fofn"):
         try:
+            # Parse genome size (e.g. "5.5 Mb" -> "5500000")
+            parsed_gsize = "0"
+            raw_gs = (_gsize_sel or "").strip()
+            if raw_gs and raw_gs not in ["(Select or Custom)", "Custom"]:
+                # Try to parse "X.Y Mb" or just number
+                try:
+                    # Remove " Mb" suffix if present (case insensitive)
+                    clean_gs = re.sub(r"\s*Mb$", "", raw_gs, flags=re.IGNORECASE).strip()
+                    val = float(clean_gs)
+                    # If it was "Mb", multiply. Heuristic: if < 1000, assume Mb
+                    if val < 1000:
+                        val = val * 1_000_000
+                    parsed_gsize = str(int(val))
+                except Exception:
+                    # If parsing fails, keep "0" or maybe pass raw if user typed bytes?
+                    # Ideally fall back to raw if it looks numeric
+                    if raw_gs.isdigit():
+                        parsed_gsize = raw_gs
+
             res = discover_runs_and_build_fofn(
                 base_dir=base_dir,
                 recursive=recursive,
                 species=species_in,
-                gsize=_gsize_sel,
+                gsize=parsed_gsize,
                 fofn_path=fofn_out,
                 treat_se_as_ont=st.session_state.get("fofn_long_reads", False),
                 infer_ont_by_name=st.session_state.get("fofn_infer_ont_by_name", True),
