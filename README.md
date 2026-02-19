@@ -32,7 +32,7 @@ BEAR-HUB is designed for **Linux** environments (Ubuntu-like).
 
 ---
 
-## 2. Installation (Recommended: AppImage)
+## 2. Installation (In development: AppImage)
 
 For most users, we recommend downloading the **AppImage**. This is a single file that contains the application and can be run without installing Python libraries manually.
 
@@ -61,7 +61,7 @@ This will remove the desktop shortcut, configuration files, and optionally the `
 
 ---
 
-## 3. Manual Installation (Source Code)
+## 3. Manual Installation (Recommended: Source Code)
 
 If you are a developer or prefer to run the code directly from the source, follow these steps.
 
