@@ -31,7 +31,6 @@ PAGE_BACTOPIA = PAGES_DIR / "BACTOPIA.py"
 PAGE_TOOLS = PAGES_DIR / "BACTOPIA-TOOLS.py"
 PAGE_MERLIN = PAGES_DIR / "MERLIN.py"
 PAGE_PORT = PAGES_DIR / "PORT.py"
-PAGE_DATASETS = PAGES_DIR / "DATASETS.py"
 
 # Discover project root (folder that holds /static)
 if (APP_ROOT / "static").is_dir():
@@ -92,15 +91,6 @@ def ensure_pages_hint():
             )
         else:
             missing.append("`pages/PORT.py`")
-
-    # DATASETS
-    if not PAGE_DATASETS.exists():
-        if (APP_ROOT / "DATASETS.py").exists():
-            missing.append(
-                "`pages/DATASETS.py` (found `./DATASETS.py`; move it to `pages/`)"
-            )
-        else:
-            missing.append("`pages/DATASETS.py`")
 
     return missing
 
@@ -192,14 +182,11 @@ else:
 
     st.divider()
 
-    st.markdown("### System & Data")
-    cS, cD, _ = st.columns([1, 1, 2])
+    st.markdown("### System")
+    cS, _ = st.columns([1, 3])
     with cS:
         if st.button("Updates & Status", icon="🔄", use_container_width=True):
             st.switch_page("pages/UPDATES.py")
-    with cD:
-        if st.button("Datasets", icon="💽", use_container_width=True):
-            st.switch_page("pages/DATASETS.py")
 
 # ============================= Footer (disclaimer) =============================
 st.markdown(
