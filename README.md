@@ -96,9 +96,7 @@ A dedicated **Updates** page allows you to keep BEAR-HUB and its dependencies up
 *   **Location**: Dashboard (Home) -> "System" -> "Updates & Status".
 *   **Features**:
     *   View current versions of BEAR-HUB, Bactopia, Nextflow, and Docker.
-    *   **Update BEAR-HUB (Git Only)**: Pulls the latest code from the repository.
-    *   **Update BEAR-HUB (Full)**: Pulls code and updates Python dependencies (`pip install`).
-    *   **Update Bactopia Env**: Updates the conda environment used by the pipeline.
+
 
 > **⚠️ Warning**: Only run updates if you have appropriate system permissions (write access to the installation folder and conda environments). This is especially important for multi-user deployments.
 
