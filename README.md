@@ -32,98 +32,45 @@ BEAR-HUB is designed for **Linux** environments (Ubuntu-like).
 
 ---
 
-## 2. Installation (In development: AppImage)
+## 2. Installation
 
-For most users, we recommend downloading the **AppImage**. This is a single file that contains the application and can be run without installing Python libraries manually.
+We provide shell scripts to automate the setup of Conda environments (`bear-hub` and `bactopia`) directly from the source code.
 
-### 2.1. Download
-Go to the [**Releases Page**](https://github.com/jpswagner/BEAR-HUB/releases) and download the file ending in `.AppImage` (e.g., `BEAR-HUB-x86_64.AppImage`).
-
-### 2.2. Run
-1.  Right-click the downloaded file -> **Properties** -> **Permissions**.
-2.  Check the box **"Allow executing file as program"** (or similar).
-3.  Double-click the file to run.
-
-**First Run Setup:**
-*   On the first run, the app will ask if you want to create a **Desktop Shortcut**. We recommend clicking "Yes".
-*   It will then open a terminal window to check for Docker and Conda and set up the necessary environments. This setup happens only once.
-*   The setup process logs to `~/BEAR-HUB/install.log`.
-*   Once finished, the application will launch in your default web browser.
-
-### 2.3. Uninstall
-Since the AppImage does not register with the system package manager, you can uninstall it using the provided script.
-
-Run the following command in your terminal:
-```bash
-~/BEAR-HUB/uninstall_bear.sh
-```
-This will remove the desktop shortcut, configuration files, and optionally the `bactopia` Conda environment. Finally, you can delete the `.AppImage` file.
-
----
-
-## 3. Manual Installation (Recommended: Source Code)
-
-If you are a developer or prefer to run the code directly from the source, follow these steps.
-
-### 3.1. Clone the Repository
+### 2.1. Clone the Repository
 
 ```bash
 git clone https://github.com/jpswagner/BEAR-HUB.git
 cd BEAR-HUB
 ```
 
-### 3.2. Install Environment
-We provide a shell script to automate the setup of Conda environments (`bear-hub` and `bactopia`).
+### 2.2. Install Environment
 
 ```bash
 chmod +x install_bear.sh
 ./install_bear.sh
 ```
 
-### 3.3. Run the Application
+### 2.3. Run the Application
 Use the launcher script to start the interface.
 
 ```bash
 chmod +x run_bear.sh
 ./run_bear.sh
 ```
-This will activate the `bear-hub` environment and launch Streamlit.
+This will activate the `bear-hub` environment and launch Streamlit in your default web browser.
 
----
-
-## 4. Building Executables Locally
-
-If you want to build the AppImage yourself (e.g., for development), you can use the provided GitHub Actions workflow or run PyInstaller locally.
-
-**Requirements:** `pyinstaller`, `appimagetool`
+### 2.4. Uninstall
+To uninstall the application, you can use the provided uninstaller script:
 
 ```bash
-# 1. Install dependencies
-pip install -r requirements.txt
-pip install pyinstaller
-
-# 2. Build binaries
-pyinstaller --onefile --clean --name bear-installer bear_installer.py
-
-pyinstaller --onefile --clean \
-    --name bear-hub \
-    --add-data "BEAR-HUB.py:." \
-    --add-data "utils.py:." \
-    --add-data "pages:pages" \
-    --add-data "static:static" \
-    --collect-all streamlit \
-    --collect-all altair \
-    --collect-all pandas \
-    --collect-all pyyaml \
-    bear_launcher.py
-
-# 3. Create AppImage (requires AppDir structure and appimagetool)
-# See .github/workflows/build_executables.yml for the full steps.
+chmod +x uninstall_bear.sh
+./uninstall_bear.sh
 ```
+This script will help you remove the configuration folders and optionally the `bear-hub` and `bactopia` Conda environments. Finally, you can delete the repository directory manually.
 
 ---
 
-## 5. Usage & Navigation
+## 3. Usage & Navigation
 
 -   **Home**: Dashboard overview and system health checks (Nextflow/Docker status).
 -   **BACTOPIA**: The core pipeline runner. Use this to process raw reads.
@@ -142,7 +89,7 @@ pyinstaller --onefile --clean \
 
 ---
 
-## 6. Updates
+## 4. Updates
 
 A dedicated **Updates** page allows you to keep BEAR-HUB and its dependencies up to date.
 

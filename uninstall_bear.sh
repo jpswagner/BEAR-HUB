@@ -3,19 +3,15 @@ set -u
 
 APP_NAME="BEAR-HUB"
 CONFIG_DIR="${HOME}/BEAR-HUB"
-DESKTOP_FILE="${HOME}/.local/share/applications/bear-hub.desktop"
-ICON_FILE="${HOME}/.local/share/icons/hicolor/256x256/apps/bear-hub.png"
-
 echo "==========================================="
 echo "   Uninstall ${APP_NAME}"
 echo "==========================================="
 echo
 echo "This script will remove:"
-echo "1. Desktop shortcut and icon"
-echo "2. Configuration folder: ${CONFIG_DIR}"
+echo "1. Configuration folder: ${CONFIG_DIR}"
 echo "   (Includes logs, config, and installer setup)"
-echo "3. Conda environment: 'bactopia' (Optional)"
-echo "4. Temporary AppImage mount points (Cleanup)"
+echo "2. Conda environment: 'bactopia' (Optional)"
+echo "3. Conda environment: 'bear-hub' (Optional)"
 echo
 
 read -p "Are you sure you want to uninstall BEAR-HUB? [y/N] " -n 1 -r
@@ -36,48 +32,7 @@ else
 fi
 
 echo
-echo "--- Cleaning Temporary Mounts ---"
-# Be careful here. We look for /tmp/.mount_BEAR-* owned by user.
-# find /tmp -maxdepth 1 -name ".mount_BEAR-*" -user "$USER" -type d
-FOUND_MOUNTS=$(find /tmp -maxdepth 1 -name ".mount_BEAR-*" -user "$USER" -type d 2>/dev/null)
-
-if [ -n "$FOUND_MOUNTS" ]; then
-    echo "Found stale AppImage mounts:"
-    echo "$FOUND_MOUNTS"
-    echo "Attempting to unmount/remove..."
-    for mnt in $FOUND_MOUNTS; do
-        # Try fusermount -u first
-        fusermount -u -z "$mnt" 2>/dev/null || true
-        # If still exists, try rm -rf (risky but necessary for stale mounts)
-        if [ -d "$mnt" ]; then
-             rm -rf "$mnt"
-        fi
-    done
-    echo "Cleanup complete."
-else
-    echo "No stale mounts found."
-fi
-
-
-echo
-echo "--- Removing Desktop Integration ---"
-if [ -f "$DESKTOP_FILE" ]; then
-    rm -v "$DESKTOP_FILE"
-    if command -v update-desktop-database >/dev/null 2>&1; then
-        update-desktop-database "${HOME}/.local/share/applications"
-    fi
-else
-    echo "Desktop file not found (already removed?)"
-fi
-
-if [ -f "$ICON_FILE" ]; then
-    rm -v "$ICON_FILE"
-else
-    echo "Icon file not found."
-fi
-
-echo
-echo "--- Checking Conda Environment ---"
+echo "--- Checking Conda Environments ---"
 CONDA_BIN=""
 if command -v mamba >/dev/null 2>&1; then
     CONDA_BIN="mamba"
@@ -93,10 +48,24 @@ if [ -n "$CONDA_BIN" ]; then
             $CONDA_BIN env remove -n bactopia -y
             echo "Environment 'bactopia' removed."
         else
-            echo "Skipping conda environment removal."
+            echo "Skipping 'bactopia' environment removal."
         fi
     else
         echo "Environment 'bactopia' not found."
+    fi
+
+    echo
+    if $CONDA_BIN env list | grep -q "^bear-hub "; then
+        echo "Found conda environment 'bear-hub'."
+        read -p "Do you want to DELETE the 'bear-hub' environment? (Type 'delete' to confirm): " confirm
+        if [[ "$confirm" == "delete" ]]; then
+            $CONDA_BIN env remove -n bear-hub -y
+            echo "Environment 'bear-hub' removed."
+        else
+            echo "Skipping 'bear-hub' environment removal."
+        fi
+    else
+        echo "Environment 'bear-hub' not found."
     fi
 else
     echo "Conda/Mamba not found, skipping environment cleanup."
@@ -123,6 +92,6 @@ echo
 echo "==========================================="
 echo "   Uninstallation Complete"
 echo "==========================================="
-echo "You can now delete the .AppImage file manually."
+echo "You can now delete the BEAR-HUB repository directory manually."
 echo
 read -p "Press Enter to exit..."
