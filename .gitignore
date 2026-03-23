@@ -19,6 +19,7 @@ env/
 .env/
 .env
 
+
 # Streamlit
 
 
@@ -64,3 +65,12 @@ data/
 *.log
 *.tmp
 *.bak
+
+# Claude/AI outputs
+.claude
+
+# Configurações pessoais
+.devcontainer/
+
+# Tests
+tests/

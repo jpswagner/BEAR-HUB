@@ -21,6 +21,7 @@ dependencies (Nextflow, Docker) and renders the main landing page.
 import pathlib
 import streamlit as st
 import utils  # Import the new utility module
+from utils.history import get_runs
 
 # ============================= General config =============================
 st.set_page_config(page_title="BEAR-HUB", page_icon="🐻", layout="wide")
@@ -144,7 +145,7 @@ else:
         st.caption(
             "Automatically builds a **FOFN**, assembles the **Bactopia** command and runs it via Nextflow (async)."
         )
-        if st.button("BACTOPIA", type="primary", icon="🦠", use_container_width=True):
+        if st.button("BACTOPIA", type="primary", icon="🦠", width="stretch"):
             st.switch_page("pages/BACTOPIA.py")
 
 
@@ -154,7 +155,7 @@ else:
             "Runs **amrfinderplus, rgi, abricate, mobsuite, mlst, pangenome, mashtree** "
             "on completed samples."
         )
-        if st.button("BACTOPIA TOOLS", type="primary", icon="🧰", use_container_width=True):
+        if st.button("BACTOPIA TOOLS", type="primary", icon="🧰", width="stretch"):
             st.switch_page("pages/BACTOPIA-TOOLS.py")
         
 
@@ -163,13 +164,13 @@ else:
     with cA1:
         st.markdown("### Bactopia MERLIN")
         st.caption("Runs species-specific workflows on completed samples.")
-        if st.button("BACTOPIA MERLIN", type="primary", icon="🧙🏻", use_container_width=True):
+        if st.button("BACTOPIA MERLIN", type="primary", icon="🧙🏻", width="stretch"):
             st.switch_page("pages/MERLIN.py")
 
     with cB2:
         st.markdown("### PORT — Plasmid Outbreak Investigation Tool")
         st.caption("(IN DEVELOPMENT) Wrapper to run **PORT** for plasmid-focused outbreak investigations.")
-        if st.button("PORT", type="secondary", icon="🍷", use_container_width=True):
+        if st.button("PORT", type="secondary", icon="🍷", width="stretch"):
             st.switch_page("pages/PORT.py")
 
     st.divider()
@@ -185,8 +186,19 @@ else:
     st.markdown("### System")
     cS, _ = st.columns([1, 3])
     with cS:
-        if st.button("Updates & Status", icon="🔄", use_container_width=True):
+        if st.button("Updates & Status", icon="🔄", width="stretch"):
             st.switch_page("pages/UPDATES.py")
+
+    st.divider()
+    with st.expander("Recent runs", expanded=False):
+        runs = get_runs(limit=20)
+        if not runs:
+            st.caption("No runs recorded yet. Run a pipeline to see history here.")
+        else:
+            import pandas as pd
+            df = pd.DataFrame(runs)[["started_at", "finished_at", "page", "samples", "status"]]
+            df.columns = ["Started", "Finished", "Module", "Samples", "Status"]
+            st.dataframe(df, width="stretch", hide_index=True)
 
 # ============================= Footer (disclaimer) =============================
 st.markdown(

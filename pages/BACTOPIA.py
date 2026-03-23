@@ -87,6 +87,35 @@ else:
 # Guarantee NXF_HOME on module load
 utils.ensure_nxf_home()
 
+# ── Session state defaults ────────────────────────────────────────────────────
+# Guard against KeyError on first load before any widget has rendered.
+utils.init_session_state({
+    "profile": "docker",
+    "outdir": DEFAULT_OUTDIR,
+    "datasets": "",
+    "resume": True,
+    "threads": 0,
+    "memory_gb": 0,
+    "fofn_base": "",
+    "fofn_recursive": True,
+    "fofn_species": "UNKNOWN_SPECIES",
+    "fofn_gsize": "(Select or Custom)",
+    "fofn_include_assemblies": True,
+    "fofn_long_reads": False,
+    "fofn_infer_ont_by_name": True,
+    "fofn_merge_multi": True,
+    "fofn_use": True,
+    "with_report": True,
+    "with_timeline": True,
+    "with_trace": True,
+    "use_unicycler": True,
+    "hybrid_strategy": "(Auto)",
+    "main_running": False,
+    "confirm_clean": False,
+    "clean_keep_logs": False,
+    "clean_all_runs": False,
+})
+
 
 # ============================= Presets =============================
 
@@ -761,7 +790,7 @@ with st.expander("Generate FOFN", expanded=False):
             try:
                 import pandas as pd
                 df = pd.DataFrame(res["rows"], columns=res["header"])
-                st.dataframe(df.head(1000), use_container_width=True)
+                st.dataframe(df.head(1000), width="stretch")
             except Exception:
                 st.write("Total rows:", len(res["rows"]))
             st.info(
@@ -1300,9 +1329,18 @@ def preflight_validate(params: dict, fofn_path: str) -> list[str]:
             "This app runs Bactopia only with '-profile docker', so Docker is mandatory."
         )
 
+    outdir = params.get("outdir") or ""
+    ok, msg = utils.validate_outdir(outdir)
+    if not ok:
+        errs.append(f"Invalid output directory: {msg}")
+
     datasets = params.get("datasets")
-    if datasets and not pathlib.Path(datasets).exists():
-        errs.append(f"Path does not exist: datasets = {datasets}")
+    if datasets:
+        ok_ds, msg_ds = utils.validate_path(datasets)
+        if not ok_ds:
+            errs.append(f"Invalid datasets path: {msg_ds}")
+        elif not pathlib.Path(msg_ds).exists():
+            errs.append(f"Datasets path does not exist: {msg_ds}")
 
     if not pathlib.Path(fofn_path).is_file():
         errs.append(
@@ -1443,22 +1481,39 @@ if start_main:
         try:
             full_cmd = cmd  # no stdbuf wrapper, use the command as built
             status_box_main.info("Running (async).")
+            # Record run start in history
+            _samples_running = utils.discover_samples_from_outdir(
+                str(pathlib.Path(st.session_state.get("outdir", DEFAULT_OUTDIR)).expanduser().resolve())
+            ) or []
+            _run_id = utils.record_run_start("BACTOPIA", _samples_running, full_cmd)
+            st.session_state["_main_run_id"] = _run_id
             utils.start_async_runner_ns(full_cmd, "main")
         except Exception as e:
             st.error(f"Failed to start (async): {e}")
 
 if st.session_state.get("main_running", False):
     utils.drain_log_queue_ns("main", tail_limit=200, max_pull=500)
+    utils.render_nxf_progress_ns("main")
     utils.render_log_box_ns("main")
     finished = utils.check_status_and_finalize_ns(
         "main",
         status_box_main,
         report_zone_main,
     )
-    if not finished:
+    if finished:
+        _run_id = st.session_state.pop("_main_run_id", None)
+        if _run_id is not None:
+            _sq = st.session_state.get("main_status_q")
+            _success = True  # check_status_and_finalize_ns already shows the right msg
+            try:
+                utils.record_run_finish(_run_id, _success)
+            except Exception:
+                pass
+    else:
         time.sleep(0.3)
         utils._st_rerun()
 else:
+    utils.render_nxf_progress_ns("main")
     utils.render_log_box_ns("main")
 
 DISCLAIMER_MD = """

@@ -71,6 +71,18 @@ utils.bootstrap_bear_env_from_file()
 
 BACTOPIA_ENV_PREFIX = os.environ.get("BACTOPIA_ENV_PREFIX")
 
+# ── Session state defaults ────────────────────────────────────────────────────
+utils.init_session_state({
+    "bt_outdir": DEFAULT_OUTDIR,
+    "bt_selected_samples": [],
+    "species_running": False,
+    "btsp_profile": "docker",
+    "btsp_threads": 0,
+    "btsp_memory_gb": 0,
+    "btsp_resume": True,
+    "btsp_extra": "",
+})
+
 def have_tool(name: str) -> bool:
     """Check if a tool is in PATH."""
     return utils.which(name) is not None
@@ -426,7 +438,10 @@ if start_species:
     if not utils.nextflow_available():
         st.error("Nextflow not found (neither in PATH nor via BACTOPIA_ENV_PREFIX / NEXTFLOW_BIN / nextflow_bin).")
     else:
-        if not bt_outdir:
+        _ok_out, _msg_out = utils.validate_outdir(bt_outdir or "")
+        if not _ok_out:
+            st.error(f"Invalid output directory: {_msg_out}")
+        elif not bt_outdir:
             st.error("Please define the 'Bactopia results directory'.")
         else:
             # If nothing selected but we have samples, assume all
@@ -471,17 +486,28 @@ if start_species:
 
                     full_cmd = " ; ".join(sub_cmds)
                     status_box_species.info("Running species-specific tools (async).")
+                    _run_id = utils.record_run_start("MERLIN", sel, full_cmd)
+                    st.session_state["_species_run_id"] = _run_id
                     utils.start_async_runner_ns(full_cmd, "species")
 
 # Live log update
 if st.session_state.get("species_running", False):
     utils.drain_log_queue_ns("species", tail_limit=500, max_pull=800)
+    utils.render_nxf_progress_ns("species")
     utils.render_log_box_ns("species", height=520)
     finished = utils.check_status_and_finalize_ns("species", status_box_species)
+    if finished:
+        _run_id = st.session_state.pop("_species_run_id", None)
+        if _run_id is not None:
+            try:
+                utils.record_run_finish(_run_id, True)
+            except Exception:
+                pass
     if not finished:
         time.sleep(0.3)
         utils._st_rerun()
 else:
+    utils.render_nxf_progress_ns("species")
     utils.render_log_box_ns("species", height=520)
 
 # ------------------------- merged-results -------------------------

@@ -13,6 +13,8 @@ import requests
 import pathlib
 import re
 
+from constants import GITHUB_REPO, BACTOPIA_ENV_NAME
+
 # ============================= Configuration =============================
 
 st.set_page_config(page_title="System Status - BEAR-HUB", page_icon="🔄", layout="wide")
@@ -24,9 +26,9 @@ utils.bootstrap_bear_env_from_file()
 
 # For Bactopia, we need to run inside its conda environment.
 # We try to detect the environment name or prefix.
-BACTOPIA_ENV_NAME = "bactopia" # Default name created by install_bear.sh
+# BACTOPIA_ENV_NAME imported from constants
 
-def _get_conda_run_cmd(cmd_list, env_name=BACTOPIA_ENV_NAME):
+def _get_conda_run_cmd(cmd_list, env_name=BACTOPIA_ENV_NAME):  # noqa: F821
     """
     Wraps a command to run inside a conda environment.
     Tries 'mamba' then 'conda'.
@@ -94,40 +96,63 @@ def get_local_app_version():
 def get_latest_github_release(repo="jpswagner/BEAR-HUB", include_prerelease=True):
     """
     Fetch the latest release tag from GitHub.
+
     - First tries /releases/latest (stable only).
     - If none exist and include_prerelease is True, falls back to /releases.
-    Returns (tag_name, html_url) or (None, None) on failure.
+
+    Returns:
+        (tag_name, html_url, error_kind) where error_kind is one of:
+        None (success), "offline" (network error), "rate_limit" (429/403).
     """
     base = f"https://api.github.com/repos/{repo}"
 
+    def _check_rate_limit(resp) -> bool:
+        """Return True if the response indicates rate-limiting."""
+        if resp.status_code in (403, 429):
+            return True
+        remaining = resp.headers.get("X-RateLimit-Remaining", "1")
+        try:
+            return int(remaining) == 0
+        except ValueError:
+            return False
+
     # 1) Try stable latest
     try:
-        resp = requests.get(f"{base}/releases/latest", timeout=3)
+        resp = requests.get(f"{base}/releases/latest", timeout=5)
+        if _check_rate_limit(resp):
+            return None, None, "rate_limit"
         if resp.status_code == 200:
             data = resp.json()
-            return data.get("tag_name"), data.get("html_url")
+            return data.get("tag_name"), data.get("html_url"), None
+    except requests.exceptions.ConnectionError:
+        return None, None, "offline"
+    except requests.exceptions.Timeout:
+        return None, None, "offline"
     except Exception:
-        # ignore and fall through to prerelease logic
         pass
 
     if not include_prerelease:
-        return None, None
+        return None, None, None
 
-    # 2) Fallback: look at the full releases list (includes pre-releases)
+    # 2) Fallback: full releases list (includes pre-releases)
     try:
-        resp = requests.get(f"{base}/releases", timeout=3)
+        resp = requests.get(f"{base}/releases", timeout=5)
+        if _check_rate_limit(resp):
+            return None, None, "rate_limit"
         if resp.status_code == 200:
             releases = resp.json()
-            # releases is a list, newest first
             for rel in releases:
                 if rel.get("draft"):
-                    continue  # skip drafts
-                # If we got here, accept both prerelease and normal
-                return rel.get("tag_name"), rel.get("html_url")
+                    continue
+                return rel.get("tag_name"), rel.get("html_url"), None
+    except requests.exceptions.ConnectionError:
+        return None, None, "offline"
+    except requests.exceptions.Timeout:
+        return None, None, "offline"
     except Exception:
         pass
 
-    return None, None
+    return None, None, None
 
 
 def clean_bactopia_version(raw_output):
@@ -208,19 +233,33 @@ with col1:
     st.write(f"**Current Version:** `{local_version}`")
 
     # 2. Remote Check
-    latest_tag, release_url = get_latest_github_release()
+    with st.spinner("Checking for updates…"):
+        latest_tag, release_url, error_kind = get_latest_github_release(repo=GITHUB_REPO)
 
-    if latest_tag:
+    if error_kind == "rate_limit":
+        st.warning(
+            "GitHub API rate limit reached. Update check skipped. "
+            "Try again in a few minutes.",
+            icon="⚠️",
+        )
+    elif error_kind == "offline":
+        st.info(
+            "Offline mode — cannot reach GitHub. "
+            "Connect to the internet to check for updates.",
+            icon="ℹ️",
+        )
+    elif latest_tag:
         if local_version == latest_tag:
             st.success(f"You are using the latest version ({local_version}). ✅")
         else:
-            # We assume if tags differ, remote is likely newer or at least different.
-            # Simple string comparison isn't perfect for semantic versioning but usually sufficient if format is consistent.
             st.warning(f"**New version available:** `{latest_tag}` (you have `{local_version}`)")
-            st.info(f"A newer BEAR-HUB version is available. Download the latest release (e.g. AppImage) from the GitHub Releases page and replace your current file.")
+            st.info(
+                "A newer BEAR-HUB version is available. "
+                "Pull the latest code and re-run `install_bear.sh` to update."
+            )
             st.markdown(f"👉 [**Go to GitHub Releases**]({release_url})")
     else:
-        st.write("Could not check for new releases (offline or GitHub unavailable).")
+        st.write("Could not check for new releases (GitHub unavailable).")
 
 
 with col2:
