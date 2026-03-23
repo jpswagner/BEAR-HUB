@@ -1,101 +1,140 @@
 #!/usr/bin/env bash
+# install_bear.sh — BEAR-HUB installer
+# ---------------------------------------------------------------------------
+# Sets up two conda environments (bear-hub, bactopia) and writes configuration
+# to ~/.bear-hub/config.env so the app can find its dependencies at runtime.
+#
+# Usage:
+#   bash install_bear.sh [--bactopia-version X.Y.Z]
+#
+# Environment overrides:
+#   BACTOPIA_VERSION   Override the pinned Bactopia version (default: 3.0.0)
+# ---------------------------------------------------------------------------
 set -euo pipefail
 
-echo "==============================="
-echo "  BEAR-HUB - Instalador"
-echo "  (modo local, Bactopia via Docker)"
-echo "==============================="
+# ── Versioned defaults ────────────────────────────────────────────────────────
+BACTOPIA_VERSION="${BACTOPIA_VERSION:-3.0.0}"
 
-ROOT_DIR="${HOME}/BEAR-HUB"
-DATA_DIR="${ROOT_DIR}/data"
-OUT_DIR="${ROOT_DIR}/bactopia_out"
+# ── Directories ───────────────────────────────────────────────────────────────
+BEAR_HUB_ROOT="${HOME}/BEAR-HUB"
+DATA_DIR="${BEAR_HUB_ROOT}/data"
+OUT_DIR="${BEAR_HUB_ROOT}/bactopia_out"
+# New config location (read by utils/system.py → bootstrap_bear_env_from_file)
+CONFIG_DIR="${HOME}/.bear-hub"
+CONFIG_FILE="${CONFIG_DIR}/config.env"
+# Legacy config location kept for reference
+LEGACY_CONFIG_FILE="${BEAR_HUB_ROOT}/.bear-hub.env"
 
-echo "ROOT_DIR: ${ROOT_DIR}"
-echo "DATA_DIR: ${DATA_DIR}"
-echo "OUT_DIR : ${OUT_DIR}"
+# ── Parse arguments ───────────────────────────────────────────────────────────
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --bactopia-version)
+            BACTOPIA_VERSION="$2"
+            shift 2
+            ;;
+        *)
+            echo "Unknown argument: $1"
+            exit 1
+            ;;
+    esac
+done
 
-mkdir -p "${ROOT_DIR}" "${DATA_DIR}" "${OUT_DIR}"
+# =============================================================================
+# Helper: get conda env prefix by name
+# =============================================================================
+get_env_prefix() {
+    local env_name="$1"
+    local output prefix solver
+    # Try every available solver (mamba, micromamba, conda) in order
+    for solver in "${MAMBA_BIN:-}" micromamba "${CONDA_BIN:-}"; do
+        [[ -z "${solver}" ]] && continue
+        command -v "${solver}" >/dev/null 2>&1 || continue
+        output="$("${solver}" env list 2>/dev/null || true)"
+        prefix="$(
+            printf '%s\n' "${output}" | awk -v name="${env_name}" '
+                NF >= 2 && $1 == name { print $NF; exit }
+            '
+        )"
+        if [[ -n "${prefix}" ]]; then
+            printf '%s\n' "${prefix}"
+            return 0
+        fi
+    done
+}
 
-# ---------------------------------------------------------
-# Verificar Docker (obrigatório para Bactopia)
-# ---------------------------------------------------------
-if ! command -v docker >/dev/null 2>&1; then
-    cat <<'EOF'
+# =============================================================================
+# Step 1: check_prerequisites — Docker + conda/mamba
+# =============================================================================
+check_prerequisites() {
+    echo
+    echo "=== Step 1: Checking prerequisites ==="
 
-ERRO: 'docker' não foi encontrado no PATH.
-BEAR-HUB executa o Bactopia sempre com '-profile docker',
-então é obrigatório ter o Docker instalado e acessível.
+    # Docker
+    if ! command -v docker >/dev/null 2>&1; then
+        cat <<'EOF'
 
-Instale o Docker e tente novamente.
+ERROR: 'docker' was not found in PATH.
+BEAR-HUB runs Bactopia exclusively with '-profile docker', so Docker is mandatory.
 
-Sugestão rápida para Ubuntu/Debian (como root ou com sudo):
+Quick install for Ubuntu/Debian (as root or via sudo):
 
   sudo apt-get update
   sudo apt-get install -y ca-certificates curl gnupg
   sudo install -m 0755 -d /etc/apt/keyrings
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+    | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+    https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+    | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
   sudo apt-get update
-  sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  sudo apt-get install -y docker-ce docker-ce-cli containerd.io \
+    docker-buildx-plugin docker-compose-plugin
 
-Depois, adicione seu usuário ao grupo docker (opcional, mas recomendado):
-
+  # (Optional) add your user to the docker group:
   sudo usermod -aG docker "$USER"
-  # faça logout/login da sessão para o grupo valer
+  # Then log out and back in.
 
-Para outras distros/OS, veja a documentação oficial:
-  https://docs.docker.com/engine/install/
-
+For other platforms: https://docs.docker.com/engine/install/
 EOF
-    exit 1
-fi
+        exit 1
+    fi
+    echo "Docker found: $(command -v docker)"
 
-echo
-echo "Docker encontrado em: $(command -v docker)"
+    # conda / mamba
+    MAMBA_BIN=""
+    CONDA_BIN=""
 
-# ---------------------------------------------------------
-# Detectar mamba/conda
-# ---------------------------------------------------------
-MAMBA_BIN=""
-CONDA_BIN=""
+    if command -v mamba >/dev/null 2>&1; then
+        MAMBA_BIN="$(command -v mamba)"
+        echo "mamba found: ${MAMBA_BIN}"
+    fi
+    if command -v conda >/dev/null 2>&1; then
+        CONDA_BIN="$(command -v conda)"
+        echo "conda found: ${CONDA_BIN}"
+    fi
 
-if command -v mamba >/dev/null 2>&1; then
-    MAMBA_BIN="$(command -v mamba)"
-    echo
-    echo "Usando mamba para criar ambientes."
-    echo "MAMBA_BIN: ${MAMBA_BIN}"
-fi
+    if [[ -z "${MAMBA_BIN}" && -z "${CONDA_BIN}" ]]; then
+        cat <<'EOF'
 
-if command -v conda >/dev/null 2>&1; then
-    CONDA_BIN="$(command -v conda)"
-fi
+ERROR: neither 'mamba' nor 'conda' was found in PATH.
+BEAR-HUB uses conda environments for:
+  - 'bear-hub' (Streamlit UI)
+  - 'bactopia' (pipeline + Nextflow)
 
-if [[ -z "${MAMBA_BIN}" && -z "${CONDA_BIN}" ]]; then
-    cat <<'EOF'
-
-ERRO: nem 'mamba' nem 'conda' encontrados no PATH.
-O BEAR-HUB usa ambientes conda para:
-  - 'bear-hub' (UI em Streamlit)
-  - 'bactopia' (pipeline Bactopia + Nextflow)
-
-Sugestão rápida para instalar Miniconda (Linux x86_64):
+Quick Miniconda install (Linux x86_64):
 
   cd "$HOME"
-  curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda.sh
+  curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+    -o miniconda.sh
   bash miniconda.sh
-  # siga o instalador interativo; ao final, feche e reabra o terminal
+  # Follow the interactive prompts, then close and reopen your terminal.
 
-Depois disso, verifique se o 'conda' está disponível:
+  conda --version   # verify
 
-  conda --version
-
-Opcional (recomendado) – instalar mamba no ambiente base:
-
+  # Optional (recommended) — install mamba in base:
   conda install -n base -c conda-forge mamba
 
-Documentação oficial do Miniconda:
-  https://docs.conda.io/projects/miniconda/en/latest/
-
+Miniconda docs: https://docs.conda.io/projects/miniconda/en/latest/
 EOF
     exit 1
 fi
@@ -271,23 +310,53 @@ if [[ ! -f "${CRED_FILE}" ]]; then
 [general]
 email = ""
 TOML
-else
-    echo "${CRED_FILE} já existe."
-fi
+    else
+        echo "${cred_file} already exists — skipping."
+    fi
 
-# 2. config.toml: disable usage stats
-CONFIG_FILE="${ST_DIR}/config.toml"
-if [[ ! -f "${CONFIG_FILE}" ]]; then
-    echo "Criando ${CONFIG_FILE} (desativar usage stats)..."
-    cat > "${CONFIG_FILE}" <<TOML
+    # Disable usage stats
+    local config_file="${st_dir}/config.toml"
+    if [[ ! -f "${config_file}" ]]; then
+        echo "Creating ${config_file}…"
+        cat > "${config_file}" <<'TOML'
 [browser]
 gatherUsageStats = false
 TOML
-else
-    echo "${CONFIG_FILE} já existe."
-    # Opcional: checar se gatherUsageStats já está lá, mas não vamos sobrescrever configs do usuário
-fi
+    else
+        echo "${config_file} already exists — skipping."
+    fi
+}
 
-echo
-echo "Instalação do BEAR-HUB finalizada."
-echo "Lembre-se: o Bactopia será executado sempre com '-profile docker' pelo app."
+# =============================================================================
+# Main
+# =============================================================================
+main() {
+    echo "======================================="
+    echo "  BEAR-HUB Installer"
+    echo "  Bactopia version: ${BACTOPIA_VERSION}"
+    echo "======================================="
+    echo "BEAR_HUB_ROOT : ${BEAR_HUB_ROOT}"
+    echo "DATA_DIR      : ${DATA_DIR}"
+    echo "OUT_DIR       : ${OUT_DIR}"
+    echo "CONFIG_FILE   : ${CONFIG_FILE}"
+
+    check_prerequisites
+    setup_bear_hub_env
+    setup_bactopia_env
+    write_config
+    configure_streamlit
+
+    echo
+    echo "======================================="
+    echo "  Installation complete!"
+    echo "======================================="
+    echo
+    echo "Next steps:"
+    echo "  source \"${CONFIG_FILE}\""
+    echo "  cd \"${BEAR_HUB_ROOT}\""
+    echo "  ./run_bear.sh"
+    echo
+    echo "Bactopia will run via '-profile docker' — make sure Docker is running."
+}
+
+main "$@"

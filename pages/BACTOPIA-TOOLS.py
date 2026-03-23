@@ -84,6 +84,18 @@ utils.bootstrap_bear_env_from_file()
 
 BACTOPIA_ENV_PREFIX = os.environ.get("BACTOPIA_ENV_PREFIX")
 
+# ── Session state defaults ────────────────────────────────────────────────────
+utils.init_session_state({
+    "bt_outdir": DEFAULT_OUTDIR,
+    "bt_selected_samples": [],
+    "tools_running": False,
+    "bt_profile": "docker",
+    "bt_threads": 0,
+    "bt_memory_gb": 0,
+    "bt_resume": True,
+    "bt_extra": "",
+})
+
 # ============================= Helps (popovers) =============================
 
 def help_popover(label: str, text: str):
@@ -1052,7 +1064,10 @@ if start_tools:
     if not utils.nextflow_available():
         st.error("Nextflow not found (not in PATH, nor in BACTOPIA_ENV_PREFIX / NEXTFLOW_BIN / nextflow_bin).")
     else:
-        if not bt_outdir:
+        _ok_out, _msg_out = utils.validate_outdir(bt_outdir or "")
+        if not _ok_out:
+            st.error(f"Invalid output directory: {_msg_out}")
+        elif not bt_outdir:
             st.error("Define the 'Bactopia results folder'.")
         else:
             if not sel and samples:
@@ -1334,17 +1349,28 @@ if start_tools:
                         sub_cmds.append(f'echo "===== [Bactopia Tool] {tool} =====" ; {cmdi}')
                     full_cmd = " ; ".join(sub_cmds)
                     status_box_tools.info("Running tools (async).")
+                    _run_id = utils.record_run_start("TOOLS", sel, full_cmd)
+                    st.session_state["_tools_run_id"] = _run_id
                     utils.start_async_runner_ns(full_cmd, "tools")
 
 # Real-time log update
 if st.session_state.get("tools_running", False):
     utils.drain_log_queue_ns("tools", tail_limit=500, max_pull=800)
+    utils.render_nxf_progress_ns("tools")
     utils.render_log_box_ns("tools", height=520)
     finished = utils.check_status_and_finalize_ns("tools", status_box_tools)
+    if finished:
+        _run_id = st.session_state.pop("_tools_run_id", None)
+        if _run_id is not None:
+            try:
+                utils.record_run_finish(_run_id, True)
+            except Exception:
+                pass
     if not finished:
         time.sleep(0.3)
         utils._st_rerun()
 else:
+    utils.render_nxf_progress_ns("tools")
     utils.render_log_box_ns("tools", height=520)
 
 # ------------------------- merged-results -------------------------
