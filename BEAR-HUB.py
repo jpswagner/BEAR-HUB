@@ -23,6 +23,10 @@ import streamlit as st
 import utils  # Import the new utility module
 from utils.history import get_runs
 
+# Load env config early so BACTOPIA_ENV_PREFIX / NXF_CONDA_EXE are available
+# to all pages that share this process.
+utils.bootstrap_bear_env_from_file()
+
 # ============================= General config =============================
 st.set_page_config(page_title="BEAR-HUB", page_icon="🐻", layout="wide")
 

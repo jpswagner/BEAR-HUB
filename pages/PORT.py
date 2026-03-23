@@ -36,8 +36,10 @@ except ImportError:
     sys.path.append(str(pathlib.Path(__file__).parent.parent))
     import utils
 
-# ============================= General config =============================
-st.set_page_config(page_title="PORT — BEAR-HUB", page_icon="🐻", layout="wide")
+utils.bootstrap_bear_env_from_file()
+
+# ============================= Config geral =============================
+st.set_page_config(page_title="BEAR-HUB", page_icon="🐻", layout="wide")
 
 APP_ROOT = pathlib.Path(__file__).resolve().parent
 

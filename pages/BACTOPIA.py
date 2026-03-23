@@ -133,6 +133,7 @@ PRESET_KEYS_ALLOWLIST = {
     "fastp_umi_loc", "fastp_umi_len",
     "fastp_detect_adapter_pe", "fastp_adapter_r1", "fastp_adapter_r2", "fastp_poly_g", "fastp_extra",
     # Assembler & Polishing
+    "assembly_mode",
     "use_unicycler", "hybrid_strategy",
     "shovill_assembler", "shovill_opts", "shovill_kmers", "trim", "no_stitch", "no_corr",
     "dragonflye_assembler", "dragonflye_opts", "nanohq",
@@ -973,119 +974,125 @@ with st.expander("fastp options", expanded=False):
 
 # ============================= Assembler & Polishing =============================
 
+# ── Assembly Mode constants ───────────────────────────────────────────────────
+_ASSEMBLY_MODES = [
+    "Illumina PE (Shovill)",
+    "Illumina PE (Unicycler)",
+    "Illumina SE (Shovill-SE)",
+    "ONT (Dragonflye)",
+    "Hybrid (Unicycler --hybrid)",
+    "Hybrid (Dragonflye --short_polish)",
+]
+
+_MODE_IMPLIED: dict[str, dict] = {
+    "Illumina PE (Shovill)":              {"use_unicycler": False, "hybrid_strategy": "(Auto)"},
+    "Illumina PE (Unicycler)":            {"use_unicycler": True,  "hybrid_strategy": "(Auto)"},
+    "Illumina SE (Shovill-SE)":           {"use_unicycler": False, "hybrid_strategy": "(Auto)"},
+    "ONT (Dragonflye)":                   {"use_unicycler": False, "hybrid_strategy": "(Auto)"},
+    "Hybrid (Unicycler --hybrid)":        {"use_unicycler": False, "hybrid_strategy": "Unicycler (--hybrid)"},
+    "Hybrid (Dragonflye --short_polish)": {"use_unicycler": False, "hybrid_strategy": "Dragonflye (--short_polish)"},
+}
+
+_MODE_SUMMARIES: dict[str, str] = {
+    "Illumina PE (Shovill)":              "Paired-end Illumina → Shovill",
+    "Illumina PE (Unicycler)":            "Paired-end Illumina → Unicycler",
+    "Illumina SE (Shovill-SE)":           "Single-end Illumina → Shovill-SE",
+    "ONT (Dragonflye)":                   "ONT long reads → Dragonflye (flye backend by default)",
+    "Hybrid (Unicycler --hybrid)":        "Short + long reads → Unicycler hybrid (long-read bridging)",
+    "Hybrid (Dragonflye --short_polish)": "Long reads → Dragonflye, then short-read polish",
+}
+
+
+def _apply_assembly_mode(mode: str) -> None:
+    """Enforce implied session_state keys for the selected assembly mode."""
+    for k, v in _MODE_IMPLIED.get(mode, {}).items():
+        st.session_state[k] = v
+
+
+# ── Ensure assembly_mode has a default before widgets render ──────────────────
+if "assembly_mode" not in st.session_state:
+    st.session_state["assembly_mode"] = "Illumina PE (Unicycler)"
+
+# Apply implied flags on every render so derived keys stay consistent.
+_apply_assembly_mode(st.session_state["assembly_mode"])
+
+# ── Derived enable/disable booleans ──────────────────────────────────────────
+_mode = st.session_state["assembly_mode"]
+_is_illumina_pe_shovill    = _mode == "Illumina PE (Shovill)"
+_is_illumina_pe_unicycler  = _mode == "Illumina PE (Unicycler)"
+_is_illumina_se            = _mode == "Illumina SE (Shovill-SE)"
+_is_ont                    = _mode == "ONT (Dragonflye)"
+_is_hybrid_unicycler       = _mode == "Hybrid (Unicycler --hybrid)"
+_is_hybrid_dragonflye      = _mode == "Hybrid (Dragonflye --short_polish)"
+
+_enable_shovill           = _is_illumina_pe_shovill or _is_illumina_se
+_enable_unicycler         = _is_illumina_pe_unicycler or _is_hybrid_unicycler
+_enable_dragonflye        = _is_ont or _is_hybrid_dragonflye
+_enable_shortread_polish  = _is_hybrid_unicycler or _is_hybrid_dragonflye
+_enable_longread_polish   = _is_ont
+
+
+# ── UI ────────────────────────────────────────────────────────────────────────
 ASSEMBLER_HELP = """
 # ℹ️ Assembler & Polishing Configuration
 
-Select a single **Assembly Mode** to configure the assembler and polishing steps. Options not relevant to the selected mode will be hidden.
+Select an **Assembly Mode** to configure which assembler and polishing tools are active.
+All irrelevant controls are hidden for the selected mode.
 
-### Assemblers
-- **Shovill (Illumina)**: Default is `skesa`.
-- **Dragonflye (ONT)**: Default is `flye`.
-- **Unicycler**: Used for Illumina or Hybrid assembly.
-
-### Polishing
-- **No Polish**: Skips all polishing steps.
-- Polishing options are restricted based on the assembly mode.
+| Mode | Assembler | Polishing |
+|---|---|---|
+| Illumina PE (Shovill) | Shovill | — |
+| Illumina PE (Unicycler) | Unicycler | — |
+| Illumina SE (Shovill-SE) | Shovill-SE | — |
+| ONT (Dragonflye) | Dragonflye | Racon / Medaka |
+| Hybrid (Unicycler --hybrid) | Unicycler | Polypolish / Pilon |
+| Hybrid (Dragonflye --short_polish) | Dragonflye | Polypolish / Pilon |
 """
 
 st.subheader("Assembler & Polishing", help=ASSEMBLER_HELP)
 
 with st.expander("Assembler & Polishing Settings", expanded=False):
-    assembly_modes = [
-        "Illumina PE (Shovill)",
-        "Illumina PE (Unicycler)",
-        "Illumina SE (Shovill-SE)",
-        "ONT (Dragonflye)",
-        "Hybrid (Unicycler --hybrid)",
-        "Hybrid (Dragonflye --short_polish)"
-    ]
 
-    st.selectbox(
+    # ── Mode selector ─────────────────────────────────────────────────────────
+    st.radio(
         "Assembly Mode",
-        options=assembly_modes,
-        index=0,
-        key="assembly_mode"
+        options=_ASSEMBLY_MODES,
+        key="assembly_mode",
+        horizontal=False,
+        on_change=lambda: _apply_assembly_mode(st.session_state["assembly_mode"]),
     )
-
-    mode = st.session_state.get("assembly_mode", assembly_modes[0])
-
-    # 1. Enforce underlying strategy keys
-    if mode == "Illumina PE (Shovill)":
-        st.session_state["use_unicycler"] = False
-        st.session_state["hybrid_strategy"] = "(Auto)"
-        show_shovill = True
-        show_dragonflye = False
-        show_unicycler = False
-        show_short_polish = True
-        show_long_polish = False
-        assembler_display = f"Shovill ({st.session_state.get('shovill_assembler', 'skesa')})"
-    elif mode == "Illumina PE (Unicycler)":
-        st.session_state["use_unicycler"] = True
-        st.session_state["hybrid_strategy"] = "(Auto)"
-        show_shovill = False
-        show_dragonflye = False
-        show_unicycler = True
-        show_short_polish = True
-        show_long_polish = False
-        assembler_display = "Unicycler"
-    elif mode == "Illumina SE (Shovill-SE)":
-        st.session_state["use_unicycler"] = False
-        st.session_state["hybrid_strategy"] = "(Auto)"
-        show_shovill = True
-        show_dragonflye = False
-        show_unicycler = False
-        show_short_polish = True
-        show_long_polish = False
-        assembler_display = f"Shovill ({st.session_state.get('shovill_assembler', 'skesa')})"
-    elif mode == "ONT (Dragonflye)":
-        st.session_state["use_unicycler"] = False
-        st.session_state["hybrid_strategy"] = "(Auto)"
-        show_shovill = False
-        show_dragonflye = True
-        show_unicycler = False
-        show_short_polish = False
-        show_long_polish = True
-        assembler_display = f"Dragonflye ({st.session_state.get('dragonflye_assembler', 'flye')})"
-    elif mode == "Hybrid (Unicycler --hybrid)":
-        st.session_state["use_unicycler"] = False
-        st.session_state["hybrid_strategy"] = "Unicycler (--hybrid)"
-        show_shovill = False
-        show_dragonflye = False
-        show_unicycler = True
-        show_short_polish = True
-        show_long_polish = False
-        assembler_display = "Unicycler"
-    elif mode == "Hybrid (Dragonflye --short_polish)":
-        st.session_state["use_unicycler"] = False
-        st.session_state["hybrid_strategy"] = "Dragonflye (--short_polish)"
-        show_shovill = False
-        show_dragonflye = True
-        show_unicycler = False
-        show_short_polish = True
-        show_long_polish = False
-        assembler_display = f"Dragonflye ({st.session_state.get('dragonflye_assembler', 'flye')})"
+    st.info(_MODE_SUMMARIES.get(_mode, ""))
 
     st.divider()
 
-    st.markdown("**Assembler Selection**")
-
-    if show_shovill:
+    # ── Shovill (Illumina) ────────────────────────────────────────────────────
+    if _enable_shovill:
         st.markdown("##### Shovill (Illumina)")
-        st.selectbox("Assembler", ["skesa", "spades", "velvet", "megahit"], index=0, key="shovill_assembler")
-        st.text_input("Extra Opts (--shovill_opts)", key="shovill_opts")
-        st.text_input("K-mers (--shovill_kmers)", key="shovill_kmers", placeholder="e.g. 21,33,55")
-        st.checkbox("--trim (Adaptor trimming)", value=False, key="trim")
-        st.checkbox("--no_stitch (Disable PE stitching)", value=False, key="no_stitch")
-        st.checkbox("--no_corr (Disable post-correction)", value=False, key="no_corr")
+        sc1, sc2 = st.columns(2)
+        with sc1:
+            st.selectbox("Assembler", ["skesa", "spades", "velvet", "megahit"], index=0, key="shovill_assembler")
+            st.text_input("Extra Opts (--shovill_opts)", key="shovill_opts")
+            st.text_input("K-mers (--shovill_kmers)", key="shovill_kmers", placeholder="e.g. 21,33,55")
+        with sc2:
+            st.checkbox("--trim (Adaptor trimming)", value=False, key="trim")
+            st.checkbox("--no_stitch (Disable PE stitching)", value=False, key="no_stitch")
+            st.checkbox("--no_corr (Disable post-correction)", value=False, key="no_corr")
+        st.divider()
 
-    if show_dragonflye:
+    # ── Dragonflye (ONT / Hybrid) ─────────────────────────────────────────────
+    if _enable_dragonflye:
         st.markdown("##### Dragonflye (ONT)")
-        st.selectbox("Assembler", ["flye", "miniasm", "raven"], index=0, key="dragonflye_assembler")
-        st.text_input("Extra Opts (--dragonflye_opts)", key="dragonflye_opts")
-        st.checkbox("--nanohq (Flye NanoHQ mode)", value=False, key="nanohq")
-        st.checkbox("--no_miniasm (Skip miniasm bridging)", value=False, key="no_miniasm")
+        dc1, dc2 = st.columns(2)
+        with dc1:
+            st.selectbox("Assembler", ["flye", "miniasm", "raven"], index=0, key="dragonflye_assembler")
+            st.text_input("Extra Opts (--dragonflye_opts)", key="dragonflye_opts")
+        with dc2:
+            st.checkbox("--nanohq (Flye NanoHQ mode)", value=False, key="nanohq")
+            st.checkbox("--no_miniasm (Skip miniasm bridging)", value=False, key="no_miniasm")
+        st.divider()
 
-    if show_unicycler:
+    # ── Unicycler Advanced ────────────────────────────────────────────────────
+    if _enable_unicycler:
         st.markdown("##### Unicycler Advanced Options")
         uc1, uc2 = st.columns(2)
         with uc1:
@@ -1097,37 +1104,9 @@ with st.expander("Assembler & Polishing Settings", expanded=False):
             value=st.session_state.get("unicycler_extra", ""),
             key="unicycler_extra",
         )
+        st.divider()
 
-    # Initialize keys if hidden to prevent downstream KeyError
-    if not show_shovill:
-        st.session_state.setdefault("shovill_assembler", "skesa")
-        st.session_state.setdefault("shovill_opts", "")
-        st.session_state.setdefault("shovill_kmers", "")
-        st.session_state.setdefault("trim", False)
-        st.session_state.setdefault("no_stitch", False)
-        st.session_state.setdefault("no_corr", False)
-    if not show_dragonflye:
-        st.session_state.setdefault("dragonflye_assembler", "flye")
-        st.session_state.setdefault("dragonflye_opts", "")
-        st.session_state.setdefault("nanohq", False)
-        st.session_state.setdefault("no_miniasm", False)
-    if not show_unicycler:
-        st.session_state.setdefault("unicycler_mode", "normal")
-        st.session_state.setdefault("unicycler_min_len", 1000)
-        st.session_state.setdefault("unicycler_extra", "")
-
-    # Build Unicycler Opts String globally
-    uni_parts = ["--mode", st.session_state.get("unicycler_mode", "normal")]
-    if st.session_state.get("unicycler_min_len", 1000):
-        uni_parts += ["--min_fasta_length", str(int(st.session_state["unicycler_min_len"]))]
-    if (st.session_state.get("unicycler_extra") or "").strip():
-        uni_parts.append(st.session_state["unicycler_extra"].strip())
-    unicycler_opts_value = " ".join(uni_parts)
-    if show_unicycler:
-        st.caption(f"unicycler_opts: `{unicycler_opts_value}`")
-
-    st.divider()
-
+    # ── General Assembly Options (always shown) ───────────────────────────────
     st.markdown("**General Assembly Options**")
     gc1, gc2, gc3, gc4, gc5 = st.columns(5)
     with gc1:
@@ -1143,57 +1122,73 @@ with st.expander("Assembler & Polishing Settings", expanded=False):
 
     st.divider()
 
+    # ── Polishing ─────────────────────────────────────────────────────────────
     st.markdown("**Polishing Options**")
-    no_polish = st.checkbox("--no_polish (Skip all polishing)", value=False, key="no_polish")
-    
-    if not no_polish:
-        # Determine which polishing options to show
-        pc1, pc2, pc3, pc4 = st.columns(4)
-        if show_short_polish:
-            with pc1:
-                st.number_input("Polypolish Rounds", min_value=0, value=1, key="polypolish_rounds")
-            with pc2:
-                st.number_input("Pilon Rounds", min_value=0, value=0, key="pilon_rounds", help="Default is usually 0 unless specified")
+    st.checkbox("--no_polish (Skip all polishing)", value=False, key="no_polish")
+    _no_polish = st.session_state.get("no_polish", False)
 
-        if show_long_polish:
-            with pc3:
-                st.number_input("Racon Rounds", min_value=0, value=1, key="racon_rounds")
-            with pc4:
-                st.number_input("Medaka Rounds", min_value=0, value=0, key="medaka_rounds", help="Default usually 0 (auto)")
-            st.text_input("Medaka Model (--medaka_model)", key="medaka_model")
+    if _enable_shortread_polish and not _no_polish:
+        st.caption("Short-read polishing")
+        pc1, pc2 = st.columns(2)
+        with pc1:
+            st.number_input("Polypolish Rounds", min_value=0, value=1, key="polypolish_rounds")
+        with pc2:
+            st.number_input("Pilon Rounds", min_value=0, value=0, key="pilon_rounds")
 
-    # Initialize polishing keys if hidden
-    if no_polish or not show_short_polish:
-        st.session_state.setdefault("polypolish_rounds", 1)
-        st.session_state.setdefault("pilon_rounds", 0)
-    if no_polish or not show_long_polish:
-        st.session_state.setdefault("racon_rounds", 1)
-        st.session_state.setdefault("medaka_rounds", 0)
-        st.session_state.setdefault("medaka_model", "")
+    if _enable_longread_polish and not _no_polish:
+        st.caption("Long-read polishing")
+        lc1, lc2 = st.columns(2)
+        with lc1:
+            st.number_input("Racon Rounds", min_value=0, value=1, key="racon_rounds")
+        with lc2:
+            st.number_input("Medaka Rounds", min_value=0, value=0, key="medaka_rounds")
+        st.text_input("Medaka Model (--medaka_model)", key="medaka_model")
 
-    # Update assembler_display if they change from selectbox internally
-    if mode == "Illumina PE (Shovill)" or mode == "Illumina SE (Shovill-SE)":
-        assembler_display = f"Shovill ({st.session_state.get('shovill_assembler', 'skesa')})"
-    elif mode == "ONT (Dragonflye)" or mode == "Hybrid (Dragonflye --short_polish)":
-        assembler_display = f"Dragonflye ({st.session_state.get('dragonflye_assembler', 'flye')})"
-    
-    # Calculate effective polish string for summary
-    polish_summary = []
-    if no_polish:
-        polish_summary.append("No polish")
-    else:
-        if show_short_polish:
-            pr = st.session_state.get("polypolish_rounds", 1)
-            pilr = st.session_state.get("pilon_rounds", 0)
-            polish_summary.append(f"polypolish×{pr}")
-            polish_summary.append(f"pilon×{pilr}")
-        if show_long_polish:
+    if not _enable_shortread_polish and not _enable_longread_polish:
+        st.caption("No polishing options for this assembly mode.")
+
+    st.divider()
+
+    # ── Pipeline summary ──────────────────────────────────────────────────────
+    _assembler_label = (
+        f"Shovill ({st.session_state.get('shovill_assembler', 'skesa')})" if _enable_shovill
+        else f"Unicycler" if _enable_unicycler
+        else f"Dragonflye ({st.session_state.get('dragonflye_assembler', 'flye')})" if _enable_dragonflye
+        else "—"
+    )
+    _polish_parts = []
+    if not _no_polish:
+        if _enable_shortread_polish:
+            pp = st.session_state.get("polypolish_rounds", 1)
+            pi = st.session_state.get("pilon_rounds", 0)
+            if pp:
+                _polish_parts.append(f"polypolish×{pp}")
+            if pi:
+                _polish_parts.append(f"pilon×{pi}")
+        if _enable_longread_polish:
             rr = st.session_state.get("racon_rounds", 1)
             mr = st.session_state.get("medaka_rounds", 0)
-            polish_summary.append(f"racon×{rr}")
-            polish_summary.append(f"medaka×{mr}")
+            if rr:
+                _polish_parts.append(f"racon×{rr}")
+            if mr:
+                _polish_parts.append(f"medaka×{mr}")
+    _polish_label = ", ".join(_polish_parts) if _polish_parts else "No polish"
+    st.info(
+        f"**Mode:** {_mode}  \n"
+        f"**Assembler:** {_assembler_label}  \n"
+        f"**Polish:** {_polish_label}"
+    )
 
-    st.info(f"**Pipeline Summary**\n\n**Mode:** {mode}\n\n**Assembler:** {assembler_display}\n\n**Polish:** {', '.join(polish_summary)}")
+# Build Unicycler Opts String (always computed, used downstream in CLI builder)
+if _enable_unicycler:
+    uni_parts = ["--mode", st.session_state.get("unicycler_mode", "normal")]
+    if st.session_state.get("unicycler_min_len", 1000):
+        uni_parts += ["--min_fasta_length", str(int(st.session_state["unicycler_min_len"]))]
+    if (st.session_state.get("unicycler_extra") or "").strip():
+        uni_parts.append(st.session_state["unicycler_extra"].strip())
+    unicycler_opts_value = " ".join(uni_parts)
+else:
+    unicycler_opts_value = ""
 
 # ============================= Annotation & Typing (AMRFinder+ / MLST) =============================
 

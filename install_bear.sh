@@ -139,8 +139,8 @@ EOF
     exit 1
 fi
 
-# Usaremos ambientes locais criados em ROOT_DIR/envs para garantir total isolamento
-ENVS_DIR="${ROOT_DIR}/envs"
+# Usaremos ambientes locais criados em BEAR_HUB_ROOT/envs para garantir total isolamento
+ENVS_DIR="${BEAR_HUB_ROOT}/envs"
 mkdir -p "${ENVS_DIR}"
 
 BEAR_PREFIX="${ENVS_DIR}/bear-hub"
@@ -262,11 +262,10 @@ else
     echo "AVISO: mamba não encontrado, NXF_CONDA_EXE não será definido (Nextflow usará 'conda' se precisar)."
 fi
 
-CONFIG_FILE="${ROOT_DIR}/.bear-hub.env"
 {
     echo "# Arquivo gerado pelo install_bear.sh"
     echo "# Ajuste manualmente se quiser trocar diretórios padrão."
-    echo "export BEAR_HUB_ROOT=\"${ROOT_DIR}\""
+    echo "export BEAR_HUB_ROOT=\"${BEAR_HUB_ROOT}\""
     echo "export BEAR_HUB_BASEDIR=\"${DATA_DIR}\""
     echo "export BEAR_HUB_OUTDIR=\"${OUT_DIR}\""
     echo "export BEAR_HUB_DATA=\"${DATA_DIR}\""
@@ -286,7 +285,7 @@ echo "Para usar no shell atual, execute:"
 echo "  source \"${CONFIG_FILE}\""
 echo
 echo "Depois disso, você pode subir o app com o launcher:"
-echo "  cd \"${ROOT_DIR}\""
+echo "  cd \"${BEAR_HUB_ROOT}\""
 echo "  ./run_bear.sh"
 echo
 echo "Ou manualmente, por exemplo:"

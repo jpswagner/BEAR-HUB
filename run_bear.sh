@@ -9,10 +9,17 @@ echo "  BEAR-HUB - Launcher"
 echo "==============================="
 echo "ROOT_DIR: ${ROOT_DIR}"
 
-CONFIG_FILE="${ROOT_DIR}/.bear-hub.env"
+# Procura o arquivo de configuração gerado pelo install_bear.sh
+# Nova localização (~/.bear-hub/config.env) tem prioridade sobre a legada (ROOT_DIR/.bear-hub.env)
+if [[ -f "${HOME}/.bear-hub/config.env" ]]; then
+  CONFIG_FILE="${HOME}/.bear-hub/config.env"
+elif [[ -f "${ROOT_DIR}/.bear-hub.env" ]]; then
+  CONFIG_FILE="${ROOT_DIR}/.bear-hub.env"
+else
+  CONFIG_FILE=""
+fi
 
-# Carrega configuração gerada pelo install_bear.sh (se existir)
-if [[ -f "${CONFIG_FILE}" ]]; then
+if [[ -n "${CONFIG_FILE}" ]]; then
   echo "Carregando configuração de ${CONFIG_FILE}"
   # shellcheck disable=SC1090
   source "${CONFIG_FILE}"
@@ -24,7 +31,7 @@ if [[ -f "${CONFIG_FILE}" ]]; then
     echo "BEAR_HUB_OUTDIR (outdir): ${BEAR_HUB_OUTDIR}"
   fi
 else
-  echo "AVISO: ${CONFIG_FILE} não encontrado."
+  echo "AVISO: arquivo de configuração não encontrado."
   echo "       Execute primeiro:  ./install_bear.sh"
 fi
 
