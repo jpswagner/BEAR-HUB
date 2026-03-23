@@ -49,41 +49,16 @@ else
   exit 1
 fi
 
-# ---------------------------------------------------------
-# Checagem AMIGÁVEL do ambiente 'bear-hub'
-#   - Usa conda env list se existir
-#   - Se não achar, só avisa e segue em frente
-# ---------------------------------------------------------
-ENV_LIST=""
-CHECK_TOOL=""
+BEAR_PREFIX="${ROOT_DIR}/envs/bear-hub"
 
-if command -v conda >/dev/null 2>&1; then
-  CHECK_TOOL="conda"
-  ENV_LIST="$(conda env list 2>/dev/null || true)"
-elif command -v mamba >/dev/null 2>&1; then
-  CHECK_TOOL="mamba"
-  ENV_LIST="$(mamba env list 2>/dev/null || true)"
-fi
-
-if [[ -n "${ENV_LIST}" ]]; then
-  if printf '%s\n' "${ENV_LIST}" | grep -Eq '^[[:space:]]*bear-hub[[:space:]]'; then
-    echo "Ambiente 'bear-hub' encontrado via '${CHECK_TOOL} env list'."
-  else
-    echo "AVISO: ambiente 'bear-hub' não apareceu em '${CHECK_TOOL} env list'."
-    echo "Saída de '${CHECK_TOOL} env list':"
-    printf '%s\n' "${ENV_LIST}" | sed 's/^/  /'
-    echo
-    echo "Vou tentar rodar mesmo assim com:"
-    echo "  ${RUNNER} run -n bear-hub ..."
-  fi
-else
-  echo "AVISO: não consegui obter lista de ambientes via conda/mamba."
-  echo "Vou tentar rodar mesmo assim com:"
-  echo "  ${RUNNER} run -n bear-hub ..."
+if [[ ! -d "${BEAR_PREFIX}" ]]; then
+  echo "ERRO: O ambiente 'bear-hub' não foi encontrado em: ${BEAR_PREFIX}"
+  echo "Execute './install_bear.sh' primeiro."
+  exit 1
 fi
 
 echo
-echo "Usando: ${RUNNER} run -n bear-hub streamlit run ${APP_FILE}"
+echo "Usando: ${RUNNER} run -p \"${BEAR_PREFIX}\" streamlit run ${APP_FILE}"
 echo "Você pode passar opções do Streamlit, por exemplo:"
 echo "  ./run_bear.sh --server.port 8502"
 echo
@@ -92,5 +67,5 @@ cd "${ROOT_DIR}"
 
 # IMPORTANTE:
 # - '.bear-hub.env' já ajustou BEAR_HUB_ROOT/BASEDIR/OUTDIR etc.
-# - '${RUNNER} run -n bear-hub' cria o processo dentro do env bear-hub.
-exec "${RUNNER}" run -n bear-hub streamlit run "${APP_FILE}" "$@"
+# - '${RUNNER} run -p ${BEAR_PREFIX}' cria o processo dentro do env local bear-hub.
+exec "${RUNNER}" run -p "${BEAR_PREFIX}" streamlit run "${APP_FILE}" "$@"
