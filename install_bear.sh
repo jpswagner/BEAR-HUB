@@ -22,8 +22,15 @@ OUT_DIR="${BEAR_HUB_ROOT}/bactopia_out"
 # New config location (read by utils/system.py → bootstrap_bear_env_from_file)
 CONFIG_DIR="${HOME}/.bear-hub"
 CONFIG_FILE="${CONFIG_DIR}/config.env"
-# Legacy config location kept for reference
-LEGACY_CONFIG_FILE="${BEAR_HUB_ROOT}/.bear-hub.env"
+
+# Conda env prefixes (local to the project tree)
+ENVS_DIR="${BEAR_HUB_ROOT}/envs"
+BEAR_PREFIX="${ENVS_DIR}/bear-hub"
+BACTOPIA_PREFIX="${ENVS_DIR}/bactopia"
+
+# Conda/mamba binaries (populated by check_prerequisites)
+MAMBA_BIN=""
+CONDA_BIN=""
 
 # ── Parse arguments ───────────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
@@ -38,29 +45,6 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
-
-# =============================================================================
-# Helper: get conda env prefix by name
-# =============================================================================
-get_env_prefix() {
-    local env_name="$1"
-    local output prefix solver
-    # Try every available solver (mamba, micromamba, conda) in order
-    for solver in "${MAMBA_BIN:-}" micromamba "${CONDA_BIN:-}"; do
-        [[ -z "${solver}" ]] && continue
-        command -v "${solver}" >/dev/null 2>&1 || continue
-        output="$("${solver}" env list 2>/dev/null || true)"
-        prefix="$(
-            printf '%s\n' "${output}" | awk -v name="${env_name}" '
-                NF >= 2 && $1 == name { print $NF; exit }
-            '
-        )"
-        if [[ -n "${prefix}" ]]; then
-            printf '%s\n' "${prefix}"
-            return 0
-        fi
-    done
-}
 
 # =============================================================================
 # Step 1: check_prerequisites — Docker + conda/mamba
@@ -101,9 +85,6 @@ EOF
     echo "Docker found: $(command -v docker)"
 
     # conda / mamba
-    MAMBA_BIN=""
-    CONDA_BIN=""
-
     if command -v mamba >/dev/null 2>&1; then
         MAMBA_BIN="$(command -v mamba)"
         echo "mamba found: ${MAMBA_BIN}"
@@ -136,176 +117,180 @@ Quick Miniconda install (Linux x86_64):
 
 Miniconda docs: https://docs.conda.io/projects/miniconda/en/latest/
 EOF
-    exit 1
-fi
-
-# Usaremos ambientes locais criados em BEAR_HUB_ROOT/envs para garantir total isolamento
-ENVS_DIR="${BEAR_HUB_ROOT}/envs"
-mkdir -p "${ENVS_DIR}"
-
-BEAR_PREFIX="${ENVS_DIR}/bear-hub"
-BACTOPIA_PREFIX="${ENVS_DIR}/bactopia"
-
-# ---------------------------------------------------------
-# Criar/verificar ambiente bear-hub (UI em Streamlit)
-# ---------------------------------------------------------
-echo
-echo "Verificando ambiente 'bear-hub'..."
-
-if [[ -d "${BEAR_PREFIX}/bin" ]]; then
-    echo "Ambiente 'bear-hub' já existe em: ${BEAR_PREFIX}"
-else
-    echo "Criando ambiente 'bear-hub' em ${BEAR_PREFIX}..."
-
-    if [[ -n "${MAMBA_BIN}" ]]; then
-        "${MAMBA_BIN}" create -y -p "${BEAR_PREFIX}" -c conda-forge python=3.11 streamlit pyyaml
-    else
-        "${CONDA_BIN}" create -y -p "${BEAR_PREFIX}" -c conda-forge python=3.11 streamlit pyyaml
+        exit 1
     fi
-    echo "Ambiente 'bear-hub' criado em: ${BEAR_PREFIX}"
-fi
+}
 
-# ---------------------------------------------------------
-# Criar/verificar ambiente bactopia (fornece Nextflow + pipeline)
-# ---------------------------------------------------------
-echo
-echo "Verificando ambiente 'bactopia'..."
-
-if [[ -d "${BACTOPIA_PREFIX}/bin" ]]; then
-    echo "Ambiente 'bactopia' já existe em: ${BACTOPIA_PREFIX}"
-else
-    echo "Criando ambiente 'bactopia' em ${BACTOPIA_PREFIX} com Bactopia..."
-    echo "  (o pipeline será executado com '-profile docker' pelo BEAR-HUB)"
-
-    if [[ -n "${MAMBA_BIN}" ]]; then
-        "${MAMBA_BIN}" create -y -p "${BACTOPIA_PREFIX}" -c conda-forge -c bioconda bactopia
-    else
-        "${CONDA_BIN}" create -y -p "${BACTOPIA_PREFIX}" -c conda-forge -c bioconda bactopia
-    fi
-    echo "Ambiente 'bactopia' criado em: ${BACTOPIA_PREFIX}"
-fi
-
-# ---------------------------------------------------------
-# Salvar config para o app (.bear-hub.env)
-#   - BEAR_HUB_ROOT: raiz do app
-#   - BEAR_HUB_BASEDIR: base de dados (explorador de arquivos)
-#   - BEAR_HUB_OUTDIR: outdir padrão do Bactopia
-#   - BEAR_HUB_DATA: alias para DATA_DIR
-#   - BACTOPIA_ENV_PREFIX: prefixo do env 'bactopia' (onde está o nextflow)
-#   - NXF_CONDA_EXE (opcional): mamba como solver, se existir
-# ---------------------------------------------------------
-echo
-echo "Prefixo do ambiente 'bactopia': ${BACTOPIA_PREFIX}"
-
-# -----------------------------------------------------
-# Garantir que o 'nextflow' exista dentro do ambiente
-# -----------------------------------------------------
-if [[ ! -x "${BACTOPIA_PREFIX}/bin/nextflow" ]]; then
+# =============================================================================
+# Step 2: setup_bear_hub_env — create the Streamlit UI environment
+# =============================================================================
+setup_bear_hub_env() {
     echo
-    echo "nextflow não encontrado em '${BACTOPIA_PREFIX}/bin/nextflow'."
+    echo "=== Step 2: Setting up 'bear-hub' environment ==="
+
+    mkdir -p "${ENVS_DIR}"
+
+    if [[ -d "${BEAR_PREFIX}/bin" ]]; then
+        echo "Ambiente 'bear-hub' ja existe em: ${BEAR_PREFIX}"
+    else
+        echo "Criando ambiente 'bear-hub' em ${BEAR_PREFIX}..."
+
+        if [[ -n "${MAMBA_BIN}" ]]; then
+            "${MAMBA_BIN}" create -y -p "${BEAR_PREFIX}" -c conda-forge \
+                python=3.11 streamlit pyyaml pandas altair requests
+        else
+            "${CONDA_BIN}" create -y -p "${BEAR_PREFIX}" -c conda-forge \
+                python=3.11 streamlit pyyaml pandas altair requests
+        fi
+        echo "Ambiente 'bear-hub' criado em: ${BEAR_PREFIX}"
+    fi
+}
+
+# =============================================================================
+# Step 3: setup_bactopia_env — create the Bactopia/Nextflow environment
+# =============================================================================
+setup_bactopia_env() {
+    echo
+    echo "=== Step 3: Setting up 'bactopia' environment ==="
+
+    mkdir -p "${ENVS_DIR}"
+
+    if [[ -d "${BACTOPIA_PREFIX}/bin" ]]; then
+        echo "Ambiente 'bactopia' ja existe em: ${BACTOPIA_PREFIX}"
+    else
+        echo "Criando ambiente 'bactopia' em ${BACTOPIA_PREFIX} com Bactopia..."
+        echo "  (o pipeline sera executado com '-profile docker' pelo BEAR-HUB)"
+
+        if [[ -n "${MAMBA_BIN}" ]]; then
+            "${MAMBA_BIN}" create -y -p "${BACTOPIA_PREFIX}" \
+                -c conda-forge -c bioconda bactopia
+        else
+            "${CONDA_BIN}" create -y -p "${BACTOPIA_PREFIX}" \
+                -c conda-forge -c bioconda bactopia
+        fi
+        echo "Ambiente 'bactopia' criado em: ${BACTOPIA_PREFIX}"
+    fi
+
+    # Ensure nextflow is available inside the bactopia environment
+    ensure_nextflow
+}
+
+# =============================================================================
+# Helper: ensure_nextflow — install Nextflow if missing from bactopia env
+# =============================================================================
+ensure_nextflow() {
+    echo
+    echo "Verificando nextflow no ambiente 'bactopia'..."
+
+    if [[ -x "${BACTOPIA_PREFIX}/bin/nextflow" ]]; then
+        echo "nextflow ja encontrado em: ${BACTOPIA_PREFIX}/bin/nextflow"
+        return 0
+    fi
+
+    echo "nextflow nao encontrado em '${BACTOPIA_PREFIX}/bin/nextflow'."
     echo "Tentando instalar nextflow dentro do ambiente 'bactopia'..."
 
     if [[ -n "${MAMBA_BIN}" ]]; then
-        "${MAMBA_BIN}" install -y -p "${BACTOPIA_PREFIX}" -c bioconda -c conda-forge nextflow || true
+        "${MAMBA_BIN}" install -y -p "${BACTOPIA_PREFIX}" \
+            -c bioconda -c conda-forge nextflow || true
     else
-        "${CONDA_BIN}" install -y -p "${BACTOPIA_PREFIX}" -c bioconda -c conda-forge nextflow || true
+        "${CONDA_BIN}" install -y -p "${BACTOPIA_PREFIX}" \
+            -c bioconda -c conda-forge nextflow || true
     fi
 
-    # Se ainda não apareceu, baixa via get.nextflow.io
+    # If conda/mamba install didn't produce the binary, download directly
     if [[ ! -x "${BACTOPIA_PREFIX}/bin/nextflow" ]]; then
         echo
-        echo "ATENÇÃO: 'nextflow' ainda não foi encontrado em '${BACTOPIA_PREFIX}/bin/nextflow'."
+        echo "ATENCAO: 'nextflow' ainda nao foi encontrado."
         echo "Baixando nextflow pelo script oficial (get.nextflow.io)..."
 
         mkdir -p "${BACTOPIA_PREFIX}/bin"
 
         if command -v curl >/dev/null 2>&1; then
-            (
-                cd "${BACTOPIA_PREFIX}/bin"
-                curl -fsSL https://get.nextflow.io -o nextflow
-            )
+            curl -fsSL https://get.nextflow.io -o "${BACTOPIA_PREFIX}/bin/nextflow"
         elif command -v wget >/dev/null 2>&1; then
-            (
-                cd "${BACTOPIA_PREFIX}/bin"
-                wget -qO nextflow https://get.nextflow.io
-            )
+            wget -qO "${BACTOPIA_PREFIX}/bin/nextflow" https://get.nextflow.io
         else
             echo
             echo "ERRO: nem 'curl' nem 'wget' encontrados para baixar nextflow."
             echo "Instale 'curl' ou 'wget' e rode novamente 'install_bear.sh',"
-            echo "ou instale manualmente o binário em '${BACTOPIA_PREFIX}/bin/nextflow'."
+            echo "ou instale manualmente o binario em '${BACTOPIA_PREFIX}/bin/nextflow'."
             exit 1
         fi
 
         chmod +x "${BACTOPIA_PREFIX}/bin/nextflow"
     fi
 
-    # Checagem final
+    # Final check
     if [[ -x "${BACTOPIA_PREFIX}/bin/nextflow" ]]; then
-        echo "nextflow disponível em: ${BACTOPIA_PREFIX}/bin/nextflow"
+        echo "nextflow disponivel em: ${BACTOPIA_PREFIX}/bin/nextflow"
     else
         echo
-        echo "ERRO: não foi possível garantir um 'nextflow' utilizável."
-        echo "Verifique a instalação do ambiente 'bactopia' e rode o instalador novamente."
+        echo "ERRO: nao foi possivel garantir um 'nextflow' utilizavel."
+        echo "Verifique a instalacao do ambiente 'bactopia' e rode o instalador novamente."
         exit 1
     fi
-else
-    echo "nextflow já encontrado em: ${BACTOPIA_PREFIX}/bin/nextflow"
-fi
+}
 
-# Solver de conda usado pelo Nextflow
-NXF_SOLVER=""
-if [[ -n "${MAMBA_BIN}" ]]; then
-    NXF_SOLVER="${MAMBA_BIN}"
-    echo "NXF_CONDA_EXE será configurado para usar: ${NXF_SOLVER}"
-else
-    echo "AVISO: mamba não encontrado, NXF_CONDA_EXE não será definido (Nextflow usará 'conda' se precisar)."
-fi
-
-{
-    echo "# Arquivo gerado pelo install_bear.sh"
-    echo "# Ajuste manualmente se quiser trocar diretórios padrão."
-    echo "export BEAR_HUB_ROOT=\"${BEAR_HUB_ROOT}\""
-    echo "export BEAR_HUB_BASEDIR=\"${DATA_DIR}\""
-    echo "export BEAR_HUB_OUTDIR=\"${OUT_DIR}\""
-    echo "export BEAR_HUB_DATA=\"${DATA_DIR}\""
+# =============================================================================
+# Step 4: write_config — persist config.env for the Streamlit app
+# =============================================================================
+write_config() {
     echo
-    echo "# Ambiente onde está o Nextflow/Bactopia"
-    echo "export BACTOPIA_ENV_PREFIX=\"${BACTOPIA_PREFIX}\""
-    if [[ -n "${NXF_SOLVER}" ]]; then
-        echo "export NXF_CONDA_EXE=\"${NXF_SOLVER}\""
+    echo "=== Step 4: Writing configuration ==="
+
+    mkdir -p "${CONFIG_DIR}"
+    mkdir -p "${DATA_DIR}"
+    mkdir -p "${OUT_DIR}"
+
+    # Determine NXF_CONDA_EXE (mamba preferred)
+    local nxf_solver=""
+    if [[ -n "${MAMBA_BIN}" ]]; then
+        nxf_solver="${MAMBA_BIN}"
+        echo "NXF_CONDA_EXE sera configurado para usar: ${nxf_solver}"
     else
-        echo "# NXF_CONDA_EXE não definido (mamba não encontrado quando install_bear.sh foi executado)"
+        echo "AVISO: mamba nao encontrado, NXF_CONDA_EXE nao sera definido."
     fi
-} > "${CONFIG_FILE}"
 
-echo
-echo "Config salva em: ${CONFIG_FILE}"
-echo "Para usar no shell atual, execute:"
-echo "  source \"${CONFIG_FILE}\""
-echo
-echo "Depois disso, você pode subir o app com o launcher:"
-echo "  cd \"${BEAR_HUB_ROOT}\""
-echo "  ./run_bear.sh"
-echo
-echo "Ou manualmente, por exemplo:"
-echo "  conda run -p \"${BEAR_PREFIX}\" streamlit run BEAR-HUB.py"
+    {
+        echo "# Generated by install_bear.sh — edit to change default directories."
+        echo "# This file is read by BEAR-HUB at startup (utils/system.py)."
+        echo
+        echo "export BEAR_HUB_ROOT=\"${BEAR_HUB_ROOT}\""
+        echo "export BEAR_HUB_BASEDIR=\"${DATA_DIR}\""
+        echo "export BEAR_HUB_OUTDIR=\"${OUT_DIR}\""
+        echo "export BEAR_HUB_DATA=\"${DATA_DIR}\""
+        echo
+        echo "# Bactopia conda environment (provides Nextflow)"
+        echo "export BACTOPIA_ENV_PREFIX=\"${BACTOPIA_PREFIX}\""
+        if [[ -n "${nxf_solver}" ]]; then
+            echo "export NXF_CONDA_EXE=\"${nxf_solver}\""
+        else
+            echo "# NXF_CONDA_EXE nao definido (mamba nao encontrado)"
+        fi
+        echo
+        echo "# Pinned Bactopia version used during installation"
+        echo "export BACTOPIA_VERSION=\"${BACTOPIA_VERSION}\""
+    } > "${CONFIG_FILE}"
 
-# ---------------------------------------------------------
-# Configuração do Streamlit para evitar prompts de primeiro uso
-# - Cria ~/.streamlit/credentials.toml (suprimir email prompt)
-# - Cria ~/.streamlit/config.toml (suprimir usage stats)
-# ---------------------------------------------------------
-echo
-echo "Configurando Streamlit para evitar prompts interativos..."
-ST_DIR="${HOME}/.streamlit"
-mkdir -p "${ST_DIR}"
+    echo "Config salva em: ${CONFIG_FILE}"
+}
 
-# 1. credentials.toml: suppress email prompt by setting empty email
-CRED_FILE="${ST_DIR}/credentials.toml"
-if [[ ! -f "${CRED_FILE}" ]]; then
-    echo "Criando ${CRED_FILE}..."
-    cat > "${CRED_FILE}" <<TOML
+# =============================================================================
+# Step 5: configure_streamlit — suppress first-run prompts
+# =============================================================================
+configure_streamlit() {
+    echo
+    echo "=== Step 5: Configuring Streamlit ==="
+
+    local st_dir="${HOME}/.streamlit"
+    mkdir -p "${st_dir}"
+
+    # credentials.toml: suppress email prompt
+    local cred_file="${st_dir}/credentials.toml"
+    if [[ ! -f "${cred_file}" ]]; then
+        echo "Criando ${cred_file}..."
+        cat > "${cred_file}" <<'TOML'
 [general]
 email = ""
 TOML
@@ -313,10 +298,10 @@ TOML
         echo "${cred_file} already exists — skipping."
     fi
 
-    # Disable usage stats
+    # config.toml: disable usage stats (only if no project-level config)
     local config_file="${st_dir}/config.toml"
     if [[ ! -f "${config_file}" ]]; then
-        echo "Creating ${config_file}…"
+        echo "Criando ${config_file}..."
         cat > "${config_file}" <<'TOML'
 [browser]
 gatherUsageStats = false
@@ -352,8 +337,11 @@ main() {
     echo
     echo "Next steps:"
     echo "  source \"${CONFIG_FILE}\""
-    echo "  cd \"${BEAR_HUB_ROOT}\""
+    echo "  cd \"${BEAR_HUB_ROOT}/BEAR-HUB\""
     echo "  ./run_bear.sh"
+    echo
+    echo "Or manually:"
+    echo "  conda run -p \"${BEAR_PREFIX}\" streamlit run BEAR-HUB.py"
     echo
     echo "Bactopia will run via '-profile docker' — make sure Docker is running."
 }

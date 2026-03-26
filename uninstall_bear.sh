@@ -1,57 +1,153 @@
 #!/usr/bin/env bash
-set -u
+# uninstall_bear.sh — BEAR-HUB uninstaller
+# ---------------------------------------------------------------------------
+# Removes conda environments, config files, and (optionally) data/results
+# created by install_bear.sh.
+# ---------------------------------------------------------------------------
+set -euo pipefail
 
 APP_NAME="BEAR-HUB"
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# The project root is one level above the repo (~/BEAR-HUB)
+BEAR_HUB_ROOT="$(dirname "${SCRIPT_DIR}")"
+REPO_DIR="${SCRIPT_DIR}"
+
+CONFIG_DIR="${HOME}/.bear-hub"
+ENVS_DIR="${BEAR_HUB_ROOT}/envs"
+DATA_DIR="${BEAR_HUB_ROOT}/data"
+OUT_DIR="${BEAR_HUB_ROOT}/bactopia_out"
 
 echo "==========================================="
 echo "   Uninstall ${APP_NAME}"
 echo "==========================================="
 echo
 echo "This script will help you remove BEAR-HUB."
-echo "Since the environments ('bear-hub' and 'bactopia') are now"
-echo "installed locally inside the ${ROOT_DIR}/envs folder,"
-echo "removing the BEAR-HUB directory will clean up everything at once."
+echo
+echo "Detected paths:"
+echo "  Repo        : ${REPO_DIR}"
+echo "  Environments: ${ENVS_DIR}"
+echo "  Data        : ${DATA_DIR}"
+echo "  Output      : ${OUT_DIR}"
+echo "  Config      : ${CONFIG_DIR}"
 echo
 
-read -p "Are you sure you want to uninstall BEAR-HUB? [y/N] " -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+read -rp "Are you sure you want to uninstall BEAR-HUB? [y/N] " confirm
+if [[ ! "${confirm}" =~ ^[Yy]$ ]]; then
     echo "Uninstall cancelled."
     exit 0
 fi
 
+removed_something=false
+
+# ── Stop running Streamlit instances ─────────────────────────────────────────
 echo
 echo "--- Stopping running instances ---"
-if pgrep -f "bear-hub" >/dev/null; then
-    echo "Found running instances of bear-hub. Stopping them..."
-    pkill -f "bear-hub" || true
+# Match the actual streamlit process for BEAR-HUB, excluding this script
+if pgrep -f "streamlit run.*BEAR-HUB" >/dev/null 2>&1; then
+    echo "Found running BEAR-HUB Streamlit instance(s). Stopping..."
+    pkill -f "streamlit run.*BEAR-HUB" || true
     sleep 2
+    echo "Stopped."
 else
     echo "No running instances found."
 fi
 
+# ── Remove conda environments ───────────────────────────────────────────────
 echo
-echo "--- Removing BEAR-HUB Directory ---"
-if [ -d "$ROOT_DIR" ]; then
-    echo "Directory: ${ROOT_DIR}"
-    echo "WARNING: This folder contains your isolated conda environments, config files,"
-    echo "and might contain your 'bactopia_out' results if you kept them default."
-    read -p "Do you want to DELETE '${ROOT_DIR}' and ALL its content? [y/N] " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        rm -rf "$ROOT_DIR"
-        echo "Directory and local environments removed successfully."
+echo "--- Conda environments (${ENVS_DIR}) ---"
+if [[ -d "${ENVS_DIR}" ]]; then
+    echo "Size: $(du -sh "${ENVS_DIR}" 2>/dev/null | cut -f1)"
+    read -rp "Remove conda environments? [y/N] " confirm
+    if [[ "${confirm}" =~ ^[Yy]$ ]]; then
+        rm -rf "${ENVS_DIR}"
+        echo "Removed."
+        removed_something=true
     else
-        echo "Skipping directory removal."
-        echo "You can manually delete the repository later to free up space."
+        echo "Skipped."
     fi
 else
-    echo "Directory not found."
+    echo "Not found — skipping."
 fi
 
+# ── Remove config directory (~/.bear-hub/) ───────────────────────────────────
+echo
+echo "--- Config directory (${CONFIG_DIR}) ---"
+if [[ -d "${CONFIG_DIR}" ]]; then
+    read -rp "Remove config directory? [y/N] " confirm
+    if [[ "${confirm}" =~ ^[Yy]$ ]]; then
+        rm -rf "${CONFIG_DIR}"
+        echo "Removed."
+        removed_something=true
+    else
+        echo "Skipped."
+    fi
+else
+    echo "Not found — skipping."
+fi
+
+# ── Remove legacy config inside repo ─────────────────────────────────────────
+if [[ -f "${BEAR_HUB_ROOT}/.bear-hub.env" ]]; then
+    echo
+    echo "--- Legacy config (${BEAR_HUB_ROOT}/.bear-hub.env) ---"
+    read -rp "Remove legacy config file? [y/N] " confirm
+    if [[ "${confirm}" =~ ^[Yy]$ ]]; then
+        rm -f "${BEAR_HUB_ROOT}/.bear-hub.env"
+        echo "Removed."
+        removed_something=true
+    fi
+fi
+
+# ── Remove data and output directories ───────────────────────────────────────
+echo
+echo "--- Data & output directories ---"
+has_data=false
+if [[ -d "${DATA_DIR}" ]]; then
+    echo "  Data   : ${DATA_DIR} ($(du -sh "${DATA_DIR}" 2>/dev/null | cut -f1))"
+    has_data=true
+fi
+if [[ -d "${OUT_DIR}" ]]; then
+    echo "  Output : ${OUT_DIR} ($(du -sh "${OUT_DIR}" 2>/dev/null | cut -f1))"
+    has_data=true
+fi
+
+if ${has_data}; then
+    echo
+    echo "WARNING: These may contain your analysis results!"
+    read -rp "Remove data and output directories? [y/N] " confirm
+    if [[ "${confirm}" =~ ^[Yy]$ ]]; then
+        [[ -d "${DATA_DIR}" ]] && rm -rf "${DATA_DIR}" && echo "  Removed: ${DATA_DIR}"
+        [[ -d "${OUT_DIR}" ]]  && rm -rf "${OUT_DIR}"  && echo "  Removed: ${OUT_DIR}"
+        removed_something=true
+    else
+        echo "Skipped — your data is preserved."
+    fi
+else
+    echo "Not found — skipping."
+fi
+
+# ── Remove repository directory ──────────────────────────────────────────────
+echo
+echo "--- Repository (${REPO_DIR}) ---"
+if [[ -d "${REPO_DIR}" ]]; then
+    read -rp "Remove the BEAR-HUB repository? [y/N] " confirm
+    if [[ "${confirm}" =~ ^[Yy]$ ]]; then
+        rm -rf "${REPO_DIR}"
+        echo "Removed."
+        removed_something=true
+    else
+        echo "Skipped."
+    fi
+else
+    echo "Not found — skipping."
+fi
+
+# ── Summary ──────────────────────────────────────────────────────────────────
 echo
 echo "==========================================="
-echo "   Uninstallation Complete"
+if ${removed_something}; then
+    echo "   Uninstallation complete."
+else
+    echo "   Nothing was removed."
+fi
 echo "==========================================="
 echo
