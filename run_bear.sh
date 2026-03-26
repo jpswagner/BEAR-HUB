@@ -56,7 +56,8 @@ else
   exit 1
 fi
 
-BEAR_PREFIX="${ROOT_DIR}/envs/bear-hub"
+# Use BEAR_HUB_ROOT from config.env (set by install_bear.sh)
+BEAR_PREFIX="${BEAR_HUB_ROOT:?BEAR_HUB_ROOT not set — run install_bear.sh first}/envs/bear-hub"
 
 if [[ ! -d "${BEAR_PREFIX}" ]]; then
   echo "ERRO: O ambiente 'bear-hub' não foi encontrado em: ${BEAR_PREFIX}"

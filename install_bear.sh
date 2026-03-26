@@ -137,10 +137,10 @@ setup_bear_hub_env() {
 
         if [[ -n "${MAMBA_BIN}" ]]; then
             "${MAMBA_BIN}" create -y -p "${BEAR_PREFIX}" -c conda-forge \
-                python=3.11 streamlit pyyaml pandas altair requests
+                python=3.11 "streamlit>=1.30,<2" pyyaml "pandas>=1.4,<3" "altair>=5,<6" requests
         else
             "${CONDA_BIN}" create -y -p "${BEAR_PREFIX}" -c conda-forge \
-                python=3.11 streamlit pyyaml pandas altair requests
+                python=3.11 "streamlit>=1.30,<2" pyyaml "pandas>=1.4,<3" "altair>=5,<6" requests
         fi
         echo "Ambiente 'bear-hub' criado em: ${BEAR_PREFIX}"
     fi
