@@ -1080,29 +1080,37 @@ if start_tools:
                 tools_to_run: List[tuple[str, List[str]]] = []
 
                 # AMRFinderPlus
+                # Parameter names must match bactopia's params.config (no prefix).
+                # See: modules/nf-core/amrfinderplus/run/params.config
                 if st.session_state.get("bt_run_amrfinderplus"):
                     extra: List[str] = []
-                    if st.session_state.get("bt_amrfinderplus_plus"):
-                        extra.append("--amrfinderplus_plus")
-                    if st.session_state.get("bt_amrfinderplus_mutation_all"):
-                        extra.append("--amrfinderplus_mutation_all")
+                    # --plus is on by default (amrfinder_noplus=false).
+                    # Only pass --amrfinder_noplus when user disables --plus.
+                    if not st.session_state.get("bt_amrfinderplus_plus", True):
+                        extra.append("--amrfinder_noplus")
                     v = st.session_state.get("bt_amrfinderplus_ident_min")
                     if v not in (None, ""):
-                        extra += ["--amrfinderplus_ident_min", str(v)]
+                        extra += ["--ident_min", str(v)]
                     v = st.session_state.get("bt_amrfinderplus_coverage_min")
                     if v not in (None, ""):
-                        extra += ["--amrfinderplus_coverage_min", str(v)]
+                        extra += ["--coverage_min", str(v)]
                     v = (st.session_state.get("bt_amrfinderplus_organism", "")).strip()
                     if v:
-                        extra += ["--amrfinderplus_organism", v]
+                        extra += ["--organism", v]
                     if st.session_state.get("bt_amrfinderplus_report_common"):
-                        extra.append("--amrfinderplus_report_common")
+                        extra.append("--report_common")
                     if st.session_state.get("bt_amrfinderplus_report_all_equal_best"):
-                        extra.append("--amrfinderplus_report_all_equal_best")
+                        extra.append("--report_all_equal")
+                    # Flags not exposed as separate bactopia params — route via --amrfinder_opts.
+                    # NOTE: --mutation_all is handled automatically by the module when
+                    # --organism is set (see modules/nf-core/amrfinderplus/run/main.nf).
+                    amr_opts: List[str] = []
                     if st.session_state.get("bt_amrfinderplus_allow_overlap"):
-                        extra.append("--amrfinderplus_allow_overlap")
+                        amr_opts.append("--allow_overlap")
                     if st.session_state.get("bt_amrfinderplus_exclude_quick_need_prediction"):
-                        extra.append("--amrfinderplus_exclude_quick_need_prediction")
+                        amr_opts.append("--exclude_quick_need_prediction")
+                    if amr_opts:
+                        extra += ["--amrfinder_opts", " ".join(amr_opts)]
                     v = (st.session_state.get("bt_amrfinderplus_extra", "")).strip()
                     if v:
                         extra += shlex.split(v)
