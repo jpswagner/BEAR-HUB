@@ -38,50 +38,29 @@ except ImportError:
     sys.path.append(str(pathlib.Path(__file__).parent.parent))
     import utils
 
-# ============================= General config =============================
-st.set_page_config(
-    page_title="Bactopia — Species-specific tools | BEAR-HUB",
-    page_icon="🐻",
-    layout="wide",
+from constants import APP_STATE_DIR, get_default_outdir
+
+DEFAULT_OUTDIR = get_default_outdir()
+
+# ============================= Page bootstrap =============================
+PROJECT_ROOT = utils.init_page(
+    title="Bactopia — Species-specific tools",
+    icon="🧙🏻",
+    ns="merlin",
+    with_sidebar_nav=True,
+    defaults={
+        "bt_outdir": DEFAULT_OUTDIR,
+        "bt_selected_samples": [],
+        "species_running": False,
+        "btsp_profile": "docker",
+        "btsp_threads": 0,
+        "btsp_memory_gb": 0,
+        "btsp_resume": True,
+        "btsp_extra": "",
+    },
 )
 
-APP_ROOT = pathlib.Path(__file__).resolve().parent
-PAGES_DIR = APP_ROOT / "pages"
-PAGE_BACTOPIA = PAGES_DIR / "BACTOPIA.py"
-PAGE_TOOLS = PAGES_DIR / "BACTOPIA-TOOLS.py"
-PAGE_MERLIN = PAGES_DIR / "MERLIN.py"
-PAGE_PORT = PAGES_DIR / "PORT.py"
-
-# Project root discovery
-if (APP_ROOT / "static").is_dir():
-    PROJECT_ROOT = APP_ROOT
-elif (APP_ROOT.parent / "static").is_dir():
-    PROJECT_ROOT = APP_ROOT.parent
-else:
-    PROJECT_ROOT = APP_ROOT  # fallback
-
-APP_STATE_DIR = pathlib.Path.home() / ".bactopia_ui_local"
-# Aligned with BEAR-HUB: ~/BEAR_DATA/bactopia_out
-DEFAULT_OUTDIR = str((pathlib.Path.home() / "BEAR_DATA" / "bactopia_out").resolve())
-
-# ===================== Nextflow via Bactopia conda env =====================
-
-# Try to load .bear-hub.env early
-utils.bootstrap_bear_env_from_file()
-
 BACTOPIA_ENV_PREFIX = os.environ.get("BACTOPIA_ENV_PREFIX")
-
-# ── Session state defaults ────────────────────────────────────────────────────
-utils.init_session_state({
-    "bt_outdir": DEFAULT_OUTDIR,
-    "bt_selected_samples": [],
-    "species_running": False,
-    "btsp_profile": "docker",
-    "btsp_threads": 0,
-    "btsp_memory_gb": 0,
-    "btsp_resume": True,
-    "btsp_extra": "",
-})
 
 def have_tool(name: str) -> bool:
     """Check if a tool is in PATH."""

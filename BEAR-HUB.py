@@ -4,106 +4,36 @@
 # ---------------------------------------------------------------------
 
 """
-BEAR-HUB Main Application.
+BEAR-HUB main application.
 
-This module serves as the entry point for the BEAR-HUB Streamlit application.
-It acts as a central hub (Dashboard) providing navigation to different
-modules of the application:
-    - Bactopia (Main Pipeline)
-    - Bactopia Tools (Post-processing)
-    - Merlin (Species-specific workflows)
-    - PORT (Plasmid Outbreak Investigation Tool)
+Entry point for the BEAR-HUB Streamlit app. Acts as a dashboard that
+dispatches to the per-tool pages defined in `tools.yaml`.
 
-The script checks for the existence of required page files and environment
-dependencies (Nextflow, Docker) and renders the main landing page.
+Adding a new tool:
+    1. Append an entry to tools.yaml.
+    2. Drop a pages/<NAME>.py file that calls utils.init_page(...).
 """
 
 import pathlib
 import streamlit as st
-import utils  # Import the new utility module
+
+import utils
 from utils.history import get_runs
 
 # Load env config early so BACTOPIA_ENV_PREFIX / NXF_CONDA_EXE are available
-# to all pages that share this process.
+# to every imported sub-module for the duration of this Streamlit session.
 utils.bootstrap_bear_env_from_file()
 
 # ============================= General config =============================
 st.set_page_config(page_title="BEAR-HUB", page_icon="🐻", layout="wide")
 
-APP_ROOT = pathlib.Path(__file__).resolve().parent
-PAGES_DIR = APP_ROOT / "pages"
-PAGE_BACTOPIA = PAGES_DIR / "BACTOPIA.py"
-PAGE_TOOLS = PAGES_DIR / "BACTOPIA-TOOLS.py"
-PAGE_MERLIN = PAGES_DIR / "MERLIN.py"
-PAGE_PORT = PAGES_DIR / "PORT.py"
-
-# Discover project root (folder that holds /static)
-if (APP_ROOT / "static").is_dir():
-    PROJECT_ROOT = APP_ROOT
-elif (APP_ROOT.parent / "static").is_dir():
-    PROJECT_ROOT = APP_ROOT.parent
-else:
-    PROJECT_ROOT = APP_ROOT  # fallback
-
-# ============================= Utils =============================
-# Using utils.which and utils.env_badge instead of defining them locally
-
-def ensure_pages_hint():
-    """
-    Check that all required page files exist in the `pages/` directory.
-
-    Scans for the expected page files (`BACTOPIA.py`, `BACTOPIA-TOOLS.py`,
-    `MERLIN.py`, `PORT.py`) in the `pages/` subdirectory. If a file is missing
-    but found in the project root, it suggests moving it.
-
-    Returns:
-        list[str]: A list of error messages describing missing pages or
-        suggested actions. Returns an empty list if all pages are correctly placed.
-    """
-    missing = []
-    # BACTOPIA
-    if not PAGE_BACTOPIA.exists():
-        if (APP_ROOT / "BACTOPIA.py").exists():
-            missing.append(
-                "`pages/BACTOPIA.py` (found `./BACTOPIA.py`; move it to `pages/`)"
-            )
-        else:
-            missing.append("`pages/BACTOPIA.py`")
-
-    # BACTOPIA-TOOLS
-    if not PAGE_TOOLS.exists():
-        if (APP_ROOT / "BACTOPIA-TOOLS.py").exists():
-            missing.append(
-                "`pages/BACTOPIA-TOOLS.py` (found `./BACTOPIA-TOOLS.py`; move it to `pages/`)"
-            )
-        else:
-            missing.append("`pages/BACTOPIA-TOOLS.py`")
-
-    # MERLIN
-    if not PAGE_MERLIN.exists():
-        if (APP_ROOT / "MERLIN.py").exists():
-            missing.append(
-                "`pages/MERLIN.py` (found `./MERLIN.py`; move it to `pages/`)"
-            )
-        else:
-            missing.append("`pages/MERLIN.py`")
-
-    # PORT
-    if not PAGE_PORT.exists():
-        if (APP_ROOT / "PORT.py").exists():
-            missing.append(
-                "`pages/PORT.py` (found `./PORT.py`; move it to `pages/`)"
-            )
-        else:
-            missing.append("`pages/PORT.py`")
-
-    return missing
+PROJECT_ROOT = utils.PROJECT_ROOT
 
 # ============================= Header =============================
 ICON_PATH_BEAR_HUB = PROJECT_ROOT / "static" / "bear-hub-logo-bg.png"
 
 if ICON_PATH_BEAR_HUB.is_file():
-    left_co, cent_co, last_co = st.columns(3)
+    _, cent_co, _ = st.columns(3)
     with cent_co:
         st.image(str(ICON_PATH_BEAR_HUB), width=1000)
 else:
@@ -111,71 +41,43 @@ else:
 
 st.divider()
 
-# Quick environment diagnostics (kept commented, now in English)
-# nf_ok = utils.which("nextflow") is not None
-# docker_ok = utils.which("docker") is not None
-# sing_ok = utils.which("singularity") is not None or utils.which("apptainer") is not None
-#
-# with st.container():
-#     c1, c2, c3, c4 = st.columns(4)
-#     c1.metric("OS", platform.system())
-#     c2.write(utils.env_badge("Nextflow", nf_ok))
-#     c3.write(utils.env_badge("Docker", docker_ok))
-#     c4.write(utils.env_badge("Singularity/Apptainer", sing_ok))
+# ============================= Tool registry =============================
 
+tools = utils.load_tools()
+missing = [t for t in tools if not t.exists(PROJECT_ROOT)]
 
-
-# ============================= Page checks =============================
-missing = ensure_pages_hint()
-if missing:
-    st.error("Required pages not found:")
-    for m in missing:
-        st.markdown(f"- {m}")
-    st.info(
-        "Create the `pages/` folder at the project root and move the files there.\n\n"
-        "Example:\n"
-        "`mkdir -p pages && mv BACTOPIA.py pages/BACTOPIA.py && mv BACTOPIA-TOOLS.py pages/BACTOPIA-TOOLS.py`"
+if not tools:
+    st.error(
+        "No tools found in `tools.yaml`. "
+        "Make sure the file exists at the project root and lists at least one tool."
     )
+elif missing:
+    st.error("Some tools listed in `tools.yaml` point at missing page files:")
+    for t in missing:
+        st.markdown(f"- **{t.name}** → `{t.page}`")
+    st.info("Create the missing page file(s), or remove the entry from `tools.yaml`.")
 else:
-    # Navigation cards + Streamlit native routing
-
-
-    #st.markdown("## Hub")
-    #st.divider()
-    cA, cB = st.columns(2)
-
-    with cA:
-        st.markdown("### Bactopia — Main Pipeline")
-        st.caption(
-            "Automatically builds a **FOFN**, assembles the **Bactopia** command and runs it via Nextflow (async)."
-        )
-        if st.button("BACTOPIA", type="primary", icon="🦠", width="stretch"):
-            st.switch_page("pages/BACTOPIA.py")
-
-
-    with cB:
-        st.markdown("### Bactopia Tools")
-        st.caption(
-            "Runs **amrfinderplus, rgi, abricate, mobsuite, mlst, pangenome, mashtree** "
-            "on completed samples."
-        )
-        if st.button("BACTOPIA TOOLS", type="primary", icon="🧰", width="stretch"):
-            st.switch_page("pages/BACTOPIA-TOOLS.py")
-        
-
-    cA1, cB2 = st.columns(2)
-
-    with cA1:
-        st.markdown("### Bactopia MERLIN")
-        st.caption("Runs species-specific workflows on completed samples.")
-        if st.button("BACTOPIA MERLIN", type="primary", icon="🧙🏻", width="stretch"):
-            st.switch_page("pages/MERLIN.py")
-
-    with cB2:
-        st.markdown("### PORT — Plasmid Outbreak Investigation Tool")
-        st.caption("(IN DEVELOPMENT) Wrapper to run **PORT** for plasmid-focused outbreak investigations.")
-        if st.button("PORT", type="secondary", icon="🍷", width="stretch"):
-            st.switch_page("pages/PORT.py")
+    # Render tool cards in a 2-column grid. Extra tools wrap onto new rows.
+    for i in range(0, len(tools), 2):
+        cols = st.columns(2)
+        for col, tool in zip(cols, tools[i:i + 2]):
+            with col:
+                heading = f"### {tool.icon} {tool.name}"
+                if tool.status_badge:
+                    heading = f"{heading}{tool.status_badge}"
+                st.markdown(heading)
+                if tool.tagline:
+                    st.caption(f"*{tool.tagline}*")
+                if tool.description:
+                    st.caption(tool.description)
+                if st.button(
+                    tool.name.upper(),
+                    key=f"go_{tool.id}",
+                    type=tool.button_type,
+                    icon=tool.icon,
+                    width="stretch",
+                ):
+                    st.switch_page(tool.page)
 
     st.divider()
     with st.expander("Quick tips", expanded=False):
@@ -186,7 +88,6 @@ else:
         )
 
     st.divider()
-
     st.markdown("### System")
     cS, _ = st.columns([1, 3])
     with cS:
@@ -204,22 +105,15 @@ else:
             df.columns = ["Started", "Finished", "Module", "Samples", "Status"]
             st.dataframe(df, width="stretch", hide_index=True)
 
-# ============================= Footer (disclaimer) =============================
+# ============================= Footer =============================
+# Disclaimer retained in English only; PT-BR version lives in README.md.
 st.markdown(
     "<hr style='opacity:0.3'/>"
     "<small>"
-    """
-PT-BR
-
-Este projeto fornece apenas uma interface (hub/UI) para orquestrar análises com o Bactopia (https://github.com/bactopia).
-Bactopia é um software de terceiros, desenvolvido e mantido independentemente por seus autores originais.
-Não temos qualquer vínculo oficial com o projeto Bactopia.
-
-EN
-
-This project only provides a user interface (hub/UI) to orchestrate analyses with Bactopia (https://github.com/bactopia).
-Bactopia is third-party software, developed and maintained independently by its original authors.
-We have no official affiliation with the Bactopia project.
-    """,
+    "This project only provides a user interface (hub/UI) to orchestrate analyses with "
+    "<a href='https://github.com/bactopia'>Bactopia</a>. Bactopia is third-party software, "
+    "developed and maintained independently by its original authors. We have no official "
+    "affiliation with the Bactopia project."
+    "</small>",
     unsafe_allow_html=True,
 )

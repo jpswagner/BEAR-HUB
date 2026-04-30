@@ -36,34 +36,27 @@ except ImportError:
     sys.path.append(str(pathlib.Path(__file__).parent.parent))
     import utils
 
-utils.bootstrap_bear_env_from_file()
+from constants import APP_STATE_DIR, get_default_outdir
 
-# ============================= Config geral =============================
-st.set_page_config(page_title="BEAR-HUB", page_icon="🐻", layout="wide")
+# PORT consumes existing Bactopia output; default to the hub-wide location.
+DEFAULT_BACTOPIA_OUTDIR = get_default_outdir()
+DEFAULT_PORT_OUTDIR = str((pathlib.Path(DEFAULT_BACTOPIA_OUTDIR).parent / "port_out").resolve())
 
-APP_ROOT = pathlib.Path(__file__).resolve().parent
-
-# Project root discovery
-if (APP_ROOT / "static").is_dir():
-    PROJECT_ROOT = APP_ROOT
-elif (APP_ROOT.parent / "static").is_dir():
-    PROJECT_ROOT = APP_ROOT.parent
-else:
-    PROJECT_ROOT = APP_ROOT  # fallback
-
-APP_STATE_DIR = pathlib.Path.home() / ".bactopia_ui_local"
-DEFAULT_BACTOPIA_OUTDIR = str((pathlib.Path.cwd() / "bactopia_out").resolve())
-DEFAULT_PORT_OUTDIR = str((pathlib.Path.cwd() / "port_out").resolve())
-
-# ── Session state defaults ────────────────────────────────────────────────────
-utils.init_session_state({
-    "port_running": False,
-    "port_input_mode": "Bactopia Assemblies (per sample)",
-    "port_assemblies_path": "",
-    "port_selected_samples": [],
-    "port_last_bactopia_dir": "",
-    "port_bactopia_samples": {},
-})
+# ============================= Page bootstrap =============================
+PROJECT_ROOT = utils.init_page(
+    title="PORT",
+    icon="🍷",
+    ns="port",
+    with_sidebar_nav=True,
+    defaults={
+        "port_running": False,
+        "port_input_mode": "Bactopia Assemblies (per sample)",
+        "port_assemblies_path": "",
+        "port_selected_samples": [],
+        "port_last_bactopia_dir": "",
+        "port_bactopia_samples": {},
+    },
+)
 
 # ============================= Development banner =============================
 

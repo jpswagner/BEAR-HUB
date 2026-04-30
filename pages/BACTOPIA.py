@@ -33,7 +33,6 @@ It handles:
 import os
 import shlex
 import time
-import yaml
 import pathlib
 import re
 import fnmatch
@@ -49,75 +48,51 @@ except ImportError:
     sys.path.append(str(pathlib.Path(__file__).parent.parent))
     import utils
 
-# ============================= General config =============================
-st.set_page_config(page_title="BEAR-HUB — Bactopia", page_icon="🐻", layout="wide")
+from constants import APP_STATE_DIR, get_default_outdir
 
-APP_ROOT = pathlib.Path(__file__).resolve().parent
-
-# Discover project root safely (folder that holds /static)
-if (APP_ROOT / "static").is_dir():
-    PROJECT_ROOT = APP_ROOT
-elif (APP_ROOT.parent / "static").is_dir():
-    PROJECT_ROOT = APP_ROOT.parent
-else:
-    PROJECT_ROOT = APP_ROOT  # fallback
-
-
-APP_STATE_DIR = pathlib.Path.home() / ".bactopia_ui_local"
-PRESETS_FILE = APP_STATE_DIR / "presets.yaml"
-DEFAULT_PRESET_NAME = "default"
-
-# Attempt to load .bear-hub.env early
-utils.bootstrap_bear_env_from_file()
-
-# Base working dir:
-# - if BEAR_HUB_BASEDIR is defined: use it
-# - otherwise: CWD (where ./run_bear.sh was called)
+# Base working dir used downstream by the FOFN scanner.
 BASE_DIR = pathlib.Path(os.getenv("BEAR_HUB_BASEDIR", os.getcwd())).expanduser().resolve()
 
-# Default outdir:
-# - if BEAR_HUB_OUTDIR is defined: use it
-# - otherwise: BASE_DIR / "bactopia_out"
-env_out = os.getenv("BEAR_HUB_OUTDIR")
-if env_out:
-    DEFAULT_OUTDIR = str(pathlib.Path(env_out).expanduser().resolve())
-else:
-    DEFAULT_OUTDIR = str((BASE_DIR / "bactopia_out").resolve())
+DEFAULT_OUTDIR = get_default_outdir()
 
-# Guarantee NXF_HOME on module load
-utils.ensure_nxf_home()
-
-# ── Session state defaults ────────────────────────────────────────────────────
-# Guard against KeyError on first load before any widget has rendered.
-utils.init_session_state({
-    "profile": "docker",
-    "outdir": DEFAULT_OUTDIR,
-    "datasets": "",
-    "resume": True,
-    "threads": 0,
-    "memory_gb": 0,
-    "fofn_base": "",
-    "fofn_recursive": True,
-    "fofn_species": "UNKNOWN_SPECIES",
-    "fofn_gsize": "(Select or Custom)",
-    "fofn_include_assemblies": True,
-    "fofn_long_reads": False,
-    "fofn_infer_ont_by_name": True,
-    "fofn_merge_multi": True,
-    "fofn_use": True,
-    "with_report": True,
-    "with_timeline": True,
-    "with_trace": True,
-    "use_unicycler": True,
-    "hybrid_strategy": "(Auto)",
-    "main_running": False,
-    "confirm_clean": False,
-    "clean_keep_logs": False,
-    "clean_all_runs": False,
-})
+# ============================= Page bootstrap =============================
+PROJECT_ROOT = utils.init_page(
+    title="Bactopia",
+    icon="🦠",
+    ns="bactopia",
+    with_sidebar_nav=True,
+    defaults={
+        "profile": "docker",
+        "outdir": DEFAULT_OUTDIR,
+        "datasets": "",
+        "resume": True,
+        "threads": 0,
+        "memory_gb": 0,
+        "fofn_base": "",
+        "fofn_recursive": True,
+        "fofn_species": "UNKNOWN_SPECIES",
+        "fofn_gsize": "(Select or Custom)",
+        "fofn_include_assemblies": True,
+        "fofn_long_reads": False,
+        "fofn_infer_ont_by_name": True,
+        "fofn_merge_multi": True,
+        "fofn_use": True,
+        "with_report": True,
+        "with_timeline": True,
+        "with_trace": True,
+        "use_unicycler": True,
+        "hybrid_strategy": "(Auto)",
+        "main_running": False,
+        "confirm_clean": False,
+        "clean_keep_logs": False,
+        "clean_all_runs": False,
+    },
+)
 
 
 # ============================= Presets =============================
+
+LEGACY_PRESETS_PATH = APP_STATE_DIR / "presets.yaml"  # pre-per-page file — migrated on first read
 
 PRESET_KEYS_ALLOWLIST = {
     # Execution
@@ -145,128 +120,12 @@ PRESET_KEYS_ALLOWLIST = {
 }
 
 
-def load_presets():
-    """
-    Load presets from the YAML state file.
-
-    Returns:
-        dict: A dictionary of loaded presets.
-    """
-    utils.ensure_state_dir()
-    if PRESETS_FILE.exists():
-        try:
-            with open(PRESETS_FILE, "r", encoding="utf-8") as fh:
-                data = yaml.safe_load(fh) or {}
-                return data if isinstance(data, dict) else {}
-        except Exception:
-            return {}
-    return {}
-
-
-def save_presets(presets: dict):
-    """
-    Save presets to the YAML state file.
-
-    Args:
-        presets (dict): The dictionary of presets to save.
-    """
-    utils.ensure_state_dir()
-    with open(PRESETS_FILE, "w", encoding="utf-8") as fh:
-        yaml.safe_dump(presets, fh, sort_keys=True, allow_unicode=True)
-
-
-def _snapshot_current_state() -> dict:
-    """
-    Capture the current session state values for allowlisted keys.
-
-    Returns:
-        dict: A subset of st.session_state containing only preset-relevant keys.
-    """
-    snap = {}
-    for k in PRESET_KEYS_ALLOWLIST:
-        if k in st.session_state:
-            snap[k] = st.session_state[k]
-    return snap
-
-
-def _apply_dict_to_state(values: dict):
-    """
-    Update st.session_state with values from a dictionary.
-
-    Args:
-        values (dict): Key-value pairs to update in the session state.
-    """
-    for k, v in (values or {}).items():
-        if k in PRESET_KEYS_ALLOWLIST:
-            st.session_state[k] = v
-
-
-def apply_preset_before_widgets():
-    """
-    Apply any pending preset values to the session state before widgets render.
-
-    This ensures that when widgets are initialized, they pick up the values
-    from the loaded preset.
-    """
-    pending = st.session_state.pop("__pending_preset_values", None)
-    if pending:
-        _apply_dict_to_state(pending)
-        st.session_state["__preset_msg"] = st.session_state.get("__preset_msg") or "Preset applied."
-
-
-def _cb_stage_apply_preset():
-    """Callback to stage a preset for application on the next rerun."""
-    name = st.session_state.get("__preset_to_load")
-    if not name or name == "(none)":
-        return
-    presets = load_presets()
-    st.session_state["__pending_preset_values"] = presets.get(name, {})
-    st.session_state["__preset_msg"] = f"Preset staged: {name} (applied on this reload)"
-
-
-def _cb_save_preset():
-    """Callback to save the current state as a new preset."""
-    name = (st.session_state.get("__preset_save_name") or "").strip() or DEFAULT_PRESET_NAME
-    name = re.sub(r"\s+", "_", name)
-    presets = load_presets()
-    presets[name] = _snapshot_current_state()
-    save_presets(presets)
-    st.session_state["__preset_msg"] = f"Preset saved: {name}"
-
-
-def _cb_delete_preset():
-    """Callback to delete the selected preset."""
-    name = st.session_state.get("__preset_to_load")
-    if not name or name == "(none)":
-        return
-    presets = load_presets()
-    if name in presets:
-        del presets[name]
-        save_presets(presets)
-        st.session_state["__preset_msg"] = f"Preset deleted: {name}"
-
-
-def render_presets_sidebar():
-    """Render the Presets management interface in the sidebar."""
-    st.header("Presets")
-    presets = load_presets()
-    names = sorted(presets.keys())
-    st.selectbox("Load preset", ["(none)"] + names, key="__preset_to_load")
-    st.text_input(
-        "Save as (preset name)",
-        key="__preset_save_name",
-        placeholder="e.g., my_preset",
-    )
-    st.markdown('<div id="presets-section">', unsafe_allow_html=True)
-    st.button("Apply", key="__btn_apply", on_click=_cb_stage_apply_preset)
-    st.button("Save current", key="__btn_save", on_click=_cb_save_preset)
-    st.button("Delete", key="__btn_delete", on_click=_cb_delete_preset)
-    st.markdown('</div>', unsafe_allow_html=True)
-    if st.session_state.get("__preset_msg"):
-        st.caption(st.session_state["__preset_msg"])
-
-
-apply_preset_before_widgets()
+preset_mgr = utils.PresetManager(
+    ns="bactopia",
+    allowed_keys=PRESET_KEYS_ALLOWLIST,
+    legacy_path=LEGACY_PRESETS_PATH,
+)
+preset_mgr.apply_pending()
 
 # ============================= Discovery / FOFN =============================
 
@@ -523,55 +382,20 @@ def discover_runs_and_build_fofn(base_dir: str,
 ICON_PATH = PROJECT_ROOT / "static" / "bear-hub-icon.png"
 
 with st.sidebar:
-    st.markdown("---")
-    st.header("Environment")
-    nf_ok = utils.nextflow_available()
-    docker_ok = utils.docker_available()
-    st.write(
-        f"Nextflow: {'✅' if nf_ok else '❌'} | "
-        f"Docker: {'✅' if docker_ok else '❌'}"
-    )
-    st.caption(
-        "This app runs Bactopia **exclusively** with `-profile docker`.\n"
-        "Docker must be installed and accessible to the user running Streamlit."
-    )
-    if not nf_ok:
-        st.error("Nextflow not found (neither in PATH nor in BACTOPIA_ENV_PREFIX).", icon="⚠️")
-    else:
-        # We can't easily access BACTOPIA_NEXTFLOW_BIN from here since it's local in utils
-        # But we can call utils.get_nextflow_bin()
-        nf_bin = utils.get_nextflow_bin()
-        if nf_bin != "nextflow":
-            st.caption(f"Nextflow via Bactopia env: `{nf_bin}`")
-        else:
-            st.caption("Nextflow found via system PATH.")
-
-    if not docker_ok:
-        st.error(
-            "Docker is not available. Install and enable Docker before running Bactopia.",
-            icon="⚠️",
-        )
-
-    # We can check BACTOPIA_ENV_PREFIX from os.environ since utils sets it
-    bactopia_env_prefix = os.environ.get("BACTOPIA_ENV_PREFIX")
-    if bactopia_env_prefix:
-        st.caption(f"BACTOPIA_ENV_PREFIX: `{bactopia_env_prefix}`")
-
-    st.divider()
-    render_presets_sidebar()
+    preset_mgr.render_sidebar()
 
 st.markdown(
     """
 <style>
-[data-testid="stSidebar"] #presets-section,
-[data-testid="stSidebar"] #presets-section .stElementContainer,
-[data-testid="stSidebar"] #presets-section .stButton { width: 100% !important; }
-[data-testid="stSidebar"] #presets-section .stButton > button {
+[data-testid="stSidebar"] [id^="presets-section-"],
+[data-testid="stSidebar"] [id^="presets-section-"] .stElementContainer,
+[data-testid="stSidebar"] [id^="presets-section-"] .stButton { width: 100% !important; }
+[data-testid="stSidebar"] [id^="presets-section-"] .stButton > button {
   width: 100% !important; min-height: 42px !important; display: flex !important;
   align-items: center !important; justify-content: center !important; border-radius: 8px !important;
 }
-[data-testid="stSidebar"] #presets-section .stButton > button div[data-testid="stMarkdownContainer"],
-[data-testid="stSidebar"] #presets-section .stButton > button div[data-testid="stMarkdownContainer"] p {
+[data-testid="stSidebar"] [id^="presets-section-"] .stButton > button div[data-testid="stMarkdownContainer"],
+[data-testid="stSidebar"] [id^="presets-section-"] .stButton > button div[data-testid="stMarkdownContainer"] p {
   margin: 0 !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important;
 }
 button[kind="secondary"] span, button[kind="secondary"] div { white-space: nowrap !important; }
@@ -1215,11 +1039,13 @@ with st.expander("Annotation & Typing (AMRFinder+ / MLST)", expanded=False):
 
 # ============================= Extra params + reports =============================
 
-extra_params_input = st.text_input(
-    "Extra parameters (raw line)",
-    value=st.session_state.get("extra_params", ""),
-    key="extra_params",
-)
+with st.expander("Extra parameters (raw line)", expanded=False):
+    extra_params_input = st.text_input(
+        "Appended verbatim to the Bactopia command",
+        value=st.session_state.get("extra_params", ""),
+        key="extra_params",
+        label_visibility="collapsed",
+    )
 computed_extra = extra_params_input
 if st.session_state.get("fofn_use") and "fofn_out" in locals() and fofn_out:
     computed_extra = (computed_extra + f" --samples {shlex.quote(fofn_out)}").strip()

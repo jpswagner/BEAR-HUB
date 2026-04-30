@@ -14,6 +14,8 @@ utils/exec.py       — async subprocess execution & log streaming
 utils/bactopia.py   — Bactopia-specific helpers (sample discovery)
 utils/validation.py — input path validation
 utils/history.py    — SQLite run history
+utils/registry.py   — tools.yaml loader
+utils/page.py       — init_page() boilerplate + shared sidebar nav
 """
 
 # ── Data ──────────────────────────────────────────────────────────────────────
@@ -67,7 +69,23 @@ from utils.bactopia import (
 from utils.validation import validate_path, validate_outdir
 
 # ── Run history ───────────────────────────────────────────────────────────────
-from utils.history import record_run_start, record_run_finish, get_runs
+from utils.history import (
+    record_run_start,
+    record_run_finish,
+    get_runs,
+    stale_cleanup,
+    duration_seconds,
+    format_duration,
+)
+
+# ── Tool registry ─────────────────────────────────────────────────────────────
+from utils.registry import Tool, load_tools, find_tool
+
+# ── Page boilerplate ──────────────────────────────────────────────────────────
+from utils.page import init_page, render_tool_sidebar, PROJECT_ROOT
+
+# ── Presets ───────────────────────────────────────────────────────────────────
+from utils.presets import PresetManager, DEFAULT_PRESET_NAME
 
 __all__ = [
     # data
@@ -90,4 +108,10 @@ __all__ = [
     "validate_path", "validate_outdir",
     # history
     "record_run_start", "record_run_finish", "get_runs",
+    # registry
+    "Tool", "load_tools", "find_tool",
+    # page
+    "init_page", "render_tool_sidebar", "PROJECT_ROOT",
+    # presets
+    "PresetManager", "DEFAULT_PRESET_NAME",
 ]

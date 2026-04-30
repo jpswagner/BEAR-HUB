@@ -26,6 +26,10 @@ CREATE TABLE IF NOT EXISTS runs (
 );
 """
 
+# Rows stuck in 'running' beyond this many hours are assumed orphaned (the
+# Streamlit session that started them was killed / reloaded).
+_STALE_RUN_HOURS = 12
+
 
 def _connect() -> sqlite3.Connection:
     """Open (and create if needed) the run history database."""
@@ -84,16 +88,65 @@ def record_run_finish(run_id: int, success: bool) -> None:
     conn.close()
 
 
+def stale_cleanup(hours: int = _STALE_RUN_HOURS) -> int:
+    """
+    Mark abandoned 'running' rows as 'unknown'.
+
+    A run that started more than *hours* ago but never recorded a finish is
+    almost certainly orphaned (browser closed, Streamlit restarted, process
+    killed). We don't know if it succeeded, so flag it as 'unknown' rather
+    than leaving it stuck in 'running' forever.
+
+    Returns:
+        Number of rows updated.
+    """
+    cutoff = (
+        datetime.datetime.now() - datetime.timedelta(hours=hours)
+    ).isoformat(timespec="seconds")
+    conn = _connect()
+    cur = conn.execute(
+        "UPDATE runs SET status = 'unknown' WHERE status = 'running' AND started_at < ?",
+        (cutoff,),
+    )
+    conn.commit()
+    updated = cur.rowcount or 0
+    conn.close()
+    return updated
+
+
+def duration_seconds(started_at: str | None, finished_at: str | None) -> int | None:
+    """
+    Compute the elapsed time between two ISO timestamps.
+
+    Returns None if either value is missing or unparseable.
+    """
+    if not started_at or not finished_at:
+        return None
+    try:
+        s = datetime.datetime.fromisoformat(started_at)
+        f = datetime.datetime.fromisoformat(finished_at)
+        return max(0, int((f - s).total_seconds()))
+    except (TypeError, ValueError):
+        return None
+
+
+def format_duration(seconds: int | None) -> str:
+    """Render seconds as 'HH:MM:SS' or 'MM:SS' (or '—' when unknown)."""
+    if seconds is None:
+        return "—"
+    h, rem = divmod(seconds, 3600)
+    m, s = divmod(rem, 60)
+    if h:
+        return f"{h:d}:{m:02d}:{s:02d}"
+    return f"{m:02d}:{s:02d}"
+
+
 def get_runs(limit: int = 50) -> list[dict]:
     """
     Return the most recent run records, newest first.
 
-    Args:
-        limit: Maximum number of rows to return.
-
-    Returns:
-        List of dicts with keys: id, started_at, finished_at, page,
-        samples, command, status.
+    Each row additionally includes a 'duration_s' key with the elapsed
+    seconds (or None if the run hasn't finished yet).
     """
     try:
         conn = _connect()
@@ -101,6 +154,11 @@ def get_runs(limit: int = 50) -> list[dict]:
             "SELECT * FROM runs ORDER BY id DESC LIMIT ?", (limit,)
         ).fetchall()
         conn.close()
-        return [dict(r) for r in rows]
+        out = []
+        for r in rows:
+            d = dict(r)
+            d["duration_s"] = duration_seconds(d.get("started_at"), d.get("finished_at"))
+            out.append(d)
+        return out
     except Exception:
         return []

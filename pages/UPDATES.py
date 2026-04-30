@@ -15,12 +15,14 @@ import re
 
 from constants import GITHUB_REPO, BACTOPIA_ENV_NAME
 
-# ============================= Configuration =============================
-
-st.set_page_config(page_title="System Status - BEAR-HUB", page_icon="🔄", layout="wide")
-
-# Ensure environment variables are loaded
-utils.bootstrap_bear_env_from_file()
+# ============================= Page bootstrap =============================
+utils.init_page(
+    title="System Status",
+    icon="🔄",
+    ns=None,  # Not a registered tool, so no sidebar highlight.
+    with_sidebar_nav=True,
+    page_title="System Status - BEAR-HUB",
+)
 
 # --- Command Constants ---
 

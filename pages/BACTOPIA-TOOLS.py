@@ -50,51 +50,29 @@ except ImportError:
     sys.path.append(str(pathlib.Path(__file__).parent.parent))
     import utils
 
-# ============================= General config =============================
-st.set_page_config(
-    page_title="Bactopia — Tools | BEAR-HUB",
-    page_icon="🐻",
-    layout="wide",
+from constants import APP_STATE_DIR, get_default_outdir
+
+DEFAULT_OUTDIR = get_default_outdir()
+
+# ============================= Page bootstrap =============================
+PROJECT_ROOT = utils.init_page(
+    title="Bactopia — Tools",
+    icon="🧰",
+    ns="bactopia-tools",
+    with_sidebar_nav=True,
+    defaults={
+        "bt_outdir": DEFAULT_OUTDIR,
+        "bt_selected_samples": [],
+        "tools_running": False,
+        "bt_profile": "docker",
+        "bt_threads": 0,
+        "bt_memory_gb": 0,
+        "bt_resume": True,
+        "bt_extra": "",
+    },
 )
 
-APP_ROOT = pathlib.Path(__file__).resolve().parent
-PAGES_DIR = APP_ROOT / "pages"
-PAGE_BACTOPIA = PAGES_DIR / "BACTOPIA.py"
-PAGE_TOOLS = PAGES_DIR / "BACTOPIA-TOOLS.py"
-PAGE_MERLIN = PAGES_DIR / "MERLIN.py"
-PAGE_PORT = PAGES_DIR / "PORT.py"
-
-# Safely discover project root
-if (APP_ROOT / "static").is_dir():
-    PROJECT_ROOT = APP_ROOT
-elif (APP_ROOT.parent / "static").is_dir():
-    PROJECT_ROOT = APP_ROOT.parent
-else:
-    PROJECT_ROOT = APP_ROOT  # fallback
-
-APP_STATE_DIR = pathlib.Path.home() / ".bactopia_ui_local"
-
-# Default outdir aligned with BEAR-HUB (can be overridden by bt_outdir from main page)
-DEFAULT_OUTDIR = str((pathlib.Path.home() / "BEAR_DATA" / "bactopia_out").resolve())
-
-# ===================== Nextflow via Bactopia environment =====================
-
-# Try to load .bear-hub.env right at startup
-utils.bootstrap_bear_env_from_file()
-
 BACTOPIA_ENV_PREFIX = os.environ.get("BACTOPIA_ENV_PREFIX")
-
-# ── Session state defaults ────────────────────────────────────────────────────
-utils.init_session_state({
-    "bt_outdir": DEFAULT_OUTDIR,
-    "bt_selected_samples": [],
-    "tools_running": False,
-    "bt_profile": "docker",
-    "bt_threads": 0,
-    "bt_memory_gb": 0,
-    "bt_resume": True,
-    "bt_extra": "",
-})
 
 # ============================= Helps (popovers) =============================
 
