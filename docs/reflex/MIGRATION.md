@@ -115,3 +115,19 @@ BEAR-HUB intentionally overrides some Bactopia defaults. Carry these into the po
    `--hybrid`/`--short_polish` fix via the FOFN `runtype` column (see PARAM_AUDIT §bugs).
 3. Add the param-name validation test.
 4. Then expand coverage using PARAM_AUDIT's ⬜ list (QC gates first).
+
+## 7. UI changes (reconstruct pages to clean source as we touch them)
+
+Pages run from bytecode until edited; each UI change requires rebuilding that page's
+`.py` from the disassembly (`pycdas`) + the live screenshots, then it shadows the `.pyc`.
+
+- [x] **Hub — equal-size cards.** `pages/hub.py`: cards differed in height by description
+  length. Fix = `height="100%"` on each card's `rx.link`/`rx.card` + `align="stretch"` and
+  `style={"gridAutoRows": "1fr"}` on the `rx.grid`, so all four cards match.
+- [x] **Main pipeline — split "Typing & extras".** `pages/bactopia.py`: the old step 4
+  bundled typing (AMRFinderPlus, MLST, datasets) with execution extras (general params,
+  Nextflow reports, raw extras). Split into **"Typing"** (step 4) and **"Extras"** (step 5);
+  `STEPS` is now 6 entries and `bactopia_page()`'s `rx.match` maps `0..5`. The `WizardMixin`
+  state tracks `step` as a plain int (no hardcoded count), so no state change was needed.
+
+When a page is rebuilt to clean source, drop its `.pyc` from the materialisation set.
