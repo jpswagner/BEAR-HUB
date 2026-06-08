@@ -114,7 +114,7 @@ PRESET_KEYS_ALLOWLIST = {
     "dragonflye_assembler", "dragonflye_opts", "nanohq",
     "min_contig_len", "min_contig_cov", "reassemble", "no_rotate", "no_miniasm",
     "no_polish", "polypolish_rounds", "pilon_rounds", "racon_rounds", "medaka_rounds", "medaka_model",
-    "unicycler_mode", "unicycler_min_len", "unicycler_extra",
+    "unicycler_mode",
     # Extra params and reports
     "extra_params", "with_report", "with_timeline", "with_trace",
 }
@@ -918,15 +918,18 @@ with st.expander("Assembler & Polishing Settings", expanded=False):
     # ── Unicycler Advanced ────────────────────────────────────────────────────
     if _enable_unicycler:
         st.markdown("##### Unicycler Advanced Options")
-        uc1, uc2 = st.columns(2)
-        with uc1:
-            st.radio("Mode", ["conservative", "normal", "bold"], index=1, key="unicycler_mode", horizontal=True)
-        with uc2:
-            st.number_input("min_fasta_length (Unicycler)", 0, 100000, 1000, 100, key="unicycler_min_len")
-        st.text_input(
-            "Unicycler Extra (append)",
-            value=st.session_state.get("unicycler_extra", ""),
-            key="unicycler_extra",
+        st.radio(
+            "Mode (--unicycler_mode)",
+            ["conservative", "normal", "bold"],
+            index=1,
+            key="unicycler_mode",
+            horizontal=True,
+        )
+        st.caption(
+            "Bactopia builds the Unicycler command itself and only exposes the "
+            "bridging mode. Unicycler's `--min_fasta_length` is taken from the "
+            "**Min Contig Len** control in *General Assembly Options* below; there "
+            "is no pass-through for arbitrary Unicycler flags."
         )
         st.divider()
 
@@ -934,7 +937,7 @@ with st.expander("Assembler & Polishing Settings", expanded=False):
     st.markdown("**General Assembly Options**")
     gc1, gc2, gc3, gc4, gc5 = st.columns(5)
     with gc1:
-        st.number_input("Min Contig Len", min_value=0, value=500, key="min_contig_len", help="--min_contig_len")
+        st.number_input("Min Contig Len", min_value=0, value=1000, key="min_contig_len", help="--min_contig_len (also sets Unicycler's --min_fasta_length). Applies to all assemblers.")
     with gc2:
         st.number_input("Min Coverage", min_value=0, value=10, key="min_contig_cov", help="--min_contig_cov")
     with gc3:
@@ -1003,16 +1006,12 @@ with st.expander("Assembler & Polishing Settings", expanded=False):
         f"**Polish:** {_polish_label}"
     )
 
-# Build Unicycler Opts String (always computed, used downstream in CLI builder)
-if _enable_unicycler:
-    uni_parts = ["--mode", st.session_state.get("unicycler_mode", "normal")]
-    if st.session_state.get("unicycler_min_len", 1000):
-        uni_parts += ["--min_fasta_length", str(int(st.session_state["unicycler_min_len"]))]
-    if (st.session_state.get("unicycler_extra") or "").strip():
-        uni_parts.append(st.session_state["unicycler_extra"].strip())
-    unicycler_opts_value = " ".join(uni_parts)
-else:
-    unicycler_opts_value = ""
+# NOTE: Bactopia builds the Unicycler command line itself from declared params
+# (see subworkflows/local/assembler/main.nf). It does NOT accept a `--unicycler_opts`
+# flag; passing one triggers "Parameter 'unicycler_opts' ... is not declared".
+# The bridging mode is passed via the real `--unicycler_mode` param below. The
+# Unicycler `--min_fasta_length` is derived by Bactopia from `--min_contig_len`,
+# so the General Assembly "Min Contig Len" control governs it.
 
 # ============================= Annotation & Typing (AMRFinder+ / MLST) =============================
 
@@ -1072,7 +1071,6 @@ def build_bactopia_cmd(params: dict) -> str:
     outdir = params.get("outdir", DEFAULT_OUTDIR)
     datasets = params.get("datasets")
     fastp_opts = params.get("fastp_opts")
-    unicycler_opts = params.get("unicycler_opts")
     extra = params.get("extra_params")
     
     # Assembler & Polishing flags
@@ -1111,9 +1109,7 @@ def build_bactopia_cmd(params: dict) -> str:
 
     if fastp_opts:
         base += ["--fastp_opts", fastp_opts]
-    if unicycler_opts:
-        base += ["--unicycler_opts", unicycler_opts]
-    
+
     if assembler_flags:
         base += assembler_flags
 
@@ -1138,7 +1134,6 @@ params = {
     "outdir": st.session_state.get("outdir"),
     "datasets": st.session_state.get("datasets") or None,
     "fastp_opts": (fastp_opts_value.strip() if "fastp_opts_value" in locals() and fastp_opts_value.strip() else None),
-    "unicycler_opts": (unicycler_opts_value.strip() if "unicycler_opts_value" in locals() and unicycler_opts_value.strip() else None),
     "extra_params": computed_extra or None,
     "assembler_flags": [], # Populated below
     "resume": st.session_state.get("resume", True),
@@ -1153,6 +1148,14 @@ params = {
 af = []
 if st.session_state.get("use_unicycler"):
     af.append("--use_unicycler")
+
+# Unicycler bridging mode (valid Bactopia param). Always passed when Unicycler is
+# active (--use_unicycler or a Unicycler hybrid run) so the UI selection is applied
+# explicitly rather than relying on Bactopia's implicit 'normal' default.
+if _enable_unicycler:
+    _uni_mode = st.session_state.get("unicycler_mode", "normal")
+    if _uni_mode:
+        af.extend(["--unicycler_mode", str(_uni_mode)])
 
 hyb = st.session_state.get("hybrid_strategy")
 if hyb == "Unicycler (--hybrid)":
@@ -1182,13 +1185,19 @@ if st.session_state.get("no_miniasm"): af.append("--no_miniasm")
 if st.session_state.get("reassemble"): af.append("--reassemble")
 if st.session_state.get("no_rotate"): af.append("--no_rotate")
 
-if st.session_state.get("min_contig_len") != 500:
-    af.extend(["--min_contig_len", str(st.session_state.get("min_contig_len"))])
+# Always pass min_contig_len so BEAR-HUB's 1000 bp default is applied to every
+# assembler (Bactopia's own default is 500). This also drives Unicycler's
+# --min_fasta_length. Honors whatever the user sets in the UI.
+_min_contig_len = st.session_state.get("min_contig_len", 1000)
+if _min_contig_len is not None:
+    af.extend(["--min_contig_len", str(_min_contig_len)])
 if st.session_state.get("min_contig_cov") != 2:
     af.extend(["--min_contig_cov", str(st.session_state.get("min_contig_cov"))])
 
 if st.session_state.get("skip_qc_plot"):
-    af.append("--skip_qc_plot")
+    # Bactopia's param is plural: --skip_qc_plots (singular is undeclared and
+    # crashes Nextflow). Default checkbox is True, so this is always emitted.
+    af.append("--skip_qc_plots")
 
 if st.session_state.get("no_polish"):
     af.append("--no_polish")

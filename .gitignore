@@ -87,3 +87,10 @@ tests/
 # Outros
 # ------------------
 bactopia-docs_ordered.pdf
+# ------------------
+# bearhub_rx (Reflex) — ignore runtime/build/data, keep app source + _recovered/
+# ------------------
+bearhub_rx/bactopia/
+bearhub_rx/.web/
+bearhub_rx/.states/
+mockups/
