@@ -1,0 +1,1529 @@
+fofn.cpython-311.pyc (Python 3.11)
+[Code]
+    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/fofn.py
+    Object Name: <module>
+    Qualified Name: <module>
+    Arg Count: 0
+    Pos Only Arg Count: 0
+    KW Only Arg Count: 0
+    Stack Size: 5
+    Flags: 0x01000000 (CO_FUTURE_ANNOTATIONS)
+    [Names]
+        '__doc__'
+        '__future__'
+        'annotations'
+        'pathlib'
+        're'
+        'FASTQ_PATTERNS'
+        'FA_PATTERNS'
+        '_EXTS'
+        'compile'
+        'IGNORECASE'
+        'PE1_PATTERNS'
+        'PE2_PATTERNS'
+        'LANE_SUFFIX'
+        '_drop_exts'
+        '_infer_root_and_tag'
+        '_is_probably_ont'
+        '_collect'
+        'parse_genome_size'
+        'build_fofn'
+    [Locals+Names]
+    [Constants]
+        "\nFOFN generator (File Of File Names) for the Bactopia main pipeline.\n\nPorted from the legacy Streamlit page (pages/BACTOPIA.py): scans a folder for\nFASTQ/FASTA files, infers each sample's runtype (paired-end, single-end, ont,\nhybrid, assembly) and writes a Bactopia `samples.txt`. Reflex-free.\n"
+        0
+        (
+            'annotations'
+        )
+        None
+        (
+            '*.fastq.gz'
+            '*.fq.gz'
+            '*.fastq'
+            '*.fq'
+        )
+        (
+            '*.fna.gz'
+            '*.fa.gz'
+            '*.fasta.gz'
+            '*.fna'
+            '*.fa'
+            '*.fasta'
+        )
+        (
+            '.fastq.gz'
+            '.fq.gz'
+            '.fastq'
+            '.fq'
+            '.fna.gz'
+            '.fa.gz'
+            '.fasta.gz'
+            '.fna'
+            '.fa'
+            '.fasta'
+        )
+        '^(?P<root>.+?)[._-](?:R?1|1|[Aa])(?:_[0-9]{3})?$'
+        '^(?P<root>.+?)_L\\d{3,4}_[Rr]1_\\d{3}$'
+        '^(?P<root>.+?)_L\\d{3,4}_1_\\d{3}$'
+        '^(?P<root>.+?)[._-](?:R?2|2|[Bb])(?:_[0-9]{3})?$'
+        '^(?P<root>.+?)_L\\d{3,4}_[Rr]2_\\d{3}$'
+        '^(?P<root>.+?)_L\\d{3,4}_2_\\d{3}$'
+        '(_L\\d{3,4})?(_\\d{3})?$'
+        'name'
+        'str'
+        'return'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/fofn.py
+            Object Name: _drop_exts
+            Qualified Name: _drop_exts
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 6
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                '_EXTS'
+                'endswith'
+                'len'
+            [Locals+Names]
+                'name'
+                'ext'
+            [Constants]
+                None
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     0: _EXTS
+                14      GET_ITER                        
+                16      FOR_ITER                        49 (to 116)
+                18      STORE_FAST                      1: ext
+                20      LOAD_FAST                       0: name
+                22      LOAD_METHOD                     1: endswith
+                44      LOAD_FAST                       1: ext
+                46      PRECALL                         1
+                50      CALL                            1
+                60      POP_JUMP_FORWARD_IF_FALSE       26 (to 114)
+                62      LOAD_FAST                       0: name
+                64      LOAD_CONST                      0: None
+                66      LOAD_GLOBAL                     5: NULL + len
+                78      LOAD_FAST                       1: ext
+                80      PRECALL                         1
+                84      CALL                            1
+                94      UNARY_NEGATIVE                  
+                96      BUILD_SLICE                     2
+                98      BINARY_SUBSCR                   
+                108     SWAP                            2
+                110     POP_TOP                         
+                112     RETURN_VALUE                    
+                114     JUMP_BACKWARD                   50 (to 16)
+                116     LOAD_FAST                       0: name
+                118     RETURN_VALUE                    
+            [Exception Table]
+        'path'
+        'pathlib.Path'
+        'tuple[str, str]'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/fofn.py
+            Object Name: _infer_root_and_tag
+            Qualified Name: _infer_root_and_tag
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 6
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'LANE_SUFFIX'
+                'sub'
+                '_drop_exts'
+                'name'
+                'PE1_PATTERNS'
+                'match'
+                'group'
+                'PE2_PATTERNS'
+            [Locals+Names]
+                'path'
+                'name'
+                'pat'
+                'm'
+            [Constants]
+                None
+                ''
+                'root'
+                'PE1'
+                'PE2'
+                'SE'
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     0: LANE_SUFFIX
+                14      LOAD_METHOD                     1: sub
+                36      LOAD_CONST                      1: ''
+                38      LOAD_GLOBAL                     5: NULL + _drop_exts
+                50      LOAD_FAST                       0: path
+                52      LOAD_ATTR                       3: name
+                62      PRECALL                         1
+                66      CALL                            1
+                76      PRECALL                         2
+                80      CALL                            2
+                90      STORE_FAST                      1: name
+                92      LOAD_GLOBAL                     8: PE1_PATTERNS
+                104     GET_ITER                        
+                106     FOR_ITER                        50 (to 208)
+                108     STORE_FAST                      2: pat
+                110     LOAD_FAST                       2: pat
+                112     LOAD_METHOD                     5: match
+                134     LOAD_FAST                       1: name
+                136     PRECALL                         1
+                140     CALL                            1
+                150     STORE_FAST                      3: m
+                152     LOAD_FAST                       3: m
+                154     POP_JUMP_FORWARD_IF_FALSE       25 (to 206)
+                156     LOAD_FAST                       3: m
+                158     LOAD_METHOD                     6: group
+                180     LOAD_CONST                      2: 'root'
+                182     PRECALL                         1
+                186     CALL                            1
+                196     LOAD_CONST                      3: 'PE1'
+                198     BUILD_TUPLE                     2
+                200     SWAP                            2
+                202     POP_TOP                         
+                204     RETURN_VALUE                    
+                206     JUMP_BACKWARD                   51 (to 106)
+                208     LOAD_GLOBAL                     14: PE2_PATTERNS
+                220     GET_ITER                        
+                222     FOR_ITER                        50 (to 324)
+                224     STORE_FAST                      2: pat
+                226     LOAD_FAST                       2: pat
+                228     LOAD_METHOD                     5: match
+                250     LOAD_FAST                       1: name
+                252     PRECALL                         1
+                256     CALL                            1
+                266     STORE_FAST                      3: m
+                268     LOAD_FAST                       3: m
+                270     POP_JUMP_FORWARD_IF_FALSE       25 (to 322)
+                272     LOAD_FAST                       3: m
+                274     LOAD_METHOD                     6: group
+                296     LOAD_CONST                      2: 'root'
+                298     PRECALL                         1
+                302     CALL                            1
+                312     LOAD_CONST                      4: 'PE2'
+                314     BUILD_TUPLE                     2
+                316     SWAP                            2
+                318     POP_TOP                         
+                320     RETURN_VALUE                    
+                322     JUMP_BACKWARD                   51 (to 222)
+                324     LOAD_FAST                       1: name
+                326     LOAD_CONST                      5: 'SE'
+                328     BUILD_TUPLE                     2
+                330     RETURN_VALUE                    
+            [Exception Table]
+        'p'
+        'bool'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/fofn.py
+            Object Name: _is_probably_ont
+            Qualified Name: _is_probably_ont
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 4
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'str'
+                'as_posix'
+                'lower'
+                'any'
+            [Locals+Names]
+                'p'
+                's'
+            [Constants]
+                None
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/fofn.py
+                    Object Name: <genexpr>
+                    Qualified Name: _is_probably_ont.<locals>.<genexpr>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 3
+                    Flags: 0x01000033 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_GENERATOR | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                    [Locals+Names]
+                        '.0'
+                        'x'
+                        's'
+                    [Constants]
+                        None
+                    [Disassembly]
+                        0       COPY_FREE_VARS                  1
+                        2       RETURN_GENERATOR                
+                        4       POP_TOP                         
+                        6       RESUME                          0
+                        8       LOAD_FAST                       0: .0
+                        10      FOR_ITER                        8 (to 28)
+                        12      STORE_FAST                      1: x
+                        14      LOAD_FAST                       1: x
+                        16      LOAD_DEREF                      2: s
+                        18      CONTAINS_OP                     0 (in)
+                        20      YIELD_VALUE                     
+                        22      RESUME                          1
+                        24      POP_TOP                         
+                        26      JUMP_BACKWARD                   9 (to 10)
+                        28      LOAD_CONST                      0: None
+                        30      RETURN_VALUE                    
+                    [Exception Table]
+                (
+                    'ont'
+                    'nanopore'
+                    'minion'
+                    'promethion'
+                    'fastq_pass'
+                    'guppy'
+                )
+            [Disassembly]
+                0       MAKE_CELL                       1: s
+                2       RESUME                          0
+                4       LOAD_GLOBAL                     1: NULL + str
+                16      LOAD_FAST                       0: p
+                18      LOAD_METHOD                     1: as_posix
+                40      PRECALL                         0
+                44      CALL                            0
+                54      PRECALL                         1
+                58      CALL                            1
+                68      LOAD_METHOD                     2: lower
+                90      PRECALL                         0
+                94      CALL                            0
+                104     STORE_DEREF                     1: s
+                106     LOAD_GLOBAL                     7: NULL + any
+                118     LOAD_CLOSURE                    1: s
+                120     BUILD_TUPLE                     1
+                122     LOAD_CONST                      1: <CODE> <genexpr>
+                124     MAKE_FUNCTION                   8
+                126     LOAD_CONST                      2: ('ont', 'nanopore', 'minion', 'promethion', 'fastq_pass', 'guppy')
+                128     GET_ITER                        
+                130     PRECALL                         0
+                134     CALL                            0
+                144     PRECALL                         1
+                148     CALL                            1
+                158     RETURN_VALUE                    
+            [Exception Table]
+        'base'
+        'patterns'
+        'list[str]'
+        'recursive'
+        'list[pathlib.Path]'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/fofn.py
+            Object Name: _collect
+            Qualified Name: _collect
+            Arg Count: 3
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 7
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'list'
+                'rglob'
+                'glob'
+                'is_file'
+                'append'
+                'resolve'
+                'OSError'
+                'sorted'
+                'set'
+            [Locals+Names]
+                'base'
+                'patterns'
+                'recursive'
+                'out'
+                'pat'
+                'clean'
+                'p'
+            [Constants]
+                None
+            [Disassembly]
+                0       RESUME                          0
+                2       BUILD_LIST                      0
+                4       STORE_FAST                      3: out
+                6       LOAD_FAST                       1: patterns
+                8       GET_ITER                        
+                10      FOR_ITER                        62 (to 136)
+                12      STORE_FAST                      4: pat
+                14      LOAD_FAST                       3: out
+                16      LOAD_GLOBAL                     1: NULL + list
+                28      LOAD_FAST                       2: recursive
+                30      POP_JUMP_FORWARD_IF_FALSE       21 (to 74)
+                32      LOAD_FAST                       0: base
+                34      LOAD_METHOD                     1: rglob
+                56      LOAD_FAST                       4: pat
+                58      PRECALL                         1
+                62      CALL                            1
+                72      JUMP_FORWARD                    20 (to 114)
+                74      LOAD_FAST                       0: base
+                76      LOAD_METHOD                     2: glob
+                98      LOAD_FAST                       4: pat
+                100     PRECALL                         1
+                104     CALL                            1
+                114     PRECALL                         1
+                118     CALL                            1
+                128     BINARY_OP                       13 (+=)
+                132     STORE_FAST                      3: out
+                134     JUMP_BACKWARD                   63 (to 10)
+                136     BUILD_LIST                      0
+                138     STORE_FAST                      5: clean
+                140     LOAD_FAST                       3: out
+                142     GET_ITER                        
+                144     FOR_ITER                        78 (to 302)
+                146     STORE_FAST                      6: p
+                148     NOP                             
+                150     LOAD_FAST                       6: p
+                152     LOAD_METHOD                     3: is_file
+                174     PRECALL                         0
+                178     CALL                            0
+                188     POP_JUMP_FORWARD_IF_FALSE       39 (to 268)
+                190     LOAD_FAST                       5: clean
+                192     LOAD_METHOD                     4: append
+                214     LOAD_FAST                       6: p
+                216     LOAD_METHOD                     5: resolve
+                238     PRECALL                         0
+                242     CALL                            0
+                252     PRECALL                         1
+                256     CALL                            1
+                266     POP_TOP                         
+                268     JUMP_BACKWARD                   63 (to 144)
+                270     PUSH_EXC_INFO                   
+                272     LOAD_GLOBAL                     12: OSError
+                284     CHECK_EXC_MATCH                 
+                286     POP_JUMP_FORWARD_IF_FALSE       3 (to 294)
+                288     POP_TOP                         
+                290     POP_EXCEPT                      
+                292     JUMP_BACKWARD                   75 (to 144)
+                294     RERAISE                         0
+                296     COPY                            3
+                298     POP_EXCEPT                      
+                300     RERAISE                         1
+                302     LOAD_GLOBAL                     15: NULL + sorted
+                314     LOAD_GLOBAL                     17: NULL + set
+                326     LOAD_FAST                       5: clean
+                328     PRECALL                         1
+                332     CALL                            1
+                342     PRECALL                         1
+                346     CALL                            1
+                356     RETURN_VALUE                    
+            [Exception Table]
+                150 to 268 -> 270 [1] 
+                270 to 290 -> 296 [2] lasti
+                294 to 296 -> 296 [2] lasti
+        'raw'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/fofn.py
+            Object Name: parse_genome_size
+            Qualified Name: parse_genome_size
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 6
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'strip'
+                're'
+                'sub'
+                'IGNORECASE'
+                'float'
+                'str'
+                'int'
+                'ValueError'
+                'isdigit'
+            [Locals+Names]
+                'raw'
+                'clean'
+                'val'
+            [Constants]
+                "'5.5 Mb' -> '5500000'; placeholders -> '0'."
+                ''
+                (
+                    '(Select or Custom)'
+                    'Custom'
+                )
+                '0'
+                '\\s*Mb$'
+                (
+                    'flags'
+                )
+                1000
+                1000000
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_FAST                       0: raw
+                4       JUMP_IF_TRUE_OR_POP             1 (to 2)
+                6       LOAD_CONST                      1: ''
+                8       LOAD_METHOD                     0: strip
+                30      PRECALL                         0
+                34      CALL                            0
+                44      STORE_FAST                      0: raw
+                46      LOAD_FAST                       0: raw
+                48      POP_JUMP_FORWARD_IF_FALSE       4 (to 58)
+                50      LOAD_FAST                       0: raw
+                52      LOAD_CONST                      2: ('(Select or Custom)', 'Custom')
+                54      CONTAINS_OP                     0 (in)
+                56      POP_JUMP_FORWARD_IF_FALSE       2 (to 62)
+                58      LOAD_CONST                      3: '0'
+                60      RETURN_VALUE                    
+                62      NOP                             
+                64      LOAD_GLOBAL                     3: NULL + re
+                76      LOAD_ATTR                       2: sub
+                86      LOAD_CONST                      4: '\\s*Mb$'
+                88      LOAD_CONST                      1: ''
+                90      LOAD_FAST                       0: raw
+                92      LOAD_GLOBAL                     2: re
+                104     LOAD_ATTR                       3: IGNORECASE
+                114     KW_NAMES                        5: ('flags',)
+                116     PRECALL                         4
+                120     CALL                            4
+                130     LOAD_METHOD                     0: strip
+                152     PRECALL                         0
+                156     CALL                            0
+                166     STORE_FAST                      1: clean
+                168     LOAD_GLOBAL                     9: NULL + float
+                180     LOAD_FAST                       1: clean
+                182     PRECALL                         1
+                186     CALL                            1
+                196     STORE_FAST                      2: val
+                198     LOAD_FAST                       2: val
+                200     LOAD_CONST                      6: 1000
+                202     COMPARE_OP                      0 (<)
+                208     POP_JUMP_FORWARD_IF_FALSE       5 (to 220)
+                210     LOAD_FAST                       2: val
+                212     LOAD_CONST                      7: 1000000
+                214     BINARY_OP                       18 (*=)
+                218     STORE_FAST                      2: val
+                220     LOAD_GLOBAL                     11: NULL + str
+                232     LOAD_GLOBAL                     13: NULL + int
+                244     LOAD_FAST                       2: val
+                246     PRECALL                         1
+                250     CALL                            1
+                260     PRECALL                         1
+                264     CALL                            1
+                274     RETURN_VALUE                    
+                276     PUSH_EXC_INFO                   
+                278     LOAD_GLOBAL                     14: ValueError
+                290     CHECK_EXC_MATCH                 
+                292     POP_JUMP_FORWARD_IF_FALSE       27 (to 348)
+                294     POP_TOP                         
+                296     LOAD_FAST                       0: raw
+                298     LOAD_METHOD                     8: isdigit
+                320     PRECALL                         0
+                324     CALL                            0
+                334     POP_JUMP_FORWARD_IF_FALSE       2 (to 340)
+                336     LOAD_FAST                       0: raw
+                338     JUMP_FORWARD                    1 (to 342)
+                340     LOAD_CONST                      3: '0'
+                342     SWAP                            2
+                344     POP_EXCEPT                      
+                346     RETURN_VALUE                    
+                348     RERAISE                         0
+                350     COPY                            3
+                352     POP_EXCEPT                      
+                354     RERAISE                         1
+            [Exception Table]
+                64 to 274 -> 276 [0] 
+                276 to 344 -> 350 [1] lasti
+                348 to 350 -> 350 [1] lasti
+        'base_dir'
+        'species'
+        'gsize'
+        'fofn_path'
+        'treat_se_as_ont'
+        'infer_ont_by_name'
+        'merge_multi'
+        'include_assemblies'
+        'dict'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/fofn.py
+            Object Name: build_fofn
+            Qualified Name: build_fofn
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 9
+            Stack Size: 12
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'pathlib'
+                'Path'
+                'exists'
+                'FileNotFoundError'
+                'parent'
+                'mkdir'
+                '_collect'
+                'FASTQ_PATTERNS'
+                'FA_PATTERNS'
+                '_infer_root_and_tag'
+                'setdefault'
+                'append'
+                'str'
+                '_is_probably_ont'
+                '_drop_exts'
+                'name'
+                'sorted'
+                'items'
+                'get'
+                'open'
+                'write'
+                'join'
+                'map'
+                'len'
+            [Locals+Names]
+                'base_dir'
+                'recursive'
+                'species'
+                'gsize'
+                'fofn_path'
+                'treat_se_as_ont'
+                'infer_ont_by_name'
+                'merge_multi'
+                'include_assemblies'
+                'base'
+                'fq_files'
+                'fa_files'
+                'groups'
+                'issues'
+                'fq'
+                'root'
+                'tag'
+                'd'
+                'fa'
+                'header'
+                'rows'
+                '_pick'
+                'counts'
+                'sample'
+                'parts'
+                'pe1'
+                'pe2'
+                'se'
+                'ont'
+                'r1'
+                'r2'
+                'se_c'
+                'ont_c'
+                'asm'
+                'runtype'
+                'fh'
+                'r'
+            [Constants]
+                'Scan *base_dir* and write a Bactopia FOFN to *fofn_path*. Returns a summary.'
+                '.'
+                'Base folder does not exist.'
+                True
+                (
+                    'parents'
+                    'exist_ok'
+                )
+                (
+                    'pe1'
+                    'pe2'
+                    'se'
+                    'ont'
+                    'assembly'
+                )
+                'PE1'
+                'pe1'
+                'PE2'
+                'pe2'
+                'ont'
+                'se'
+                'assembly'
+                (
+                    'sample'
+                    'runtype'
+                    'genome_size'
+                    'species'
+                    'r1'
+                    'r2'
+                    'se'
+                    'ont'
+                    'assembly'
+                )
+                'paths'
+                'list[str]'
+                'return'
+                'str'
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/fofn.py
+                    Object Name: _pick
+                    Qualified Name: build_fofn.<locals>._pick
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 5
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'join'
+                        'sorted'
+                        'OSError'
+                    [Locals+Names]
+                        'paths'
+                        'merge_multi'
+                    [Constants]
+                        None
+                        ''
+                        ','
+                        [Code]
+                            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/fofn.py
+                            Object Name: <lambda>
+                            Qualified Name: build_fofn.<locals>._pick.<locals>.<lambda>
+                            Arg Count: 1
+                            Pos Only Arg Count: 0
+                            KW Only Arg Count: 0
+                            Stack Size: 3
+                            Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                            [Names]
+                                'pathlib'
+                                'Path'
+                                'exists'
+                                'stat'
+                                'st_size'
+                            [Locals+Names]
+                                'p'
+                            [Constants]
+                                None
+                                0
+                            [Disassembly]
+                                0       RESUME                          0
+                                2       LOAD_GLOBAL                     1: NULL + pathlib
+                                14      LOAD_ATTR                       1: Path
+                                24      LOAD_FAST                       0: p
+                                26      PRECALL                         1
+                                30      CALL                            1
+                                40      LOAD_METHOD                     2: exists
+                                62      PRECALL                         0
+                                66      CALL                            0
+                                76      POP_JUMP_FORWARD_IF_FALSE       43 (to 164)
+                                78      LOAD_GLOBAL                     1: NULL + pathlib
+                                90      LOAD_ATTR                       1: Path
+                                100     LOAD_FAST                       0: p
+                                102     PRECALL                         1
+                                106     CALL                            1
+                                116     LOAD_METHOD                     3: stat
+                                138     PRECALL                         0
+                                142     CALL                            0
+                                152     LOAD_ATTR                       4: st_size
+                                162     JUMP_FORWARD                    1 (to 166)
+                                164     LOAD_CONST                      1: 0
+                                166     RETURN_VALUE                    
+                            [Exception Table]
+                        True
+                        (
+                            'key'
+                            'reverse'
+                        )
+                        0
+                    [Disassembly]
+                        0       COPY_FREE_VARS                  1
+                        2       RESUME                          0
+                        4       LOAD_FAST                       0: paths
+                        6       POP_JUMP_FORWARD_IF_TRUE        2 (to 12)
+                        8       LOAD_CONST                      1: ''
+                        10      RETURN_VALUE                    
+                        12      LOAD_DEREF                      1: merge_multi
+                        14      POP_JUMP_FORWARD_IF_FALSE       21 (to 58)
+                        16      LOAD_CONST                      2: ','
+                        18      LOAD_METHOD                     0: join
+                        40      LOAD_FAST                       0: paths
+                        42      PRECALL                         1
+                        46      CALL                            1
+                        56      RETURN_VALUE                    
+                        58      NOP                             
+                        60      LOAD_GLOBAL                     3: NULL + sorted
+                        72      LOAD_FAST                       0: paths
+                        74      LOAD_CONST                      3: <CODE> <lambda>
+                        76      MAKE_FUNCTION                   0
+                        78      LOAD_CONST                      4: True
+                        80      KW_NAMES                        5: ('key', 'reverse')
+                        82      PRECALL                         3
+                        86      CALL                            3
+                        96      LOAD_CONST                      6: 0
+                        98      BINARY_SUBSCR                   
+                        108     RETURN_VALUE                    
+                        110     PUSH_EXC_INFO                   
+                        112     LOAD_GLOBAL                     4: OSError
+                        124     CHECK_EXC_MATCH                 
+                        126     POP_JUMP_FORWARD_IF_FALSE       11 (to 150)
+                        128     POP_TOP                         
+                        130     LOAD_FAST                       0: paths
+                        132     LOAD_CONST                      6: 0
+                        134     BINARY_SUBSCR                   
+                        144     SWAP                            2
+                        146     POP_EXCEPT                      
+                        148     RETURN_VALUE                    
+                        150     RERAISE                         0
+                        152     COPY                            3
+                        154     POP_EXCEPT                      
+                        156     RERAISE                         1
+                    [Exception Table]
+                        60 to 108 -> 110 [0] 
+                        110 to 146 -> 152 [1] lasti
+                        150 to 152 -> 152 [1] lasti
+                0
+                (
+                    'paired-end'
+                    'single-end'
+                    'ont'
+                    'hybrid'
+                    'assembly'
+                )
+                ': R1 found without R2.'
+                ': R2 found without R1.'
+                ''
+                'hybrid'
+                'paired-end'
+                'single-end'
+                ': FASTA and FASTQ detected; ignoring assembly in FOFN.'
+                ': could not classify sample (missing files?).'
+                1
+                'w'
+                'utf-8'
+                (
+                    'encoding'
+                )
+                '\t'
+                '\n'
+                None
+                (
+                    'rows'
+                    'counts'
+                    'issues'
+                    'fofn_path'
+                )
+                (
+                    'paths'
+                    'list[str]'
+                    'return'
+                    'str'
+                )
+            [Disassembly]
+                0       MAKE_CELL                       7: merge_multi
+                2       RESUME                          0
+                4       LOAD_GLOBAL                     1: NULL + pathlib
+                16      LOAD_ATTR                       1: Path
+                26      LOAD_FAST                       0: base_dir
+                28      JUMP_IF_TRUE_OR_POP             1 (to 2)
+                30      LOAD_CONST                      1: '.'
+                32      PRECALL                         1
+                36      CALL                            1
+                46      STORE_FAST                      9: base
+                48      LOAD_FAST                       9: base
+                50      LOAD_METHOD                     2: exists
+                72      PRECALL                         0
+                76      CALL                            0
+                86      POP_JUMP_FORWARD_IF_TRUE        15 (to 118)
+                88      LOAD_GLOBAL                     7: NULL + FileNotFoundError
+                100     LOAD_CONST                      2: 'Base folder does not exist.'
+                102     PRECALL                         1
+                106     CALL                            1
+                116     RAISE_VARARGS                   1
+                118     LOAD_GLOBAL                     1: NULL + pathlib
+                130     LOAD_ATTR                       1: Path
+                140     LOAD_FAST                       4: fofn_path
+                142     PRECALL                         1
+                146     CALL                            1
+                156     LOAD_ATTR                       4: parent
+                166     LOAD_METHOD                     5: mkdir
+                188     LOAD_CONST                      3: True
+                190     LOAD_CONST                      3: True
+                192     KW_NAMES                        4: ('parents', 'exist_ok')
+                194     PRECALL                         2
+                198     CALL                            2
+                208     POP_TOP                         
+                210     LOAD_GLOBAL                     13: NULL + _collect
+                222     LOAD_FAST                       9: base
+                224     LOAD_GLOBAL                     14: FASTQ_PATTERNS
+                236     LOAD_FAST                       1: recursive
+                238     PRECALL                         3
+                242     CALL                            3
+                252     STORE_FAST                      10: fq_files
+                254     LOAD_FAST                       8: include_assemblies
+                256     POP_JUMP_FORWARD_IF_FALSE       22 (to 302)
+                258     LOAD_GLOBAL                     13: NULL + _collect
+                270     LOAD_FAST                       9: base
+                272     LOAD_GLOBAL                     16: FA_PATTERNS
+                284     LOAD_FAST                       1: recursive
+                286     PRECALL                         3
+                290     CALL                            3
+                300     JUMP_FORWARD                    1 (to 304)
+                302     BUILD_LIST                      0
+                304     STORE_FAST                      11: fa_files
+                306     BUILD_MAP                       0
+                308     STORE_FAST                      12: groups
+                310     BUILD_LIST                      0
+                312     STORE_FAST                      13: issues
+                314     LOAD_FAST                       10: fq_files
+                316     GET_ITER                        
+                318     FOR_ITER                        242 (to 804)
+                320     STORE_FAST                      14: fq
+                322     LOAD_GLOBAL                     19: NULL + _infer_root_and_tag
+                334     LOAD_FAST                       14: fq
+                336     PRECALL                         1
+                340     CALL                            1
+                350     UNPACK_SEQUENCE                 2
+                354     STORE_FAST                      15: root
+                356     STORE_FAST                      16: tag
+                358     LOAD_FAST                       12: groups
+                360     LOAD_METHOD                     10: setdefault
+                382     LOAD_FAST                       15: root
+                384     BUILD_LIST                      0
+                386     BUILD_LIST                      0
+                388     BUILD_LIST                      0
+                390     BUILD_LIST                      0
+                392     BUILD_LIST                      0
+                394     LOAD_CONST                      5: ('pe1', 'pe2', 'se', 'ont', 'assembly')
+                396     BUILD_CONST_KEY_MAP             5
+                398     PRECALL                         2
+                402     CALL                            2
+                412     STORE_FAST                      17: d
+                414     LOAD_FAST                       16: tag
+                416     LOAD_CONST                      6: 'PE1'
+                418     COMPARE_OP                      2 (==)
+                424     POP_JUMP_FORWARD_IF_FALSE       41 (to 508)
+                426     LOAD_FAST                       17: d
+                428     LOAD_CONST                      7: 'pe1'
+                430     BINARY_SUBSCR                   
+                440     LOAD_METHOD                     11: append
+                462     LOAD_GLOBAL                     25: NULL + str
+                474     LOAD_FAST                       14: fq
+                476     PRECALL                         1
+                480     CALL                            1
+                490     PRECALL                         1
+                494     CALL                            1
+                504     POP_TOP                         
+                506     JUMP_BACKWARD                   95 (to 318)
+                508     LOAD_FAST                       16: tag
+                510     LOAD_CONST                      8: 'PE2'
+                512     COMPARE_OP                      2 (==)
+                518     POP_JUMP_FORWARD_IF_FALSE       41 (to 602)
+                520     LOAD_FAST                       17: d
+                522     LOAD_CONST                      9: 'pe2'
+                524     BINARY_SUBSCR                   
+                534     LOAD_METHOD                     11: append
+                556     LOAD_GLOBAL                     25: NULL + str
+                568     LOAD_FAST                       14: fq
+                570     PRECALL                         1
+                574     CALL                            1
+                584     PRECALL                         1
+                588     CALL                            1
+                598     POP_TOP                         
+                600     JUMP_BACKWARD                   142 (to 318)
+                602     LOAD_FAST                       5: treat_se_as_ont
+                604     POP_JUMP_FORWARD_IF_TRUE        17 (to 640)
+                606     LOAD_FAST                       6: infer_ont_by_name
+                608     POP_JUMP_FORWARD_IF_FALSE       56 (to 722)
+                610     LOAD_GLOBAL                     27: NULL + _is_probably_ont
+                622     LOAD_FAST                       14: fq
+                624     PRECALL                         1
+                628     CALL                            1
+                638     POP_JUMP_FORWARD_IF_FALSE       41 (to 722)
+                640     LOAD_FAST                       17: d
+                642     LOAD_CONST                      10: 'ont'
+                644     BINARY_SUBSCR                   
+                654     LOAD_METHOD                     11: append
+                676     LOAD_GLOBAL                     25: NULL + str
+                688     LOAD_FAST                       14: fq
+                690     PRECALL                         1
+                694     CALL                            1
+                704     PRECALL                         1
+                708     CALL                            1
+                718     POP_TOP                         
+                720     JUMP_BACKWARD                   202 (to 318)
+                722     LOAD_FAST                       17: d
+                724     LOAD_CONST                      11: 'se'
+                726     BINARY_SUBSCR                   
+                736     LOAD_METHOD                     11: append
+                758     LOAD_GLOBAL                     25: NULL + str
+                770     LOAD_FAST                       14: fq
+                772     PRECALL                         1
+                776     CALL                            1
+                786     PRECALL                         1
+                790     CALL                            1
+                800     POP_TOP                         
+                802     JUMP_BACKWARD                   243 (to 318)
+                804     LOAD_FAST                       11: fa_files
+                806     GET_ITER                        
+                808     FOR_ITER                        88 (to 986)
+                810     STORE_FAST                      18: fa
+                812     LOAD_FAST                       12: groups
+                814     LOAD_METHOD                     10: setdefault
+                836     LOAD_GLOBAL                     29: NULL + _drop_exts
+                848     LOAD_FAST                       18: fa
+                850     LOAD_ATTR                       15: name
+                860     PRECALL                         1
+                864     CALL                            1
+                874     BUILD_LIST                      0
+                876     BUILD_LIST                      0
+                878     BUILD_LIST                      0
+                880     BUILD_LIST                      0
+                882     BUILD_LIST                      0
+                884     LOAD_CONST                      5: ('pe1', 'pe2', 'se', 'ont', 'assembly')
+                886     BUILD_CONST_KEY_MAP             5
+                888     PRECALL                         2
+                892     CALL                            2
+                902     STORE_FAST                      17: d
+                904     LOAD_FAST                       17: d
+                906     LOAD_CONST                      12: 'assembly'
+                908     BINARY_SUBSCR                   
+                918     LOAD_METHOD                     11: append
+                940     LOAD_GLOBAL                     25: NULL + str
+                952     LOAD_FAST                       18: fa
+                954     PRECALL                         1
+                958     CALL                            1
+                968     PRECALL                         1
+                972     CALL                            1
+                982     POP_TOP                         
+                984     JUMP_BACKWARD                   89 (to 808)
+                986     BUILD_LIST                      0
+                988     LOAD_CONST                      13: ('sample', 'runtype', 'genome_size', 'species', 'r1', 'r2', 'se', 'ont', 'assembly')
+                990     LIST_EXTEND                     1
+                992     STORE_FAST                      19: header
+                994     BUILD_LIST                      0
+                996     STORE_FAST                      20: rows
+                998     LOAD_CONST                      37: ('paths', 'list[str]', 'return', 'str')
+                1000    LOAD_CLOSURE                    7: merge_multi
+                1002    BUILD_TUPLE                     1
+                1004    LOAD_CONST                      18: <CODE> _pick
+                1006    MAKE_FUNCTION                   12
+                1008    STORE_FAST                      21: _pick
+                1010    LOAD_CONST                      19: 0
+                1012    LOAD_CONST                      19: 0
+                1014    LOAD_CONST                      19: 0
+                1016    LOAD_CONST                      19: 0
+                1018    LOAD_CONST                      19: 0
+                1020    LOAD_CONST                      20: ('paired-end', 'single-end', 'ont', 'hybrid', 'assembly')
+                1022    BUILD_CONST_KEY_MAP             5
+                1024    STORE_FAST                      22: counts
+                1026    LOAD_GLOBAL                     33: NULL + sorted
+                1038    LOAD_FAST                       12: groups
+                1040    LOAD_METHOD                     17: items
+                1062    PRECALL                         0
+                1066    CALL                            0
+                1076    PRECALL                         1
+                1080    CALL                            1
+                1090    GET_ITER                        
+                1092    FOR_ITER                        472 (to 2040)
+                1096    UNPACK_SEQUENCE                 2
+                1100    STORE_FAST                      23: sample
+                1102    STORE_FAST                      24: parts
+                1104    LOAD_FAST                       24: parts
+                1106    LOAD_CONST                      7: 'pe1'
+                1108    BINARY_SUBSCR                   
+                1118    LOAD_FAST                       24: parts
+                1120    LOAD_CONST                      9: 'pe2'
+                1122    BINARY_SUBSCR                   
+                1132    LOAD_FAST                       24: parts
+                1134    LOAD_CONST                      11: 'se'
+                1136    BINARY_SUBSCR                   
+                1146    LOAD_FAST                       24: parts
+                1148    LOAD_CONST                      10: 'ont'
+                1150    BINARY_SUBSCR                   
+                1160    LOAD_FAST                       24: parts
+                1162    LOAD_CONST                      12: 'assembly'
+                1164    BINARY_SUBSCR                   
+                1174    BUILD_TUPLE                     5
+                1176    UNPACK_SEQUENCE                 5
+                1180    STORE_FAST                      25: pe1
+                1182    STORE_FAST                      26: pe2
+                1184    STORE_FAST                      27: se
+                1186    STORE_FAST                      28: ont
+                1188    STORE_FAST                      18: fa
+                1190    LOAD_FAST                       25: pe1
+                1192    POP_JUMP_FORWARD_IF_FALSE       26 (to 1246)
+                1194    LOAD_FAST                       26: pe2
+                1196    POP_JUMP_FORWARD_IF_TRUE        24 (to 1246)
+                1198    LOAD_FAST                       13: issues
+                1200    LOAD_METHOD                     11: append
+                1222    LOAD_FAST                       23: sample
+                1224    FORMAT_VALUE                    0 (FVC_NONE)
+                1226    LOAD_CONST                      21: ': R1 found without R2.'
+                1228    BUILD_STRING                    2
+                1230    PRECALL                         1
+                1234    CALL                            1
+                1244    POP_TOP                         
+                1246    LOAD_FAST                       26: pe2
+                1248    POP_JUMP_FORWARD_IF_FALSE       26 (to 1302)
+                1250    LOAD_FAST                       25: pe1
+                1252    POP_JUMP_FORWARD_IF_TRUE        24 (to 1302)
+                1254    LOAD_FAST                       13: issues
+                1256    LOAD_METHOD                     11: append
+                1278    LOAD_FAST                       23: sample
+                1280    FORMAT_VALUE                    0 (FVC_NONE)
+                1282    LOAD_CONST                      22: ': R2 found without R1.'
+                1284    BUILD_STRING                    2
+                1286    PRECALL                         1
+                1290    CALL                            1
+                1300    POP_TOP                         
+                1302    LOAD_CONST                      23: ''
+                1304    COPY                            1
+                1306    STORE_FAST                      29: r1
+                1308    COPY                            1
+                1310    STORE_FAST                      30: r2
+                1312    COPY                            1
+                1314    STORE_FAST                      31: se_c
+                1316    COPY                            1
+                1318    STORE_FAST                      32: ont_c
+                1320    STORE_FAST                      33: asm
+                1322    LOAD_FAST                       18: fa
+                1324    POP_JUMP_FORWARD_IF_FALSE       23 (to 1372)
+                1326    LOAD_FAST                       25: pe1
+                1328    POP_JUMP_FORWARD_IF_TRUE        21 (to 1372)
+                1330    LOAD_FAST                       26: pe2
+                1332    POP_JUMP_FORWARD_IF_TRUE        19 (to 1372)
+                1334    LOAD_FAST                       27: se
+                1336    POP_JUMP_FORWARD_IF_TRUE        17 (to 1372)
+                1338    LOAD_FAST                       28: ont
+                1340    POP_JUMP_FORWARD_IF_TRUE        15 (to 1372)
+                1342    LOAD_CONST                      12: 'assembly'
+                1344    STORE_FAST                      34: runtype
+                1346    PUSH_NULL                       
+                1348    LOAD_FAST                       21: _pick
+                1350    LOAD_FAST                       18: fa
+                1352    PRECALL                         1
+                1356    CALL                            1
+                1366    STORE_FAST                      33: asm
+                1368    JUMP_FORWARD                    274 (to 1920)
+                1372    LOAD_FAST                       25: pe1
+                1374    POP_JUMP_FORWARD_IF_FALSE       40 (to 1456)
+                1376    LOAD_FAST                       26: pe2
+                1378    POP_JUMP_FORWARD_IF_FALSE       38 (to 1456)
+                1380    LOAD_FAST                       28: ont
+                1382    POP_JUMP_FORWARD_IF_FALSE       36 (to 1456)
+                1384    LOAD_CONST                      24: 'hybrid'
+                1386    STORE_FAST                      34: runtype
+                1388    PUSH_NULL                       
+                1390    LOAD_FAST                       21: _pick
+                1392    LOAD_FAST                       25: pe1
+                1394    PRECALL                         1
+                1398    CALL                            1
+                1408    PUSH_NULL                       
+                1410    LOAD_FAST                       21: _pick
+                1412    LOAD_FAST                       26: pe2
+                1414    PRECALL                         1
+                1418    CALL                            1
+                1428    PUSH_NULL                       
+                1430    LOAD_FAST                       21: _pick
+                1432    LOAD_FAST                       28: ont
+                1434    PRECALL                         1
+                1438    CALL                            1
+                1448    STORE_FAST                      32: ont_c
+                1450    STORE_FAST                      30: r2
+                1452    STORE_FAST                      29: r1
+                1454    JUMP_FORWARD                    232 (to 1920)
+                1456    LOAD_FAST                       25: pe1
+                1458    POP_JUMP_FORWARD_IF_FALSE       27 (to 1514)
+                1460    LOAD_FAST                       26: pe2
+                1462    POP_JUMP_FORWARD_IF_FALSE       25 (to 1514)
+                1464    LOAD_CONST                      25: 'paired-end'
+                1466    STORE_FAST                      34: runtype
+                1468    PUSH_NULL                       
+                1470    LOAD_FAST                       21: _pick
+                1472    LOAD_FAST                       25: pe1
+                1474    PRECALL                         1
+                1478    CALL                            1
+                1488    PUSH_NULL                       
+                1490    LOAD_FAST                       21: _pick
+                1492    LOAD_FAST                       26: pe2
+                1494    PRECALL                         1
+                1498    CALL                            1
+                1508    STORE_FAST                      30: r2
+                1510    STORE_FAST                      29: r1
+                1512    JUMP_FORWARD                    203 (to 1920)
+                1514    LOAD_FAST                       28: ont
+                1516    POP_JUMP_FORWARD_IF_FALSE       18 (to 1554)
+                1518    LOAD_FAST                       25: pe1
+                1520    POP_JUMP_FORWARD_IF_TRUE        16 (to 1554)
+                1522    LOAD_FAST                       26: pe2
+                1524    POP_JUMP_FORWARD_IF_TRUE        14 (to 1554)
+                1526    LOAD_CONST                      10: 'ont'
+                1528    STORE_FAST                      34: runtype
+                1530    PUSH_NULL                       
+                1532    LOAD_FAST                       21: _pick
+                1534    LOAD_FAST                       28: ont
+                1536    PRECALL                         1
+                1540    CALL                            1
+                1550    STORE_FAST                      32: ont_c
+                1552    JUMP_FORWARD                    183 (to 1920)
+                1554    LOAD_FAST                       27: se
+                1556    POP_JUMP_FORWARD_IF_FALSE       20 (to 1598)
+                1558    LOAD_FAST                       25: pe1
+                1560    POP_JUMP_FORWARD_IF_TRUE        18 (to 1598)
+                1562    LOAD_FAST                       26: pe2
+                1564    POP_JUMP_FORWARD_IF_TRUE        16 (to 1598)
+                1566    LOAD_FAST                       28: ont
+                1568    POP_JUMP_FORWARD_IF_TRUE        14 (to 1598)
+                1570    LOAD_CONST                      26: 'single-end'
+                1572    STORE_FAST                      34: runtype
+                1574    PUSH_NULL                       
+                1576    LOAD_FAST                       21: _pick
+                1578    LOAD_FAST                       27: se
+                1580    PRECALL                         1
+                1584    CALL                            1
+                1594    STORE_FAST                      31: se_c
+                1596    JUMP_FORWARD                    161 (to 1920)
+                1598    LOAD_FAST                       18: fa
+                1600    POP_JUMP_FORWARD_IF_FALSE       133 (to 1868)
+                1602    LOAD_FAST                       25: pe1
+                1604    POP_JUMP_FORWARD_IF_TRUE        6 (to 1618)
+                1606    LOAD_FAST                       26: pe2
+                1608    POP_JUMP_FORWARD_IF_TRUE        4 (to 1618)
+                1610    LOAD_FAST                       27: se
+                1612    POP_JUMP_FORWARD_IF_TRUE        2 (to 1618)
+                1614    LOAD_FAST                       28: ont
+                1616    POP_JUMP_FORWARD_IF_FALSE       125 (to 1868)
+                1618    LOAD_FAST                       13: issues
+                1620    LOAD_METHOD                     11: append
+                1642    LOAD_FAST                       23: sample
+                1644    FORMAT_VALUE                    0 (FVC_NONE)
+                1646    LOAD_CONST                      27: ': FASTA and FASTQ detected; ignoring assembly in FOFN.'
+                1648    BUILD_STRING                    2
+                1650    PRECALL                         1
+                1654    CALL                            1
+                1664    POP_TOP                         
+                1666    LOAD_FAST                       25: pe1
+                1668    POP_JUMP_FORWARD_IF_FALSE       40 (to 1750)
+                1670    LOAD_FAST                       26: pe2
+                1672    POP_JUMP_FORWARD_IF_FALSE       38 (to 1750)
+                1674    LOAD_FAST                       28: ont
+                1676    POP_JUMP_FORWARD_IF_FALSE       36 (to 1750)
+                1678    LOAD_CONST                      24: 'hybrid'
+                1680    STORE_FAST                      34: runtype
+                1682    PUSH_NULL                       
+                1684    LOAD_FAST                       21: _pick
+                1686    LOAD_FAST                       25: pe1
+                1688    PRECALL                         1
+                1692    CALL                            1
+                1702    PUSH_NULL                       
+                1704    LOAD_FAST                       21: _pick
+                1706    LOAD_FAST                       26: pe2
+                1708    PRECALL                         1
+                1712    CALL                            1
+                1722    PUSH_NULL                       
+                1724    LOAD_FAST                       21: _pick
+                1726    LOAD_FAST                       28: ont
+                1728    PRECALL                         1
+                1732    CALL                            1
+                1742    STORE_FAST                      32: ont_c
+                1744    STORE_FAST                      30: r2
+                1746    STORE_FAST                      29: r1
+                1748    JUMP_FORWARD                    85 (to 1920)
+                1750    LOAD_FAST                       25: pe1
+                1752    POP_JUMP_FORWARD_IF_FALSE       27 (to 1808)
+                1754    LOAD_FAST                       26: pe2
+                1756    POP_JUMP_FORWARD_IF_FALSE       25 (to 1808)
+                1758    LOAD_CONST                      25: 'paired-end'
+                1760    STORE_FAST                      34: runtype
+                1762    PUSH_NULL                       
+                1764    LOAD_FAST                       21: _pick
+                1766    LOAD_FAST                       25: pe1
+                1768    PRECALL                         1
+                1772    CALL                            1
+                1782    PUSH_NULL                       
+                1784    LOAD_FAST                       21: _pick
+                1786    LOAD_FAST                       26: pe2
+                1788    PRECALL                         1
+                1792    CALL                            1
+                1802    STORE_FAST                      30: r2
+                1804    STORE_FAST                      29: r1
+                1806    JUMP_FORWARD                    56 (to 1920)
+                1808    LOAD_FAST                       28: ont
+                1810    POP_JUMP_FORWARD_IF_FALSE       14 (to 1840)
+                1812    LOAD_CONST                      10: 'ont'
+                1814    STORE_FAST                      34: runtype
+                1816    PUSH_NULL                       
+                1818    LOAD_FAST                       21: _pick
+                1820    LOAD_FAST                       28: ont
+                1822    PRECALL                         1
+                1826    CALL                            1
+                1836    STORE_FAST                      32: ont_c
+                1838    JUMP_FORWARD                    40 (to 1920)
+                1840    LOAD_CONST                      26: 'single-end'
+                1842    STORE_FAST                      34: runtype
+                1844    PUSH_NULL                       
+                1846    LOAD_FAST                       21: _pick
+                1848    LOAD_FAST                       27: se
+                1850    PRECALL                         1
+                1854    CALL                            1
+                1864    STORE_FAST                      31: se_c
+                1866    JUMP_FORWARD                    26 (to 1920)
+                1868    LOAD_FAST                       13: issues
+                1870    LOAD_METHOD                     11: append
+                1892    LOAD_FAST                       23: sample
+                1894    FORMAT_VALUE                    0 (FVC_NONE)
+                1896    LOAD_CONST                      28: ': could not classify sample (missing files?).'
+                1898    BUILD_STRING                    2
+                1900    PRECALL                         1
+                1904    CALL                            1
+                1914    POP_TOP                         
+                1916    JUMP_BACKWARD                   414 (to 1092)
+                1920    LOAD_FAST                       22: counts
+                1922    LOAD_METHOD                     18: get
+                1944    LOAD_FAST                       34: runtype
+                1946    LOAD_CONST                      19: 0
+                1948    PRECALL                         2
+                1952    CALL                            2
+                1962    LOAD_CONST                      29: 1
+                1964    BINARY_OP                       0 (+)
+                1968    LOAD_FAST                       22: counts
+                1970    LOAD_FAST                       34: runtype
+                1972    STORE_SUBSCR                    
+                1976    LOAD_FAST                       20: rows
+                1978    LOAD_METHOD                     11: append
+                2000    LOAD_FAST                       23: sample
+                2002    LOAD_FAST                       34: runtype
+                2004    LOAD_FAST                       3: gsize
+                2006    LOAD_FAST                       2: species
+                2008    LOAD_FAST                       29: r1
+                2010    LOAD_FAST                       30: r2
+                2012    LOAD_FAST                       31: se_c
+                2014    LOAD_FAST                       32: ont_c
+                2016    LOAD_FAST                       33: asm
+                2018    BUILD_LIST                      9
+                2020    PRECALL                         1
+                2024    CALL                            1
+                2034    POP_TOP                         
+                2036    JUMP_BACKWARD                   474 (to 1092)
+                2040    LOAD_GLOBAL                     39: NULL + open
+                2052    LOAD_FAST                       4: fofn_path
+                2054    LOAD_CONST                      30: 'w'
+                2056    LOAD_CONST                      31: 'utf-8'
+                2058    KW_NAMES                        32: ('encoding',)
+                2060    PRECALL                         3
+                2064    CALL                            3
+                2074    BEFORE_WITH                     
+                2076    STORE_FAST                      35: fh
+                2078    LOAD_FAST                       35: fh
+                2080    LOAD_METHOD                     20: write
+                2102    LOAD_CONST                      33: '\t'
+                2104    LOAD_METHOD                     21: join
+                2126    LOAD_FAST                       19: header
+                2128    PRECALL                         1
+                2132    CALL                            1
+                2142    LOAD_CONST                      34: '\n'
+                2144    BINARY_OP                       0 (+)
+                2148    PRECALL                         1
+                2152    CALL                            1
+                2162    POP_TOP                         
+                2164    LOAD_FAST                       20: rows
+                2166    GET_ITER                        
+                2168    FOR_ITER                        64 (to 2298)
+                2170    STORE_FAST                      36: r
+                2172    LOAD_FAST                       35: fh
+                2174    LOAD_METHOD                     20: write
+                2196    LOAD_CONST                      33: '\t'
+                2198    LOAD_METHOD                     21: join
+                2220    LOAD_GLOBAL                     45: NULL + map
+                2232    LOAD_GLOBAL                     24: str
+                2244    LOAD_FAST                       36: r
+                2246    PRECALL                         2
+                2250    CALL                            2
+                2260    PRECALL                         1
+                2264    CALL                            1
+                2274    LOAD_CONST                      34: '\n'
+                2276    BINARY_OP                       0 (+)
+                2280    PRECALL                         1
+                2284    CALL                            1
+                2294    POP_TOP                         
+                2296    JUMP_BACKWARD                   65 (to 2168)
+                2298    NOP                             
+                2300    LOAD_CONST                      35: None
+                2302    LOAD_CONST                      35: None
+                2304    LOAD_CONST                      35: None
+                2306    PRECALL                         2
+                2310    CALL                            2
+                2320    POP_TOP                         
+                2322    JUMP_FORWARD                    11 (to 2346)
+                2324    PUSH_EXC_INFO                   
+                2326    WITH_EXCEPT_START               
+                2328    POP_JUMP_FORWARD_IF_TRUE        4 (to 2338)
+                2330    RERAISE                         2
+                2332    COPY                            3
+                2334    POP_EXCEPT                      
+                2336    RERAISE                         1
+                2338    POP_TOP                         
+                2340    POP_EXCEPT                      
+                2342    POP_TOP                         
+                2344    POP_TOP                         
+                2346    LOAD_GLOBAL                     47: NULL + len
+                2358    LOAD_FAST                       20: rows
+                2360    PRECALL                         1
+                2364    CALL                            1
+                2374    LOAD_FAST                       22: counts
+                2376    LOAD_FAST                       13: issues
+                2378    LOAD_FAST                       4: fofn_path
+                2380    LOAD_CONST                      36: ('rows', 'counts', 'issues', 'fofn_path')
+                2382    BUILD_CONST_KEY_MAP             4
+                2384    RETURN_VALUE                    
+            [Exception Table]
+                2076 to 2298 -> 2324 [1] lasti
+                2324 to 2332 -> 2332 [3] lasti
+                2338 to 2340 -> 2332 [3] lasti
+        (
+            'name'
+            'str'
+            'return'
+            'str'
+        )
+        (
+            'path'
+            'pathlib.Path'
+            'return'
+            'tuple[str, str]'
+        )
+        (
+            'p'
+            'pathlib.Path'
+            'return'
+            'bool'
+        )
+        (
+            'base'
+            'pathlib.Path'
+            'patterns'
+            'list[str]'
+            'recursive'
+            'bool'
+            'return'
+            'list[pathlib.Path]'
+        )
+        (
+            'raw'
+            'str'
+            'return'
+            'str'
+        )
+        (
+            'base_dir'
+            'str'
+            'recursive'
+            'bool'
+            'species'
+            'str'
+            'gsize'
+            'str'
+            'fofn_path'
+            'str'
+            'treat_se_as_ont'
+            'bool'
+            'infer_ont_by_name'
+            'bool'
+            'merge_multi'
+            'bool'
+            'include_assemblies'
+            'bool'
+            'return'
+            'dict'
+        )
+    [Disassembly]
+        0       RESUME                          0
+        2       LOAD_CONST                      0: "\nFOFN generator (File Of File Names) for the Bactopia main pipeline.\n\nPorted from the legacy Streamlit page (pages/BACTOPIA.py): scans a folder for\nFASTQ/FASTA files, infers each sample's runtype (paired-end, single-end, ont,\nhybrid, assembly) and writes a Bactopia `samples.txt`. Reflex-free.\n"
+        4       STORE_NAME                      0: __doc__
+        6       LOAD_CONST                      1: 0
+        8       LOAD_CONST                      2: ('annotations',)
+        10      IMPORT_NAME                     1: __future__
+        12      IMPORT_FROM                     2: annotations
+        14      STORE_NAME                      2: annotations
+        16      POP_TOP                         
+        18      LOAD_CONST                      1: 0
+        20      LOAD_CONST                      3: None
+        22      IMPORT_NAME                     3: pathlib
+        24      STORE_NAME                      3: pathlib
+        26      LOAD_CONST                      1: 0
+        28      LOAD_CONST                      3: None
+        30      IMPORT_NAME                     4: re
+        32      STORE_NAME                      4: re
+        34      BUILD_LIST                      0
+        36      LOAD_CONST                      4: ('*.fastq.gz', '*.fq.gz', '*.fastq', '*.fq')
+        38      LIST_EXTEND                     1
+        40      STORE_NAME                      5: FASTQ_PATTERNS
+        42      BUILD_LIST                      0
+        44      LOAD_CONST                      5: ('*.fna.gz', '*.fa.gz', '*.fasta.gz', '*.fna', '*.fa', '*.fasta')
+        46      LIST_EXTEND                     1
+        48      STORE_NAME                      6: FA_PATTERNS
+        50      BUILD_LIST                      0
+        52      LOAD_CONST                      6: ('.fastq.gz', '.fq.gz', '.fastq', '.fq', '.fna.gz', '.fa.gz', '.fasta.gz', '.fna', '.fa', '.fasta')
+        54      LIST_EXTEND                     1
+        56      STORE_NAME                      7: _EXTS
+        58      PUSH_NULL                       
+        60      LOAD_NAME                       4: re
+        62      LOAD_ATTR                       8: compile
+        72      LOAD_CONST                      7: '^(?P<root>.+?)[._-](?:R?1|1|[Aa])(?:_[0-9]{3})?$'
+        74      LOAD_NAME                       4: re
+        76      LOAD_ATTR                       9: IGNORECASE
+        86      PRECALL                         2
+        90      CALL                            2
+        100     PUSH_NULL                       
+        102     LOAD_NAME                       4: re
+        104     LOAD_ATTR                       8: compile
+        114     LOAD_CONST                      8: '^(?P<root>.+?)_L\\d{3,4}_[Rr]1_\\d{3}$'
+        116     PRECALL                         1
+        120     CALL                            1
+        130     PUSH_NULL                       
+        132     LOAD_NAME                       4: re
+        134     LOAD_ATTR                       8: compile
+        144     LOAD_CONST                      9: '^(?P<root>.+?)_L\\d{3,4}_1_\\d{3}$'
+        146     PRECALL                         1
+        150     CALL                            1
+        160     BUILD_LIST                      3
+        162     STORE_NAME                      10: PE1_PATTERNS
+        164     PUSH_NULL                       
+        166     LOAD_NAME                       4: re
+        168     LOAD_ATTR                       8: compile
+        178     LOAD_CONST                      10: '^(?P<root>.+?)[._-](?:R?2|2|[Bb])(?:_[0-9]{3})?$'
+        180     LOAD_NAME                       4: re
+        182     LOAD_ATTR                       9: IGNORECASE
+        192     PRECALL                         2
+        196     CALL                            2
+        206     PUSH_NULL                       
+        208     LOAD_NAME                       4: re
+        210     LOAD_ATTR                       8: compile
+        220     LOAD_CONST                      11: '^(?P<root>.+?)_L\\d{3,4}_[Rr]2_\\d{3}$'
+        222     PRECALL                         1
+        226     CALL                            1
+        236     PUSH_NULL                       
+        238     LOAD_NAME                       4: re
+        240     LOAD_ATTR                       8: compile
+        250     LOAD_CONST                      12: '^(?P<root>.+?)_L\\d{3,4}_2_\\d{3}$'
+        252     PRECALL                         1
+        256     CALL                            1
+        266     BUILD_LIST                      3
+        268     STORE_NAME                      11: PE2_PATTERNS
+        270     PUSH_NULL                       
+        272     LOAD_NAME                       4: re
+        274     LOAD_ATTR                       8: compile
+        284     LOAD_CONST                      13: '(_L\\d{3,4})?(_\\d{3})?$'
+        286     LOAD_NAME                       4: re
+        288     LOAD_ATTR                       9: IGNORECASE
+        298     PRECALL                         2
+        302     CALL                            2
+        312     STORE_NAME                      12: LANE_SUFFIX
+        314     LOAD_CONST                      43: ('name', 'str', 'return', 'str')
+        316     LOAD_CONST                      17: <CODE> _drop_exts
+        318     MAKE_FUNCTION                   4
+        320     STORE_NAME                      13: _drop_exts
+        322     LOAD_CONST                      44: ('path', 'pathlib.Path', 'return', 'tuple[str, str]')
+        324     LOAD_CONST                      21: <CODE> _infer_root_and_tag
+        326     MAKE_FUNCTION                   4
+        328     STORE_NAME                      14: _infer_root_and_tag
+        330     LOAD_CONST                      45: ('p', 'pathlib.Path', 'return', 'bool')
+        332     LOAD_CONST                      24: <CODE> _is_probably_ont
+        334     MAKE_FUNCTION                   4
+        336     STORE_NAME                      15: _is_probably_ont
+        338     LOAD_CONST                      46: ('base', 'pathlib.Path', 'patterns', 'list[str]', 'recursive', 'bool', 'return', 'list[pathlib.Path]')
+        340     LOAD_CONST                      30: <CODE> _collect
+        342     MAKE_FUNCTION                   4
+        344     STORE_NAME                      16: _collect
+        346     LOAD_CONST                      47: ('raw', 'str', 'return', 'str')
+        348     LOAD_CONST                      32: <CODE> parse_genome_size
+        350     MAKE_FUNCTION                   4
+        352     STORE_NAME                      17: parse_genome_size
+        354     LOAD_CONST                      48: ('base_dir', 'str', 'recursive', 'bool', 'species', 'str', 'gsize', 'str', 'fofn_path', 'str', 'treat_se_as_ont', 'bool', 'infer_ont_by_name', 'bool', 'merge_multi', 'bool', 'include_assemblies', 'bool', 'return', 'dict')
+        356     LOAD_CONST                      42: <CODE> build_fofn
+        358     MAKE_FUNCTION                   4
+        360     STORE_NAME                      18: build_fofn
+        362     LOAD_CONST                      3: None
+        364     RETURN_VALUE                    
+    [Exception Table]

@@ -1,0 +1,1496 @@
+runner.cpython-311.pyc (Python 3.11)
+[Code]
+    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/runner.py
+    Object Name: <module>
+    Qualified Name: <module>
+    Arg Count: 0
+    Pos Only Arg Count: 0
+    KW Only Arg Count: 0
+    Stack Size: 3
+    Flags: 0x01000000 (CO_FUTURE_ANNOTATIONS)
+    [Names]
+        '__doc__'
+        '__future__'
+        'annotations'
+        'asyncio'
+        'hashlib'
+        'os'
+        're'
+        'shlex'
+        'shutil'
+        'bearhub.core.system'
+        'APP_STATE_DIR'
+        'get_bactopia_version'
+        'get_nextflow_bin'
+        '_PROCS'
+        '__annotations__'
+        'MAX_LOG_LINES'
+        'compile'
+        '_ANSI'
+        '_resolve_cursor_up'
+        'normalize_chunk'
+        'write_include_file'
+        'nextflow_wf_cmd'
+        'join_subcommands'
+        'stream'
+        'stop'
+    [Locals+Names]
+    [Constants]
+        "\nAsync Nextflow runner for the Reflex app.\n\n`stream()` is an async generator: it launches the command, reads stdout, and\npushes cleaned log lines into a Reflex state via `async with state:`. The caller\n(a Reflex `@rx.event(background=True)`) drives it and `yield`s to flush updates\nto the browser. Kept Reflex-import-free — it only relies on the state object's\nasync context manager and plain attributes (`log`, `status`, `running`).\n"
+        0
+        (
+            'annotations'
+        )
+        None
+        (
+            'APP_STATE_DIR'
+            'get_bactopia_version'
+            'get_nextflow_bin'
+        )
+        'dict[str, asyncio.subprocess.Process]'
+        '_PROCS'
+        1500
+        '\\x1B\\[[0-?]*[ -/]*[@-~]'
+        'text'
+        'str'
+        'return'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/runner.py
+            Object Name: _resolve_cursor_up
+            Qualified Name: _resolve_cursor_up
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 6
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                're'
+                'split'
+                'enumerate'
+                'extend'
+                'int'
+                'join'
+            [Locals+Names]
+                'text'
+                'parts'
+                'lines'
+                'i'
+                'part'
+            [Constants]
+                None
+                '\\x1b\\[(\\d+)A'
+                2
+                0
+                '\n'
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + re
+                14      LOAD_ATTR                       1: split
+                24      LOAD_CONST                      1: '\\x1b\\[(\\d+)A'
+                26      LOAD_FAST                       0: text
+                28      PRECALL                         2
+                32      CALL                            2
+                42      STORE_FAST                      1: parts
+                44      BUILD_LIST                      0
+                46      STORE_FAST                      2: lines
+                48      LOAD_GLOBAL                     5: NULL + enumerate
+                60      LOAD_FAST                       1: parts
+                62      PRECALL                         1
+                66      CALL                            1
+                76      GET_ITER                        
+                78      FOR_ITER                        74 (to 228)
+                80      UNPACK_SEQUENCE                 2
+                84      STORE_FAST                      3: i
+                86      STORE_FAST                      4: part
+                88      LOAD_FAST                       3: i
+                90      LOAD_CONST                      2: 2
+                92      BINARY_OP                       6 (%)
+                96      LOAD_CONST                      3: 0
+                98      COMPARE_OP                      2 (==)
+                104     POP_JUMP_FORWARD_IF_FALSE       41 (to 188)
+                106     LOAD_FAST                       2: lines
+                108     LOAD_METHOD                     3: extend
+                130     LOAD_FAST                       4: part
+                132     LOAD_METHOD                     1: split
+                154     LOAD_CONST                      4: '\n'
+                156     PRECALL                         1
+                160     CALL                            1
+                170     PRECALL                         1
+                174     CALL                            1
+                184     POP_TOP                         
+                186     JUMP_BACKWARD                   55 (to 78)
+                188     LOAD_FAST                       2: lines
+                190     LOAD_GLOBAL                     9: NULL + int
+                202     LOAD_FAST                       4: part
+                204     PRECALL                         1
+                208     CALL                            1
+                218     UNARY_NEGATIVE                  
+                220     LOAD_CONST                      0: None
+                222     BUILD_SLICE                     2
+                224     DELETE_SUBSCR                   
+                226     JUMP_BACKWARD                   75 (to 78)
+                228     LOAD_CONST                      4: '\n'
+                230     LOAD_METHOD                     5: join
+                252     LOAD_FAST                       2: lines
+                254     PRECALL                         1
+                258     CALL                            1
+                268     RETURN_VALUE                    
+            [Exception Table]
+        'chunk'
+        'list[str]'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/runner.py
+            Object Name: normalize_chunk
+            Qualified Name: normalize_chunk
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 6
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                '_resolve_cursor_up'
+                '_ANSI'
+                'sub'
+                'replace'
+                're'
+                'IGNORECASE'
+                'split'
+            [Locals+Names]
+                'chunk'
+            [Constants]
+                None
+                ''
+                '\r'
+                '\n'
+                '\\s+-\\s+\\['
+                '\n['
+                '(?<!^)\\s+(?=executor\\s*>)'
+                (
+                    'flags'
+                )
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/runner.py
+                    Object Name: <listcomp>
+                    Qualified Name: normalize_chunk.<locals>.<listcomp>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 4
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'strip'
+                        'rstrip'
+                    [Locals+Names]
+                        '.0'
+                        'p'
+                    [Constants]
+                    [Disassembly]
+                        0       RESUME                          0
+                        2       BUILD_LIST                      0
+                        4       LOAD_FAST                       0: .0
+                        6       FOR_ITER                        42 (to 92)
+                        8       STORE_FAST                      1: p
+                        10      LOAD_FAST                       1: p
+                        12      LOAD_METHOD                     0: strip
+                        34      PRECALL                         0
+                        38      CALL                            0
+                        48      POP_JUMP_BACKWARD_IF_FALSE      22 (to 6)
+                        50      LOAD_FAST                       1: p
+                        52      LOAD_METHOD                     1: rstrip
+                        74      PRECALL                         0
+                        78      CALL                            0
+                        88      LIST_APPEND                     2
+                        90      JUMP_BACKWARD                   43 (to 6)
+                        92      RETURN_VALUE                    
+                    [Exception Table]
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_FAST                       0: chunk
+                4       POP_JUMP_FORWARD_IF_TRUE        2 (to 10)
+                6       BUILD_LIST                      0
+                8       RETURN_VALUE                    
+                10      LOAD_GLOBAL                     1: NULL + _resolve_cursor_up
+                22      LOAD_FAST                       0: chunk
+                24      PRECALL                         1
+                28      CALL                            1
+                38      STORE_FAST                      0: chunk
+                40      LOAD_GLOBAL                     2: _ANSI
+                52      LOAD_METHOD                     2: sub
+                74      LOAD_CONST                      1: ''
+                76      LOAD_FAST                       0: chunk
+                78      PRECALL                         2
+                82      CALL                            2
+                92      LOAD_METHOD                     3: replace
+                114     LOAD_CONST                      2: '\r'
+                116     LOAD_CONST                      3: '\n'
+                118     PRECALL                         2
+                122     CALL                            2
+                132     STORE_FAST                      0: chunk
+                134     LOAD_GLOBAL                     9: NULL + re
+                146     LOAD_ATTR                       2: sub
+                156     LOAD_CONST                      4: '\\s+-\\s+\\['
+                158     LOAD_CONST                      5: '\n['
+                160     LOAD_FAST                       0: chunk
+                162     PRECALL                         3
+                166     CALL                            3
+                176     STORE_FAST                      0: chunk
+                178     LOAD_GLOBAL                     9: NULL + re
+                190     LOAD_ATTR                       2: sub
+                200     LOAD_CONST                      6: '(?<!^)\\s+(?=executor\\s*>)'
+                202     LOAD_CONST                      3: '\n'
+                204     LOAD_FAST                       0: chunk
+                206     LOAD_GLOBAL                     8: re
+                218     LOAD_ATTR                       5: IGNORECASE
+                228     KW_NAMES                        7: ('flags',)
+                230     PRECALL                         4
+                234     CALL                            4
+                244     STORE_FAST                      0: chunk
+                246     LOAD_CONST                      8: <CODE> <listcomp>
+                248     MAKE_FUNCTION                   0
+                250     LOAD_FAST                       0: chunk
+                252     LOAD_METHOD                     6: split
+                274     LOAD_CONST                      3: '\n'
+                276     PRECALL                         1
+                280     CALL                            1
+                290     GET_ITER                        
+                292     PRECALL                         0
+                296     CALL                            0
+                306     RETURN_VALUE                    
+            [Exception Table]
+        'outdir'
+        'samples'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/runner.py
+            Object Name: write_include_file
+            Qualified Name: write_include_file
+            Arg Count: 2
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 6
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'APP_STATE_DIR'
+                'mkdir'
+                'hashlib'
+                'md5'
+                'join'
+                'encode'
+                'hexdigest'
+                'write_text'
+                'str'
+            [Locals+Names]
+                'outdir'
+                'samples'
+                'digest'
+                'fname'
+            [Constants]
+                'One sample name per line, for Bactopia Tools `--include`.'
+                True
+                (
+                    'parents'
+                    'exist_ok'
+                )
+                '|'
+                ';'
+                None
+                10
+                'include_'
+                '.txt'
+                '\n'
+                'utf-8'
+                (
+                    'encoding'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + APP_STATE_DIR
+                14      LOAD_ATTR                       1: mkdir
+                24      LOAD_CONST                      1: True
+                26      LOAD_CONST                      1: True
+                28      KW_NAMES                        2: ('parents', 'exist_ok')
+                30      PRECALL                         2
+                34      CALL                            2
+                44      POP_TOP                         
+                46      LOAD_GLOBAL                     5: NULL + hashlib
+                58      LOAD_ATTR                       3: md5
+                68      LOAD_FAST                       0: outdir
+                70      LOAD_CONST                      3: '|'
+                72      BINARY_OP                       0 (+)
+                76      LOAD_CONST                      4: ';'
+                78      LOAD_METHOD                     4: join
+                100     LOAD_FAST                       1: samples
+                102     PRECALL                         1
+                106     CALL                            1
+                116     BINARY_OP                       0 (+)
+                120     LOAD_METHOD                     5: encode
+                142     PRECALL                         0
+                146     CALL                            0
+                156     PRECALL                         1
+                160     CALL                            1
+                170     LOAD_METHOD                     6: hexdigest
+                192     PRECALL                         0
+                196     CALL                            0
+                206     LOAD_CONST                      5: None
+                208     LOAD_CONST                      6: 10
+                210     BUILD_SLICE                     2
+                212     BINARY_SUBSCR                   
+                222     STORE_FAST                      2: digest
+                224     LOAD_GLOBAL                     0: APP_STATE_DIR
+                236     LOAD_CONST                      7: 'include_'
+                238     LOAD_FAST                       2: digest
+                240     FORMAT_VALUE                    0 (FVC_NONE)
+                242     LOAD_CONST                      8: '.txt'
+                244     BUILD_STRING                    3
+                246     BINARY_OP                       11 (/)
+                250     STORE_FAST                      3: fname
+                252     LOAD_FAST                       3: fname
+                254     LOAD_METHOD                     7: write_text
+                276     LOAD_CONST                      9: '\n'
+                278     LOAD_METHOD                     4: join
+                300     LOAD_FAST                       1: samples
+                302     PRECALL                         1
+                306     CALL                            1
+                316     LOAD_CONST                      9: '\n'
+                318     BINARY_OP                       0 (+)
+                322     LOAD_CONST                      10: 'utf-8'
+                324     KW_NAMES                        11: ('encoding',)
+                326     PRECALL                         2
+                330     CALL                            2
+                340     POP_TOP                         
+                342     LOAD_GLOBAL                     17: NULL + str
+                354     LOAD_FAST                       3: fname
+                356     PRECALL                         1
+                360     CALL                            1
+                370     RETURN_VALUE                    
+            [Exception Table]
+        'wf'
+        'include_file'
+        'profile'
+        'threads'
+        'int'
+        'memory_gb'
+        'resume'
+        'bool'
+        'tool_args'
+        'global_extra'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/runner.py
+            Object Name: nextflow_wf_cmd
+            Qualified Name: nextflow_wf_cmd
+            Arg Count: 9
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 7
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'get_nextflow_bin'
+                'get_bactopia_version'
+                'str'
+                'strip'
+                'shlex'
+                'split'
+                'join'
+            [Locals+Names]
+                'wf'
+                'outdir'
+                'include_file'
+                'profile'
+                'threads'
+                'memory_gb'
+                'resume'
+                'tool_args'
+                'global_extra'
+                'base'
+                'ver'
+            [Constants]
+                "\n    Bactopia 4.0 tool command. Tools keep the `--bactopia <results> --include`\n    model, but must be launched via the tool's own main.nf (`-main-script`) —\n    the top-level `--wf` entry doesn't declare `--bactopia`/`--include`, so\n    Nextflow 26's strict validation rejects them there.\n    "
+                'run'
+                'bactopia/bactopia'
+                '-r'
+                'v'
+                '-main-script'
+                'workflows/bactopia-tools/'
+                '/main.nf'
+                '-profile'
+                '--bactopia'
+                '--include'
+                0
+                '--max_cpus'
+                '--max_memory'
+                '.GB'
+                '-resume'
+                ' '
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/runner.py
+                    Object Name: <genexpr>
+                    Qualified Name: nextflow_wf_cmd.<locals>.<genexpr>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 4
+                    Flags: 0x01000033 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_GENERATOR | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'shlex'
+                        'quote'
+                    [Locals+Names]
+                        '.0'
+                        'x'
+                    [Constants]
+                        None
+                    [Disassembly]
+                        0       RETURN_GENERATOR                
+                        2       POP_TOP                         
+                        4       RESUME                          0
+                        6       LOAD_FAST                       0: .0
+                        8       FOR_ITER                        24 (to 58)
+                        10      STORE_FAST                      1: x
+                        12      LOAD_GLOBAL                     1: NULL + shlex
+                        24      LOAD_ATTR                       1: quote
+                        34      LOAD_FAST                       1: x
+                        36      PRECALL                         1
+                        40      CALL                            1
+                        50      YIELD_VALUE                     
+                        52      RESUME                          1
+                        54      POP_TOP                         
+                        56      JUMP_BACKWARD                   25 (to 8)
+                        58      LOAD_CONST                      0: None
+                        60      RETURN_VALUE                    
+                    [Exception Table]
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + get_nextflow_bin
+                14      PRECALL                         0
+                18      CALL                            0
+                28      LOAD_CONST                      1: 'run'
+                30      LOAD_CONST                      2: 'bactopia/bactopia'
+                32      BUILD_LIST                      3
+                34      STORE_FAST                      9: base
+                36      LOAD_GLOBAL                     3: NULL + get_bactopia_version
+                48      PRECALL                         0
+                52      CALL                            0
+                62      STORE_FAST                      10: ver
+                64      LOAD_FAST                       10: ver
+                66      POP_JUMP_FORWARD_IF_FALSE       10 (to 88)
+                68      LOAD_FAST                       9: base
+                70      LOAD_CONST                      3: '-r'
+                72      LOAD_CONST                      4: 'v'
+                74      LOAD_FAST                       10: ver
+                76      FORMAT_VALUE                    0 (FVC_NONE)
+                78      BUILD_STRING                    2
+                80      BUILD_LIST                      2
+                82      BINARY_OP                       13 (+=)
+                86      STORE_FAST                      9: base
+                88      LOAD_FAST                       9: base
+                90      LOAD_CONST                      5: '-main-script'
+                92      LOAD_CONST                      6: 'workflows/bactopia-tools/'
+                94      LOAD_FAST                       0: wf
+                96      FORMAT_VALUE                    0 (FVC_NONE)
+                98      LOAD_CONST                      7: '/main.nf'
+                100     BUILD_STRING                    3
+                102     LOAD_CONST                      8: '-profile'
+                104     LOAD_FAST                       3: profile
+                106     LOAD_CONST                      9: '--bactopia'
+                108     LOAD_FAST                       1: outdir
+                110     BUILD_LIST                      6
+                112     BINARY_OP                       13 (+=)
+                116     STORE_FAST                      9: base
+                118     LOAD_FAST                       2: include_file
+                120     POP_JUMP_FORWARD_IF_FALSE       7 (to 136)
+                122     LOAD_FAST                       9: base
+                124     LOAD_CONST                      10: '--include'
+                126     LOAD_FAST                       2: include_file
+                128     BUILD_LIST                      2
+                130     BINARY_OP                       13 (+=)
+                134     STORE_FAST                      9: base
+                136     LOAD_FAST                       4: threads
+                138     LOAD_CONST                      11: 0
+                140     COMPARE_OP                      4 (>)
+                146     POP_JUMP_FORWARD_IF_FALSE       20 (to 188)
+                148     LOAD_FAST                       9: base
+                150     LOAD_CONST                      12: '--max_cpus'
+                152     LOAD_GLOBAL                     5: NULL + str
+                164     LOAD_FAST                       4: threads
+                166     PRECALL                         1
+                170     CALL                            1
+                180     BUILD_LIST                      2
+                182     BINARY_OP                       13 (+=)
+                186     STORE_FAST                      9: base
+                188     LOAD_FAST                       5: memory_gb
+                190     LOAD_CONST                      11: 0
+                192     COMPARE_OP                      4 (>)
+                198     POP_JUMP_FORWARD_IF_FALSE       10 (to 220)
+                200     LOAD_FAST                       9: base
+                202     LOAD_CONST                      13: '--max_memory'
+                204     LOAD_FAST                       5: memory_gb
+                206     FORMAT_VALUE                    0 (FVC_NONE)
+                208     LOAD_CONST                      14: '.GB'
+                210     BUILD_STRING                    2
+                212     BUILD_LIST                      2
+                214     BINARY_OP                       13 (+=)
+                218     STORE_FAST                      9: base
+                220     LOAD_FAST                       6: resume
+                222     POP_JUMP_FORWARD_IF_FALSE       6 (to 236)
+                224     LOAD_FAST                       9: base
+                226     LOAD_CONST                      15: '-resume'
+                228     BUILD_LIST                      1
+                230     BINARY_OP                       13 (+=)
+                234     STORE_FAST                      9: base
+                236     LOAD_FAST                       9: base
+                238     LOAD_FAST                       7: tool_args
+                240     BINARY_OP                       13 (+=)
+                244     STORE_FAST                      9: base
+                246     LOAD_FAST                       8: global_extra
+                248     LOAD_METHOD                     3: strip
+                270     PRECALL                         0
+                274     CALL                            0
+                284     POP_JUMP_FORWARD_IF_FALSE       23 (to 332)
+                286     LOAD_FAST                       9: base
+                288     LOAD_GLOBAL                     9: NULL + shlex
+                300     LOAD_ATTR                       5: split
+                310     LOAD_FAST                       8: global_extra
+                312     PRECALL                         1
+                316     CALL                            1
+                326     BINARY_OP                       13 (+=)
+                330     STORE_FAST                      9: base
+                332     LOAD_CONST                      16: ' '
+                334     LOAD_METHOD                     6: join
+                356     LOAD_CONST                      17: <CODE> <genexpr>
+                358     MAKE_FUNCTION                   0
+                360     LOAD_FAST                       9: base
+                362     GET_ITER                        
+                364     PRECALL                         0
+                368     CALL                            0
+                378     PRECALL                         1
+                382     CALL                            1
+                392     RETURN_VALUE                    
+            [Exception Table]
+        'labelled'
+        'list[tuple[str, str]]'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/runner.py
+            Object Name: join_subcommands
+            Qualified Name: join_subcommands
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 7
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'shutil'
+                'which'
+                'append'
+                'join'
+            [Locals+Names]
+                'labelled'
+                'stdbuf'
+                'parts'
+                'banner'
+                'cmd'
+            [Constants]
+                "labelled: list of (banner, command) -> a single ';'-joined shell line."
+                'stdbuf'
+                ' -oL -eL '
+                'echo "===== '
+                ' =====" ; '
+                ' ; '
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + shutil
+                14      LOAD_ATTR                       1: which
+                24      LOAD_CONST                      1: 'stdbuf'
+                26      PRECALL                         1
+                30      CALL                            1
+                40      STORE_FAST                      1: stdbuf
+                42      BUILD_LIST                      0
+                44      STORE_FAST                      2: parts
+                46      LOAD_FAST                       0: labelled
+                48      GET_ITER                        
+                50      FOR_ITER                        41 (to 134)
+                52      UNPACK_SEQUENCE                 2
+                56      STORE_FAST                      3: banner
+                58      STORE_FAST                      4: cmd
+                60      LOAD_FAST                       1: stdbuf
+                62      POP_JUMP_FORWARD_IF_FALSE       7 (to 78)
+                64      LOAD_FAST                       1: stdbuf
+                66      FORMAT_VALUE                    0 (FVC_NONE)
+                68      LOAD_CONST                      2: ' -oL -eL '
+                70      LOAD_FAST                       4: cmd
+                72      FORMAT_VALUE                    0 (FVC_NONE)
+                74      BUILD_STRING                    3
+                76      STORE_FAST                      4: cmd
+                78      LOAD_FAST                       2: parts
+                80      LOAD_METHOD                     2: append
+                102     LOAD_CONST                      3: 'echo "===== '
+                104     LOAD_FAST                       3: banner
+                106     FORMAT_VALUE                    0 (FVC_NONE)
+                108     LOAD_CONST                      4: ' =====" ; '
+                110     LOAD_FAST                       4: cmd
+                112     FORMAT_VALUE                    0 (FVC_NONE)
+                114     BUILD_STRING                    4
+                116     PRECALL                         1
+                120     CALL                            1
+                130     POP_TOP                         
+                132     JUMP_BACKWARD                   42 (to 50)
+                134     LOAD_CONST                      5: ' ; '
+                136     LOAD_METHOD                     3: join
+                158     LOAD_FAST                       2: parts
+                160     PRECALL                         1
+                164     CALL                            1
+                174     RETURN_VALUE                    
+            [Exception Table]
+        'cmd'
+        'ns'
+        'work_dir'
+        'str | None'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/runner.py
+            Object Name: stream
+            Qualified Name: stream
+            Arg Count: 4
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 12
+            Flags: 0x01000203 (CO_OPTIMIZED | CO_NEWLOCALS | CO_ASYNC_GENERATOR | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'os'
+                'path'
+                'isdir'
+                'str'
+                'APP_STATE_DIR'
+                'mkdir'
+                'running'
+                'status'
+                'log'
+                'asyncio'
+                'create_subprocess_exec'
+                'subprocess'
+                'PIPE'
+                'STDOUT'
+                'environ'
+                '_PROCS'
+                'stdout'
+                'read'
+                'rsplit'
+                'normalize_chunk'
+                'decode'
+                'MAX_LOG_LINES'
+                'wait'
+                'Exception'
+                'pop'
+            [Locals+Names]
+                'state'
+                'cmd'
+                'ns'
+                'work_dir'
+                'cwd'
+                'rc'
+                'proc'
+                'buf'
+                'chunk'
+                'data'
+                'new'
+                'exc'
+            [Constants]
+                "\n    Run *cmd*, streaming normalized output into state.log. Async generator:\n    yields after each batch so the calling background event can flush.\n\n    *work_dir* sets the subprocess cwd so Nextflow writes its `.nextflow.log`,\n    `.nextflow/` and `work/` OUTSIDE the Reflex app directory — otherwise the\n    dev hot-reloader sees those writes and reloads, killing the run's worker.\n    "
+                True
+                (
+                    'parents'
+                    'exist_ok'
+                )
+                None
+                'running'
+                -1
+                'bash'
+                '-c'
+                '250'
+                'false'
+                (
+                    'COLUMNS'
+                    'NXF_ANSI_LOG'
+                )
+                (
+                    'stdout'
+                    'stderr'
+                    'cwd'
+                    'env'
+                )
+                b''
+                4096
+                b'\n'
+                1
+                'replace'
+                (
+                    'errors'
+                )
+                '[runner] error: '
+                'stopped'
+                0
+                'success'
+                'failed'
+                False
+            [Disassembly]
+                0       RETURN_GENERATOR                
+                2       POP_TOP                         
+                4       RESUME                          0
+                6       LOAD_FAST                       3: work_dir
+                8       POP_JUMP_FORWARD_IF_FALSE       33 (to 76)
+                10      LOAD_GLOBAL                     0: os
+                22      LOAD_ATTR                       1: path
+                32      LOAD_METHOD                     2: isdir
+                54      LOAD_FAST                       3: work_dir
+                56      PRECALL                         1
+                60      CALL                            1
+                70      POP_JUMP_FORWARD_IF_FALSE       2 (to 76)
+                72      LOAD_FAST                       3: work_dir
+                74      JUMP_FORWARD                    19 (to 114)
+                76      LOAD_GLOBAL                     7: NULL + str
+                88      LOAD_GLOBAL                     8: APP_STATE_DIR
+                100     PRECALL                         1
+                104     CALL                            1
+                114     STORE_FAST                      4: cwd
+                116     LOAD_GLOBAL                     9: NULL + APP_STATE_DIR
+                128     LOAD_ATTR                       5: mkdir
+                138     LOAD_CONST                      1: True
+                140     LOAD_CONST                      1: True
+                142     KW_NAMES                        2: ('parents', 'exist_ok')
+                144     PRECALL                         2
+                148     CALL                            2
+                158     POP_TOP                         
+                160     LOAD_FAST                       0: state
+                162     BEFORE_ASYNC_WITH               
+                164     GET_AWAITABLE                   1
+                166     LOAD_CONST                      3: None
+                168     SEND                            3 (to 176)
+                170     YIELD_VALUE                     
+                172     RESUME                          3
+                174     JUMP_BACKWARD_NO_INTERRUPT      4 (to 168)
+                176     POP_TOP                         
+                178     LOAD_CONST                      1: True
+                180     LOAD_FAST                       0: state
+                182     STORE_ATTR                      6: running
+                192     LOAD_CONST                      4: 'running'
+                194     LOAD_FAST                       0: state
+                196     STORE_ATTR                      7: status
+                206     BUILD_LIST                      0
+                208     LOAD_FAST                       0: state
+                210     STORE_ATTR                      8: log
+                220     LOAD_CONST                      3: None
+                222     LOAD_CONST                      3: None
+                224     LOAD_CONST                      3: None
+                226     PRECALL                         2
+                230     CALL                            2
+                240     GET_AWAITABLE                   2
+                242     LOAD_CONST                      3: None
+                244     SEND                            3 (to 252)
+                246     YIELD_VALUE                     
+                248     RESUME                          3
+                250     JUMP_BACKWARD_NO_INTERRUPT      4 (to 244)
+                252     POP_TOP                         
+                254     JUMP_FORWARD                    17 (to 290)
+                256     PUSH_EXC_INFO                   
+                258     WITH_EXCEPT_START               
+                260     GET_AWAITABLE                   2
+                262     LOAD_CONST                      3: None
+                264     SEND                            3 (to 272)
+                266     YIELD_VALUE                     
+                268     RESUME                          3
+                270     JUMP_BACKWARD_NO_INTERRUPT      4 (to 264)
+                272     POP_JUMP_FORWARD_IF_TRUE        4 (to 282)
+                274     RERAISE                         2
+                276     COPY                            3
+                278     POP_EXCEPT                      
+                280     RERAISE                         1
+                282     POP_TOP                         
+                284     POP_EXCEPT                      
+                286     POP_TOP                         
+                288     POP_TOP                         
+                290     LOAD_CONST                      3: None
+                292     ASYNC_GEN_WRAP                  
+                294     YIELD_VALUE                     
+                296     RESUME                          1
+                298     POP_TOP                         
+                300     LOAD_CONST                      5: -1
+                302     STORE_FAST                      5: rc
+                304     NOP                             
+                306     LOAD_GLOBAL                     19: NULL + asyncio
+                318     LOAD_ATTR                       10: create_subprocess_exec
+                328     LOAD_CONST                      6: 'bash'
+                330     LOAD_CONST                      7: '-c'
+                332     LOAD_FAST                       1: cmd
+                334     LOAD_GLOBAL                     18: asyncio
+                346     LOAD_ATTR                       11: subprocess
+                356     LOAD_ATTR                       12: PIPE
+                366     LOAD_GLOBAL                     18: asyncio
+                378     LOAD_ATTR                       11: subprocess
+                388     LOAD_ATTR                       13: STDOUT
+                398     LOAD_FAST                       4: cwd
+                400     BUILD_MAP                       0
+                402     LOAD_GLOBAL                     0: os
+                414     LOAD_ATTR                       14: environ
+                424     DICT_UPDATE                     1
+                426     LOAD_CONST                      8: '250'
+                428     LOAD_CONST                      9: 'false'
+                430     LOAD_CONST                      10: ('COLUMNS', 'NXF_ANSI_LOG')
+                432     BUILD_CONST_KEY_MAP             2
+                434     DICT_UPDATE                     1
+                436     KW_NAMES                        11: ('stdout', 'stderr', 'cwd', 'env')
+                438     PRECALL                         7
+                442     CALL                            7
+                452     GET_AWAITABLE                   0
+                454     LOAD_CONST                      3: None
+                456     SEND                            3 (to 464)
+                458     YIELD_VALUE                     
+                460     RESUME                          3
+                462     JUMP_BACKWARD_NO_INTERRUPT      4 (to 456)
+                464     STORE_FAST                      6: proc
+                466     LOAD_FAST                       6: proc
+                468     LOAD_GLOBAL                     30: _PROCS
+                480     LOAD_FAST                       2: ns
+                482     STORE_SUBSCR                    
+                486     LOAD_FAST                       6: proc
+                488     LOAD_ATTR                       16: stdout
+                498     POP_JUMP_FORWARD_IF_NOT_NONE    2 (to 504)
+                500     LOAD_ASSERTION_ERROR            
+                502     RAISE_VARARGS                   1
+                504     LOAD_CONST                      12: b''
+                506     STORE_FAST                      7: buf
+                508     NOP                             
+                510     LOAD_FAST                       6: proc
+                512     LOAD_ATTR                       16: stdout
+                522     LOAD_METHOD                     17: read
+                544     LOAD_CONST                      13: 4096
+                546     PRECALL                         1
+                550     CALL                            1
+                560     GET_AWAITABLE                   0
+                562     LOAD_CONST                      3: None
+                564     SEND                            3 (to 572)
+                566     YIELD_VALUE                     
+                568     RESUME                          3
+                570     JUMP_BACKWARD_NO_INTERRUPT      4 (to 564)
+                572     STORE_FAST                      8: chunk
+                574     LOAD_FAST                       8: chunk
+                576     POP_JUMP_FORWARD_IF_TRUE        1 (to 580)
+                578     JUMP_FORWARD                    150 (to 880)
+                580     LOAD_FAST                       7: buf
+                582     LOAD_FAST                       8: chunk
+                584     BINARY_OP                       13 (+=)
+                588     STORE_FAST                      7: buf
+                590     LOAD_CONST                      14: b'\n'
+                592     LOAD_FAST                       7: buf
+                594     CONTAINS_OP                     0 (in)
+                596     POP_JUMP_FORWARD_IF_FALSE       140 (to 878)
+                598     LOAD_FAST                       7: buf
+                600     LOAD_METHOD                     18: rsplit
+                622     LOAD_CONST                      14: b'\n'
+                624     LOAD_CONST                      15: 1
+                626     PRECALL                         2
+                630     CALL                            2
+                640     UNPACK_SEQUENCE                 2
+                644     STORE_FAST                      9: data
+                646     STORE_FAST                      7: buf
+                648     LOAD_GLOBAL                     39: NULL + normalize_chunk
+                660     LOAD_FAST                       9: data
+                662     LOAD_METHOD                     20: decode
+                684     LOAD_CONST                      16: 'replace'
+                686     KW_NAMES                        17: ('errors',)
+                688     PRECALL                         1
+                692     CALL                            1
+                702     PRECALL                         1
+                706     CALL                            1
+                716     STORE_FAST                      10: new
+                718     LOAD_FAST                       10: new
+                720     POP_JUMP_FORWARD_IF_FALSE       78 (to 878)
+                722     LOAD_FAST                       0: state
+                724     BEFORE_ASYNC_WITH               
+                726     GET_AWAITABLE                   1
+                728     LOAD_CONST                      3: None
+                730     SEND                            3 (to 738)
+                732     YIELD_VALUE                     
+                734     RESUME                          3
+                736     JUMP_BACKWARD_NO_INTERRUPT      4 (to 730)
+                738     POP_TOP                         
+                740     LOAD_FAST                       0: state
+                742     LOAD_ATTR                       8: log
+                752     LOAD_FAST                       10: new
+                754     BINARY_OP                       0 (+)
+                758     LOAD_GLOBAL                     42: MAX_LOG_LINES
+                770     UNARY_NEGATIVE                  
+                772     LOAD_CONST                      3: None
+                774     BUILD_SLICE                     2
+                776     BINARY_SUBSCR                   
+                786     LOAD_FAST                       0: state
+                788     STORE_ATTR                      8: log
+                798     LOAD_CONST                      3: None
+                800     LOAD_CONST                      3: None
+                802     LOAD_CONST                      3: None
+                804     PRECALL                         2
+                808     CALL                            2
+                818     GET_AWAITABLE                   2
+                820     LOAD_CONST                      3: None
+                822     SEND                            3 (to 830)
+                824     YIELD_VALUE                     
+                826     RESUME                          3
+                828     JUMP_BACKWARD_NO_INTERRUPT      4 (to 822)
+                830     POP_TOP                         
+                832     JUMP_FORWARD                    17 (to 868)
+                834     PUSH_EXC_INFO                   
+                836     WITH_EXCEPT_START               
+                838     GET_AWAITABLE                   2
+                840     LOAD_CONST                      3: None
+                842     SEND                            3 (to 850)
+                844     YIELD_VALUE                     
+                846     RESUME                          3
+                848     JUMP_BACKWARD_NO_INTERRUPT      4 (to 842)
+                850     POP_JUMP_FORWARD_IF_TRUE        4 (to 860)
+                852     RERAISE                         2
+                854     COPY                            3
+                856     POP_EXCEPT                      
+                858     RERAISE                         1
+                860     POP_TOP                         
+                862     POP_EXCEPT                      
+                864     POP_TOP                         
+                866     POP_TOP                         
+                868     LOAD_CONST                      3: None
+                870     ASYNC_GEN_WRAP                  
+                872     YIELD_VALUE                     
+                874     RESUME                          1
+                876     POP_TOP                         
+                878     JUMP_BACKWARD                   185 (to 510)
+                880     LOAD_FAST                       7: buf
+                882     POP_JUMP_FORWARD_IF_FALSE       115 (to 1114)
+                884     LOAD_GLOBAL                     39: NULL + normalize_chunk
+                896     LOAD_FAST                       7: buf
+                898     LOAD_METHOD                     20: decode
+                920     LOAD_CONST                      16: 'replace'
+                922     KW_NAMES                        17: ('errors',)
+                924     PRECALL                         1
+                928     CALL                            1
+                938     PRECALL                         1
+                942     CALL                            1
+                952     STORE_FAST                      10: new
+                954     LOAD_FAST                       10: new
+                956     POP_JUMP_FORWARD_IF_FALSE       78 (to 1114)
+                958     LOAD_FAST                       0: state
+                960     BEFORE_ASYNC_WITH               
+                962     GET_AWAITABLE                   1
+                964     LOAD_CONST                      3: None
+                966     SEND                            3 (to 974)
+                968     YIELD_VALUE                     
+                970     RESUME                          3
+                972     JUMP_BACKWARD_NO_INTERRUPT      4 (to 966)
+                974     POP_TOP                         
+                976     LOAD_FAST                       0: state
+                978     LOAD_ATTR                       8: log
+                988     LOAD_FAST                       10: new
+                990     BINARY_OP                       0 (+)
+                994     LOAD_GLOBAL                     42: MAX_LOG_LINES
+                1006    UNARY_NEGATIVE                  
+                1008    LOAD_CONST                      3: None
+                1010    BUILD_SLICE                     2
+                1012    BINARY_SUBSCR                   
+                1022    LOAD_FAST                       0: state
+                1024    STORE_ATTR                      8: log
+                1034    LOAD_CONST                      3: None
+                1036    LOAD_CONST                      3: None
+                1038    LOAD_CONST                      3: None
+                1040    PRECALL                         2
+                1044    CALL                            2
+                1054    GET_AWAITABLE                   2
+                1056    LOAD_CONST                      3: None
+                1058    SEND                            3 (to 1066)
+                1060    YIELD_VALUE                     
+                1062    RESUME                          3
+                1064    JUMP_BACKWARD_NO_INTERRUPT      4 (to 1058)
+                1066    POP_TOP                         
+                1068    JUMP_FORWARD                    17 (to 1104)
+                1070    PUSH_EXC_INFO                   
+                1072    WITH_EXCEPT_START               
+                1074    GET_AWAITABLE                   2
+                1076    LOAD_CONST                      3: None
+                1078    SEND                            3 (to 1086)
+                1080    YIELD_VALUE                     
+                1082    RESUME                          3
+                1084    JUMP_BACKWARD_NO_INTERRUPT      4 (to 1078)
+                1086    POP_JUMP_FORWARD_IF_TRUE        4 (to 1096)
+                1088    RERAISE                         2
+                1090    COPY                            3
+                1092    POP_EXCEPT                      
+                1094    RERAISE                         1
+                1096    POP_TOP                         
+                1098    POP_EXCEPT                      
+                1100    POP_TOP                         
+                1102    POP_TOP                         
+                1104    LOAD_CONST                      3: None
+                1106    ASYNC_GEN_WRAP                  
+                1108    YIELD_VALUE                     
+                1110    RESUME                          1
+                1112    POP_TOP                         
+                1114    LOAD_FAST                       6: proc
+                1116    LOAD_METHOD                     22: wait
+                1138    PRECALL                         0
+                1142    CALL                            0
+                1152    GET_AWAITABLE                   0
+                1154    LOAD_CONST                      3: None
+                1156    SEND                            3 (to 1164)
+                1158    YIELD_VALUE                     
+                1160    RESUME                          3
+                1162    JUMP_BACKWARD_NO_INTERRUPT      4 (to 1156)
+                1164    STORE_FAST                      5: rc
+                1166    JUMP_FORWARD                    100 (to 1368)
+                1168    PUSH_EXC_INFO                   
+                1170    LOAD_GLOBAL                     46: Exception
+                1182    CHECK_EXC_MATCH                 
+                1184    POP_JUMP_FORWARD_IF_FALSE       87 (to 1360)
+                1186    STORE_FAST                      11: exc
+                1188    LOAD_FAST                       0: state
+                1190    BEFORE_ASYNC_WITH               
+                1192    GET_AWAITABLE                   1
+                1194    LOAD_CONST                      3: None
+                1196    SEND                            3 (to 1204)
+                1198    YIELD_VALUE                     
+                1200    RESUME                          3
+                1202    JUMP_BACKWARD_NO_INTERRUPT      4 (to 1196)
+                1204    POP_TOP                         
+                1206    LOAD_FAST                       0: state
+                1208    LOAD_ATTR                       8: log
+                1218    LOAD_CONST                      18: '[runner] error: '
+                1220    LOAD_FAST                       11: exc
+                1222    FORMAT_VALUE                    0 (FVC_NONE)
+                1224    BUILD_STRING                    2
+                1226    BUILD_LIST                      1
+                1228    BINARY_OP                       0 (+)
+                1232    LOAD_GLOBAL                     42: MAX_LOG_LINES
+                1244    UNARY_NEGATIVE                  
+                1246    LOAD_CONST                      3: None
+                1248    BUILD_SLICE                     2
+                1250    BINARY_SUBSCR                   
+                1260    LOAD_FAST                       0: state
+                1262    STORE_ATTR                      8: log
+                1272    LOAD_CONST                      3: None
+                1274    LOAD_CONST                      3: None
+                1276    LOAD_CONST                      3: None
+                1278    PRECALL                         2
+                1282    CALL                            2
+                1292    GET_AWAITABLE                   2
+                1294    LOAD_CONST                      3: None
+                1296    SEND                            3 (to 1304)
+                1298    YIELD_VALUE                     
+                1300    RESUME                          3
+                1302    JUMP_BACKWARD_NO_INTERRUPT      4 (to 1296)
+                1304    POP_TOP                         
+                1306    JUMP_FORWARD                    17 (to 1342)
+                1308    PUSH_EXC_INFO                   
+                1310    WITH_EXCEPT_START               
+                1312    GET_AWAITABLE                   2
+                1314    LOAD_CONST                      3: None
+                1316    SEND                            3 (to 1324)
+                1318    YIELD_VALUE                     
+                1320    RESUME                          3
+                1322    JUMP_BACKWARD_NO_INTERRUPT      4 (to 1316)
+                1324    POP_JUMP_FORWARD_IF_TRUE        4 (to 1334)
+                1326    RERAISE                         2
+                1328    COPY                            3
+                1330    POP_EXCEPT                      
+                1332    RERAISE                         1
+                1334    POP_TOP                         
+                1336    POP_EXCEPT                      
+                1338    POP_TOP                         
+                1340    POP_TOP                         
+                1342    POP_EXCEPT                      
+                1344    LOAD_CONST                      3: None
+                1346    STORE_FAST                      11: exc
+                1348    DELETE_FAST                     11: exc
+                1350    JUMP_FORWARD                    8 (to 1368)
+                1352    LOAD_CONST                      3: None
+                1354    STORE_FAST                      11: exc
+                1356    DELETE_FAST                     11: exc
+                1358    RERAISE                         1
+                1360    RERAISE                         0
+                1362    COPY                            3
+                1364    POP_EXCEPT                      
+                1366    RERAISE                         1
+                1368    LOAD_GLOBAL                     30: _PROCS
+                1380    LOAD_METHOD                     24: pop
+                1402    LOAD_FAST                       2: ns
+                1404    LOAD_CONST                      3: None
+                1406    PRECALL                         2
+                1410    CALL                            2
+                1420    POP_TOP                         
+                1422    JUMP_FORWARD                    32 (to 1488)
+                1424    PUSH_EXC_INFO                   
+                1426    LOAD_GLOBAL                     30: _PROCS
+                1438    LOAD_METHOD                     24: pop
+                1460    LOAD_FAST                       2: ns
+                1462    LOAD_CONST                      3: None
+                1464    PRECALL                         2
+                1468    CALL                            2
+                1478    POP_TOP                         
+                1480    RERAISE                         0
+                1482    COPY                            3
+                1484    POP_EXCEPT                      
+                1486    RERAISE                         1
+                1488    LOAD_FAST                       0: state
+                1490    BEFORE_ASYNC_WITH               
+                1492    GET_AWAITABLE                   1
+                1494    LOAD_CONST                      3: None
+                1496    SEND                            3 (to 1504)
+                1498    YIELD_VALUE                     
+                1500    RESUME                          3
+                1502    JUMP_BACKWARD_NO_INTERRUPT      4 (to 1496)
+                1504    POP_TOP                         
+                1506    LOAD_FAST                       0: state
+                1508    LOAD_ATTR                       7: status
+                1518    LOAD_CONST                      19: 'stopped'
+                1520    COMPARE_OP                      3 (!=)
+                1526    POP_JUMP_FORWARD_IF_FALSE       15 (to 1558)
+                1528    LOAD_FAST                       5: rc
+                1530    LOAD_CONST                      20: 0
+                1532    COMPARE_OP                      2 (==)
+                1538    POP_JUMP_FORWARD_IF_FALSE       2 (to 1544)
+                1540    LOAD_CONST                      21: 'success'
+                1542    JUMP_FORWARD                    1 (to 1546)
+                1544    LOAD_CONST                      22: 'failed'
+                1546    LOAD_FAST                       0: state
+                1548    STORE_ATTR                      7: status
+                1558    LOAD_CONST                      23: False
+                1560    LOAD_FAST                       0: state
+                1562    STORE_ATTR                      6: running
+                1572    LOAD_CONST                      3: None
+                1574    LOAD_CONST                      3: None
+                1576    LOAD_CONST                      3: None
+                1578    PRECALL                         2
+                1582    CALL                            2
+                1592    GET_AWAITABLE                   2
+                1594    LOAD_CONST                      3: None
+                1596    SEND                            3 (to 1604)
+                1598    YIELD_VALUE                     
+                1600    RESUME                          3
+                1602    JUMP_BACKWARD_NO_INTERRUPT      4 (to 1596)
+                1604    POP_TOP                         
+                1606    JUMP_FORWARD                    17 (to 1642)
+                1608    PUSH_EXC_INFO                   
+                1610    WITH_EXCEPT_START               
+                1612    GET_AWAITABLE                   2
+                1614    LOAD_CONST                      3: None
+                1616    SEND                            3 (to 1624)
+                1618    YIELD_VALUE                     
+                1620    RESUME                          3
+                1622    JUMP_BACKWARD_NO_INTERRUPT      4 (to 1616)
+                1624    POP_JUMP_FORWARD_IF_TRUE        4 (to 1634)
+                1626    RERAISE                         2
+                1628    COPY                            3
+                1630    POP_EXCEPT                      
+                1632    RERAISE                         1
+                1634    POP_TOP                         
+                1636    POP_EXCEPT                      
+                1638    POP_TOP                         
+                1640    POP_TOP                         
+                1642    LOAD_CONST                      3: None
+                1644    ASYNC_GEN_WRAP                  
+                1646    YIELD_VALUE                     
+                1648    RESUME                          1
+                1650    POP_TOP                         
+                1652    LOAD_CONST                      3: None
+                1654    RETURN_VALUE                    
+            [Exception Table]
+                176 to 220 -> 256 [1] lasti
+                256 to 276 -> 276 [3] lasti
+                282 to 284 -> 276 [3] lasti
+                306 to 738 -> 1168 [0] 
+                738 to 798 -> 834 [1] lasti
+                798 to 834 -> 1168 [0] 
+                834 to 854 -> 854 [3] lasti
+                854 to 860 -> 1168 [0] 
+                860 to 862 -> 854 [3] lasti
+                862 to 974 -> 1168 [0] 
+                974 to 1034 -> 1070 [1] lasti
+                1034 to 1070 -> 1168 [0] 
+                1070 to 1090 -> 1090 [3] lasti
+                1090 to 1096 -> 1168 [0] 
+                1096 to 1098 -> 1090 [3] lasti
+                1098 to 1166 -> 1168 [0] 
+                1166 to 1168 -> 1424 [0] 
+                1168 to 1188 -> 1362 [1] lasti
+                1188 to 1204 -> 1352 [1] lasti
+                1204 to 1272 -> 1308 [2] lasti
+                1272 to 1308 -> 1352 [1] lasti
+                1308 to 1328 -> 1328 [4] lasti
+                1328 to 1334 -> 1352 [1] lasti
+                1334 to 1336 -> 1328 [4] lasti
+                1336 to 1342 -> 1352 [1] lasti
+                1342 to 1352 -> 1424 [0] 
+                1352 to 1362 -> 1362 [1] lasti
+                1362 to 1368 -> 1424 [0] 
+                1424 to 1482 -> 1482 [1] lasti
+                1504 to 1572 -> 1608 [1] lasti
+                1608 to 1628 -> 1628 [3] lasti
+                1634 to 1636 -> 1628 [3] lasti
+        'None'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/runner.py
+            Object Name: stop
+            Qualified Name: stop
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 4
+            Flags: 0x01000083 (CO_OPTIMIZED | CO_NEWLOCALS | CO_COROUTINE | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                '_PROCS'
+                'get'
+                'returncode'
+                'terminate'
+                'asyncio'
+                'wait_for'
+                'wait'
+                'TimeoutError'
+                'kill'
+                'ProcessLookupError'
+            [Locals+Names]
+                'ns'
+                'proc'
+            [Constants]
+                None
+                5
+                (
+                    'timeout'
+                )
+            [Disassembly]
+                0       RETURN_GENERATOR                
+                2       POP_TOP                         
+                4       RESUME                          0
+                6       LOAD_GLOBAL                     0: _PROCS
+                18      LOAD_METHOD                     1: get
+                40      LOAD_FAST                       0: ns
+                42      PRECALL                         1
+                46      CALL                            1
+                56      STORE_FAST                      1: proc
+                58      LOAD_FAST                       1: proc
+                60      POP_JUMP_FORWARD_IF_FALSE       7 (to 76)
+                62      LOAD_FAST                       1: proc
+                64      LOAD_ATTR                       2: returncode
+                74      POP_JUMP_FORWARD_IF_NONE        2 (to 80)
+                76      LOAD_CONST                      0: None
+                78      RETURN_VALUE                    
+                80      NOP                             
+                82      LOAD_FAST                       1: proc
+                84      LOAD_METHOD                     3: terminate
+                106     PRECALL                         0
+                110     CALL                            0
+                120     POP_TOP                         
+                122     NOP                             
+                124     LOAD_GLOBAL                     9: NULL + asyncio
+                136     LOAD_ATTR                       5: wait_for
+                146     LOAD_FAST                       1: proc
+                148     LOAD_METHOD                     6: wait
+                170     PRECALL                         0
+                174     CALL                            0
+                184     LOAD_CONST                      1: 5
+                186     KW_NAMES                        2: ('timeout',)
+                188     PRECALL                         2
+                192     CALL                            2
+                202     GET_AWAITABLE                   0
+                204     LOAD_CONST                      0: None
+                206     SEND                            3 (to 214)
+                208     YIELD_VALUE                     
+                210     RESUME                          3
+                212     JUMP_BACKWARD_NO_INTERRUPT      4 (to 206)
+                214     POP_TOP                         
+                216     LOAD_CONST                      0: None
+                218     RETURN_VALUE                    
+                220     PUSH_EXC_INFO                   
+                222     LOAD_GLOBAL                     8: asyncio
+                234     LOAD_ATTR                       7: TimeoutError
+                244     CHECK_EXC_MATCH                 
+                246     POP_JUMP_FORWARD_IF_FALSE       24 (to 296)
+                248     POP_TOP                         
+                250     LOAD_FAST                       1: proc
+                252     LOAD_METHOD                     8: kill
+                274     PRECALL                         0
+                278     CALL                            0
+                288     POP_TOP                         
+                290     POP_EXCEPT                      
+                292     LOAD_CONST                      0: None
+                294     RETURN_VALUE                    
+                296     RERAISE                         0
+                298     COPY                            3
+                300     POP_EXCEPT                      
+                302     RERAISE                         1
+                304     PUSH_EXC_INFO                   
+                306     LOAD_GLOBAL                     18: ProcessLookupError
+                318     CHECK_EXC_MATCH                 
+                320     POP_JUMP_FORWARD_IF_FALSE       4 (to 330)
+                322     POP_TOP                         
+                324     POP_EXCEPT                      
+                326     LOAD_CONST                      0: None
+                328     RETURN_VALUE                    
+                330     RERAISE                         0
+                332     COPY                            3
+                334     POP_EXCEPT                      
+                336     RERAISE                         1
+            [Exception Table]
+                82 to 122 -> 304 [0] 
+                124 to 216 -> 220 [0] 
+                220 to 290 -> 298 [1] lasti
+                290 to 292 -> 304 [0] 
+                296 to 298 -> 298 [1] lasti
+                298 to 304 -> 304 [0] 
+                304 to 324 -> 332 [1] lasti
+                330 to 332 -> 332 [1] lasti
+        (
+            'text'
+            'str'
+            'return'
+            'str'
+        )
+        (
+            'chunk'
+            'str'
+            'return'
+            'list[str]'
+        )
+        (
+            'outdir'
+            'str'
+            'samples'
+            'list[str]'
+            'return'
+            'str'
+        )
+        (
+            'wf'
+            'str'
+            'outdir'
+            'str'
+            'include_file'
+            'str'
+            'profile'
+            'str'
+            'threads'
+            'int'
+            'memory_gb'
+            'int'
+            'resume'
+            'bool'
+            'tool_args'
+            'list[str]'
+            'global_extra'
+            'str'
+            'return'
+            'str'
+        )
+        (
+            'labelled'
+            'list[tuple[str, str]]'
+            'return'
+            'str'
+        )
+        (
+            None
+        )
+        (
+            'cmd'
+            'str'
+            'ns'
+            'str'
+            'work_dir'
+            'str | None'
+        )
+        (
+            'ns'
+            'str'
+            'return'
+            'None'
+        )
+    [Disassembly]
+        0       RESUME                          0
+        2       SETUP_ANNOTATIONS               
+        4       LOAD_CONST                      0: "\nAsync Nextflow runner for the Reflex app.\n\n`stream()` is an async generator: it launches the command, reads stdout, and\npushes cleaned log lines into a Reflex state via `async with state:`. The caller\n(a Reflex `@rx.event(background=True)`) drives it and `yield`s to flush updates\nto the browser. Kept Reflex-import-free — it only relies on the state object's\nasync context manager and plain attributes (`log`, `status`, `running`).\n"
+        6       STORE_NAME                      0: __doc__
+        8       LOAD_CONST                      1: 0
+        10      LOAD_CONST                      2: ('annotations',)
+        12      IMPORT_NAME                     1: __future__
+        14      IMPORT_FROM                     2: annotations
+        16      STORE_NAME                      2: annotations
+        18      POP_TOP                         
+        20      LOAD_CONST                      1: 0
+        22      LOAD_CONST                      3: None
+        24      IMPORT_NAME                     3: asyncio
+        26      STORE_NAME                      3: asyncio
+        28      LOAD_CONST                      1: 0
+        30      LOAD_CONST                      3: None
+        32      IMPORT_NAME                     4: hashlib
+        34      STORE_NAME                      4: hashlib
+        36      LOAD_CONST                      1: 0
+        38      LOAD_CONST                      3: None
+        40      IMPORT_NAME                     5: os
+        42      STORE_NAME                      5: os
+        44      LOAD_CONST                      1: 0
+        46      LOAD_CONST                      3: None
+        48      IMPORT_NAME                     6: re
+        50      STORE_NAME                      6: re
+        52      LOAD_CONST                      1: 0
+        54      LOAD_CONST                      3: None
+        56      IMPORT_NAME                     7: shlex
+        58      STORE_NAME                      7: shlex
+        60      LOAD_CONST                      1: 0
+        62      LOAD_CONST                      3: None
+        64      IMPORT_NAME                     8: shutil
+        66      STORE_NAME                      8: shutil
+        68      LOAD_CONST                      1: 0
+        70      LOAD_CONST                      4: ('APP_STATE_DIR', 'get_bactopia_version', 'get_nextflow_bin')
+        72      IMPORT_NAME                     9: bearhub.core.system
+        74      IMPORT_FROM                     10: APP_STATE_DIR
+        76      STORE_NAME                      10: APP_STATE_DIR
+        78      IMPORT_FROM                     11: get_bactopia_version
+        80      STORE_NAME                      11: get_bactopia_version
+        82      IMPORT_FROM                     12: get_nextflow_bin
+        84      STORE_NAME                      12: get_nextflow_bin
+        86      POP_TOP                         
+        88      BUILD_MAP                       0
+        90      STORE_NAME                      13: _PROCS
+        92      LOAD_CONST                      5: 'dict[str, asyncio.subprocess.Process]'
+        94      LOAD_NAME                       14: __annotations__
+        96      LOAD_CONST                      6: '_PROCS'
+        98      STORE_SUBSCR                    
+        102     LOAD_CONST                      7: 1500
+        104     STORE_NAME                      15: MAX_LOG_LINES
+        106     PUSH_NULL                       
+        108     LOAD_NAME                       6: re
+        110     LOAD_ATTR                       16: compile
+        120     LOAD_CONST                      8: '\\x1B\\[[0-?]*[ -/]*[@-~]'
+        122     PRECALL                         1
+        126     CALL                            1
+        136     STORE_NAME                      17: _ANSI
+        138     LOAD_CONST                      40: ('text', 'str', 'return', 'str')
+        140     LOAD_CONST                      12: <CODE> _resolve_cursor_up
+        142     MAKE_FUNCTION                   4
+        144     STORE_NAME                      18: _resolve_cursor_up
+        146     LOAD_CONST                      41: ('chunk', 'str', 'return', 'list[str]')
+        148     LOAD_CONST                      15: <CODE> normalize_chunk
+        150     MAKE_FUNCTION                   4
+        152     STORE_NAME                      19: normalize_chunk
+        154     LOAD_CONST                      42: ('outdir', 'str', 'samples', 'list[str]', 'return', 'str')
+        156     LOAD_CONST                      18: <CODE> write_include_file
+        158     MAKE_FUNCTION                   4
+        160     STORE_NAME                      20: write_include_file
+        162     LOAD_CONST                      43: ('wf', 'str', 'outdir', 'str', 'include_file', 'str', 'profile', 'str', 'threads', 'int', 'memory_gb', 'int', 'resume', 'bool', 'tool_args', 'list[str]', 'global_extra', 'str', 'return', 'str')
+        164     LOAD_CONST                      29: <CODE> nextflow_wf_cmd
+        166     MAKE_FUNCTION                   4
+        168     STORE_NAME                      21: nextflow_wf_cmd
+        170     LOAD_CONST                      44: ('labelled', 'list[tuple[str, str]]', 'return', 'str')
+        172     LOAD_CONST                      32: <CODE> join_subcommands
+        174     MAKE_FUNCTION                   4
+        176     STORE_NAME                      22: join_subcommands
+        178     LOAD_CONST                      45: (None,)
+        180     LOAD_CONST                      46: ('cmd', 'str', 'ns', 'str', 'work_dir', 'str | None')
+        182     LOAD_CONST                      37: <CODE> stream
+        184     MAKE_FUNCTION                   5
+        186     STORE_NAME                      23: stream
+        188     LOAD_CONST                      47: ('ns', 'str', 'return', 'None')
+        190     LOAD_CONST                      39: <CODE> stop
+        192     MAKE_FUNCTION                   4
+        194     STORE_NAME                      24: stop
+        196     LOAD_CONST                      3: None
+        198     RETURN_VALUE                    
+    [Exception Table]

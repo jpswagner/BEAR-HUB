@@ -1,0 +1,770 @@
+help.cpython-311.pyc (Python 3.11)
+[Code]
+    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/help.py
+    Object Name: <module>
+    Qualified Name: <module>
+    Arg Count: 0
+    Pos Only Arg Count: 0
+    KW Only Arg Count: 0
+    Stack Size: 3
+    Flags: 0x01000000 (CO_FUTURE_ANNOTATIONS)
+    [Names]
+        '__doc__'
+        '__future__'
+        'annotations'
+        're'
+        'reflex'
+        'rx'
+        'bearhub.data.help_texts'
+        'HELP'
+        'compile'
+        '_FLAG'
+        '_inline'
+        'render_help'
+        'help_button'
+        'section'
+        'field_label'
+    [Locals+Names]
+    [Constants]
+        'Help popover ("?") with colored text + section headers (data/help_texts).'
+        0
+        (
+            'annotations'
+        )
+        None
+        (
+            'HELP'
+        )
+        '(--?[A-Za-z][\\w-]*)'
+        'text'
+        'str'
+        'return'
+        'list[rx.Component]'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/help.py
+            Object Name: _inline
+            Qualified Name: _inline
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 10
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'replace'
+                '_FLAG'
+                'finditer'
+                'start'
+                'append'
+                'rx'
+                'text'
+                'span'
+                'group'
+                'end'
+                'len'
+            [Locals+Names]
+                'text'
+                'spans'
+                'last'
+                'm'
+            [Constants]
+                'Color flag-like tokens (--scheme, -M, …) inside a line.'
+                '**'
+                ''
+                '`'
+                0
+                1
+                'var(--teal-11)'
+                'monospace'
+                '600'
+                (
+                    'color'
+                    'fontFamily'
+                    'fontWeight'
+                )
+                (
+                    'style'
+                )
+                None
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_FAST                       0: text
+                4       LOAD_METHOD                     0: replace
+                26      LOAD_CONST                      1: '**'
+                28      LOAD_CONST                      2: ''
+                30      PRECALL                         2
+                34      CALL                            2
+                44      LOAD_METHOD                     0: replace
+                66      LOAD_CONST                      3: '`'
+                68      LOAD_CONST                      2: ''
+                70      PRECALL                         2
+                74      CALL                            2
+                84      STORE_FAST                      0: text
+                86      BUILD_LIST                      0
+                88      STORE_FAST                      1: spans
+                90      LOAD_CONST                      4: 0
+                92      STORE_FAST                      2: last
+                94      LOAD_GLOBAL                     2: _FLAG
+                106     LOAD_METHOD                     2: finditer
+                128     LOAD_FAST                       0: text
+                130     PRECALL                         1
+                134     CALL                            1
+                144     GET_ITER                        
+                146     FOR_ITER                        197 (to 542)
+                148     STORE_FAST                      3: m
+                150     LOAD_FAST                       3: m
+                152     LOAD_METHOD                     3: start
+                174     PRECALL                         0
+                178     CALL                            0
+                188     LOAD_FAST                       2: last
+                190     COMPARE_OP                      4 (>)
+                196     POP_JUMP_FORWARD_IF_FALSE       76 (to 350)
+                198     LOAD_FAST                       1: spans
+                200     LOAD_METHOD                     4: append
+                222     LOAD_GLOBAL                     10: rx
+                234     LOAD_ATTR                       6: text
+                244     LOAD_METHOD                     7: span
+                266     LOAD_FAST                       0: text
+                268     LOAD_FAST                       2: last
+                270     LOAD_FAST                       3: m
+                272     LOAD_METHOD                     3: start
+                294     PRECALL                         0
+                298     CALL                            0
+                308     BUILD_SLICE                     2
+                310     BINARY_SUBSCR                   
+                320     PRECALL                         1
+                324     CALL                            1
+                334     PRECALL                         1
+                338     CALL                            1
+                348     POP_TOP                         
+                350     LOAD_FAST                       1: spans
+                352     LOAD_METHOD                     4: append
+                374     LOAD_GLOBAL                     10: rx
+                386     LOAD_ATTR                       6: text
+                396     LOAD_METHOD                     7: span
+                418     LOAD_FAST                       3: m
+                420     LOAD_METHOD                     8: group
+                442     LOAD_CONST                      5: 1
+                444     PRECALL                         1
+                448     CALL                            1
+                458     LOAD_CONST                      6: 'var(--teal-11)'
+                460     LOAD_CONST                      7: 'monospace'
+                462     LOAD_CONST                      8: '600'
+                464     LOAD_CONST                      9: ('color', 'fontFamily', 'fontWeight')
+                466     BUILD_CONST_KEY_MAP             3
+                468     KW_NAMES                        10: ('style',)
+                470     PRECALL                         2
+                474     CALL                            2
+                484     PRECALL                         1
+                488     CALL                            1
+                498     POP_TOP                         
+                500     LOAD_FAST                       3: m
+                502     LOAD_METHOD                     9: end
+                524     PRECALL                         0
+                528     CALL                            0
+                538     STORE_FAST                      2: last
+                540     JUMP_BACKWARD                   198 (to 146)
+                542     LOAD_FAST                       2: last
+                544     LOAD_GLOBAL                     21: NULL + len
+                556     LOAD_FAST                       0: text
+                558     PRECALL                         1
+                562     CALL                            1
+                572     COMPARE_OP                      0 (<)
+                578     POP_JUMP_FORWARD_IF_FALSE       58 (to 696)
+                580     LOAD_FAST                       1: spans
+                582     LOAD_METHOD                     4: append
+                604     LOAD_GLOBAL                     10: rx
+                616     LOAD_ATTR                       6: text
+                626     LOAD_METHOD                     7: span
+                648     LOAD_FAST                       0: text
+                650     LOAD_FAST                       2: last
+                652     LOAD_CONST                      11: None
+                654     BUILD_SLICE                     2
+                656     BINARY_SUBSCR                   
+                666     PRECALL                         1
+                670     CALL                            1
+                680     PRECALL                         1
+                684     CALL                            1
+                694     POP_TOP                         
+                696     LOAD_FAST                       1: spans
+                698     JUMP_IF_TRUE_OR_POP             31 (to 62)
+                700     LOAD_GLOBAL                     10: rx
+                712     LOAD_ATTR                       6: text
+                722     LOAD_METHOD                     7: span
+                744     LOAD_FAST                       0: text
+                746     PRECALL                         1
+                750     CALL                            1
+                760     BUILD_LIST                      1
+                762     RETURN_VALUE                    
+            [Exception Table]
+        'md'
+        'rx.Component'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/help.py
+            Object Name: render_help
+            Qualified Name: render_help
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 11
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'split'
+                'rstrip'
+                'append'
+                'rx'
+                'box'
+                'strip'
+                're'
+                'fullmatch'
+                'text'
+                'group'
+                'startswith'
+                'span'
+                '_inline'
+                'vstack'
+            [Locals+Names]
+                'md'
+                'blocks'
+                'raw'
+                'line'
+                'stripped'
+                'title'
+            [Constants]
+                'Render our help markdown as colored Reflex text (no react-markdown).'
+                '\n'
+                '4px'
+                (
+                    'height'
+                )
+                '\\*\\*(.+?)\\*\\*'
+                1
+                'bold'
+                '3'
+                'color'
+                'var(--teal-11)'
+                (
+                    'weight'
+                    'size'
+                    'style'
+                )
+                '- '
+                '• '
+                'var(--amber-9)'
+                '700'
+                (
+                    'color'
+                    'fontWeight'
+                )
+                (
+                    'style'
+                )
+                2
+                None
+                '2'
+                'var(--gray-12)'
+                '1.5'
+                (
+                    'color'
+                    'lineHeight'
+                )
+                (
+                    'size'
+                    'style'
+                )
+                'var(--gray-11)'
+                '1'
+                'start'
+                '100%'
+                (
+                    'spacing'
+                    'align'
+                    'width'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       BUILD_LIST                      0
+                4       STORE_FAST                      1: blocks
+                6       LOAD_FAST                       0: md
+                8       LOAD_METHOD                     0: split
+                30      LOAD_CONST                      1: '\n'
+                32      PRECALL                         1
+                36      CALL                            1
+                46      GET_ITER                        
+                48      FOR_ITER                        349 (to 750)
+                52      STORE_FAST                      2: raw
+                54      LOAD_FAST                       2: raw
+                56      LOAD_METHOD                     1: rstrip
+                78      PRECALL                         0
+                82      CALL                            0
+                92      STORE_FAST                      3: line
+                94      LOAD_FAST                       3: line
+                96      POP_JUMP_FORWARD_IF_TRUE        41 (to 180)
+                98      LOAD_FAST                       1: blocks
+                100     LOAD_METHOD                     2: append
+                122     LOAD_GLOBAL                     7: NULL + rx
+                134     LOAD_ATTR                       4: box
+                144     LOAD_CONST                      2: '4px'
+                146     KW_NAMES                        3: ('height',)
+                148     PRECALL                         1
+                152     CALL                            1
+                162     PRECALL                         1
+                166     CALL                            1
+                176     POP_TOP                         
+                178     JUMP_BACKWARD                   66 (to 48)
+                180     LOAD_FAST                       3: line
+                182     LOAD_METHOD                     5: strip
+                204     PRECALL                         0
+                208     CALL                            0
+                218     STORE_FAST                      4: stripped
+                220     LOAD_GLOBAL                     13: NULL + re
+                232     LOAD_ATTR                       7: fullmatch
+                242     LOAD_CONST                      4: '\\*\\*(.+?)\\*\\*'
+                244     LOAD_FAST                       4: stripped
+                246     PRECALL                         2
+                250     CALL                            2
+                260     STORE_FAST                      5: title
+                262     LOAD_FAST                       5: title
+                264     POP_JUMP_FORWARD_IF_FALSE       65 (to 396)
+                266     LOAD_FAST                       1: blocks
+                268     LOAD_METHOD                     2: append
+                290     LOAD_GLOBAL                     7: NULL + rx
+                302     LOAD_ATTR                       8: text
+                312     LOAD_FAST                       5: title
+                314     LOAD_METHOD                     9: group
+                336     LOAD_CONST                      5: 1
+                338     PRECALL                         1
+                342     CALL                            1
+                352     LOAD_CONST                      6: 'bold'
+                354     LOAD_CONST                      7: '3'
+                356     LOAD_CONST                      8: 'color'
+                358     LOAD_CONST                      9: 'var(--teal-11)'
+                360     BUILD_MAP                       1
+                362     KW_NAMES                        10: ('weight', 'size', 'style')
+                364     PRECALL                         4
+                368     CALL                            4
+                378     PRECALL                         1
+                382     CALL                            1
+                392     POP_TOP                         
+                394     JUMP_BACKWARD                   174 (to 48)
+                396     LOAD_FAST                       4: stripped
+                398     LOAD_METHOD                     10: startswith
+                420     LOAD_CONST                      11: '- '
+                422     PRECALL                         1
+                426     CALL                            1
+                436     POP_JUMP_FORWARD_IF_FALSE       101 (to 640)
+                438     LOAD_FAST                       1: blocks
+                440     LOAD_METHOD                     2: append
+                462     LOAD_GLOBAL                     7: NULL + rx
+                474     LOAD_ATTR                       8: text
+                484     LOAD_GLOBAL                     6: rx
+                496     LOAD_ATTR                       8: text
+                506     LOAD_METHOD                     11: span
+                528     LOAD_CONST                      12: '• '
+                530     LOAD_CONST                      13: 'var(--amber-9)'
+                532     LOAD_CONST                      14: '700'
+                534     LOAD_CONST                      15: ('color', 'fontWeight')
+                536     BUILD_CONST_KEY_MAP             2
+                538     KW_NAMES                        16: ('style',)
+                540     PRECALL                         2
+                544     CALL                            2
+                554     BUILD_LIST                      1
+                556     LOAD_GLOBAL                     25: NULL + _inline
+                568     LOAD_FAST                       4: stripped
+                570     LOAD_CONST                      17: 2
+                572     LOAD_CONST                      18: None
+                574     BUILD_SLICE                     2
+                576     BINARY_SUBSCR                   
+                586     PRECALL                         1
+                590     CALL                            1
+                600     LIST_EXTEND                     1
+                602     LIST_TO_TUPLE                   
+                604     LOAD_CONST                      19: '2'
+                606     LOAD_CONST                      20: 'var(--gray-12)'
+                608     LOAD_CONST                      21: '1.5'
+                610     LOAD_CONST                      22: ('color', 'lineHeight')
+                612     BUILD_CONST_KEY_MAP             2
+                614     LOAD_CONST                      23: ('size', 'style')
+                616     BUILD_CONST_KEY_MAP             2
+                618     CALL_FUNCTION_EX                1
+                620     PRECALL                         1
+                624     CALL                            1
+                634     POP_TOP                         
+                636     JUMP_BACKWARD                   296 (to 48)
+                640     LOAD_FAST                       1: blocks
+                642     LOAD_METHOD                     2: append
+                664     LOAD_GLOBAL                     7: NULL + rx
+                676     LOAD_ATTR                       8: text
+                686     LOAD_GLOBAL                     25: NULL + _inline
+                698     LOAD_FAST                       4: stripped
+                700     PRECALL                         1
+                704     CALL                            1
+                714     LOAD_CONST                      19: '2'
+                716     LOAD_CONST                      24: 'var(--gray-11)'
+                718     LOAD_CONST                      21: '1.5'
+                720     LOAD_CONST                      22: ('color', 'lineHeight')
+                722     BUILD_CONST_KEY_MAP             2
+                724     LOAD_CONST                      23: ('size', 'style')
+                726     BUILD_CONST_KEY_MAP             2
+                728     CALL_FUNCTION_EX                1
+                730     PRECALL                         1
+                734     CALL                            1
+                744     POP_TOP                         
+                746     JUMP_BACKWARD                   351 (to 48)
+                750     LOAD_GLOBAL                     7: NULL + rx
+                762     LOAD_ATTR                       13: vstack
+                772     LOAD_FAST                       1: blocks
+                774     LOAD_CONST                      25: '1'
+                776     LOAD_CONST                      26: 'start'
+                778     LOAD_CONST                      27: '100%'
+                780     LOAD_CONST                      28: ('spacing', 'align', 'width')
+                782     BUILD_CONST_KEY_MAP             3
+                784     CALL_FUNCTION_EX                1
+                786     RETURN_VALUE                    
+            [Exception Table]
+        'key'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/help.py
+            Object Name: help_button
+            Qualified Name: help_button
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 12
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'HELP'
+                'get'
+                'rx'
+                'fragment'
+                'popover'
+                'root'
+                'trigger'
+                'icon'
+                'content'
+                'scroll_area'
+                'box'
+                'render_help'
+            [Locals+Names]
+                'key'
+                'md'
+            [Constants]
+                None
+                'circle-help'
+                15
+                'var(--teal-9)'
+                'cursor'
+                'pointer'
+                (
+                    'size'
+                    'color'
+                    'style'
+                )
+                '10px'
+                (
+                    'padding_right'
+                )
+                'vertical'
+                'maxHeight'
+                '360px'
+                (
+                    'scrollbars'
+                    'style'
+                )
+                '460px'
+                'right'
+                'start'
+                (
+                    'width'
+                    'side'
+                    'align'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + HELP
+                14      LOAD_ATTR                       1: get
+                24      LOAD_FAST                       0: key
+                26      PRECALL                         1
+                30      CALL                            1
+                40      STORE_FAST                      1: md
+                42      LOAD_FAST                       1: md
+                44      POP_JUMP_FORWARD_IF_TRUE        19 (to 84)
+                46      LOAD_GLOBAL                     5: NULL + rx
+                58      LOAD_ATTR                       3: fragment
+                68      PRECALL                         0
+                72      CALL                            0
+                82      RETURN_VALUE                    
+                84      LOAD_GLOBAL                     4: rx
+                96      LOAD_ATTR                       4: popover
+                106     LOAD_METHOD                     5: root
+                128     LOAD_GLOBAL                     4: rx
+                140     LOAD_ATTR                       4: popover
+                150     LOAD_METHOD                     6: trigger
+                172     LOAD_GLOBAL                     5: NULL + rx
+                184     LOAD_ATTR                       7: icon
+                194     LOAD_CONST                      1: 'circle-help'
+                196     LOAD_CONST                      2: 15
+                198     LOAD_CONST                      3: 'var(--teal-9)'
+                200     LOAD_CONST                      4: 'cursor'
+                202     LOAD_CONST                      5: 'pointer'
+                204     BUILD_MAP                       1
+                206     KW_NAMES                        6: ('size', 'color', 'style')
+                208     PRECALL                         4
+                212     CALL                            4
+                222     PRECALL                         1
+                226     CALL                            1
+                236     LOAD_GLOBAL                     4: rx
+                248     LOAD_ATTR                       4: popover
+                258     LOAD_METHOD                     8: content
+                280     LOAD_GLOBAL                     5: NULL + rx
+                292     LOAD_ATTR                       9: scroll_area
+                302     LOAD_GLOBAL                     5: NULL + rx
+                314     LOAD_ATTR                       10: box
+                324     LOAD_GLOBAL                     23: NULL + render_help
+                336     LOAD_FAST                       1: md
+                338     PRECALL                         1
+                342     CALL                            1
+                352     LOAD_CONST                      7: '10px'
+                354     KW_NAMES                        8: ('padding_right',)
+                356     PRECALL                         2
+                360     CALL                            2
+                370     LOAD_CONST                      9: 'vertical'
+                372     LOAD_CONST                      10: 'maxHeight'
+                374     LOAD_CONST                      11: '360px'
+                376     BUILD_MAP                       1
+                378     KW_NAMES                        12: ('scrollbars', 'style')
+                380     PRECALL                         3
+                384     CALL                            3
+                394     LOAD_CONST                      13: '460px'
+                396     LOAD_CONST                      14: 'right'
+                398     LOAD_CONST                      15: 'start'
+                400     KW_NAMES                        16: ('width', 'side', 'align')
+                402     PRECALL                         4
+                406     CALL                            4
+                416     PRECALL                         2
+                420     CALL                            2
+                430     RETURN_VALUE                    
+            [Exception Table]
+        '3'
+        'title'
+        'str | None'
+        'size'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/help.py
+            Object Name: section
+            Qualified Name: section
+            Arg Count: 3
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 6
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'hstack'
+                'heading'
+                'help_button'
+                'fragment'
+            [Locals+Names]
+                'title'
+                'key'
+                'size'
+            [Constants]
+                'A heading with an optional inline help button.'
+                (
+                    'size'
+                )
+                '2'
+                'center'
+                (
+                    'spacing'
+                    'align'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: hstack
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: heading
+                46      LOAD_FAST                       0: title
+                48      LOAD_FAST                       2: size
+                50      KW_NAMES                        1: ('size',)
+                52      PRECALL                         2
+                56      CALL                            2
+                66      LOAD_FAST                       1: key
+                68      POP_JUMP_FORWARD_IF_FALSE       15 (to 100)
+                70      LOAD_GLOBAL                     7: NULL + help_button
+                82      LOAD_FAST                       1: key
+                84      PRECALL                         1
+                88      CALL                            1
+                98      JUMP_FORWARD                    18 (to 136)
+                100     LOAD_GLOBAL                     1: NULL + rx
+                112     LOAD_ATTR                       4: fragment
+                122     PRECALL                         0
+                126     CALL                            0
+                136     LOAD_CONST                      2: '2'
+                138     LOAD_CONST                      3: 'center'
+                140     KW_NAMES                        4: ('spacing', 'align')
+                142     PRECALL                         4
+                146     CALL                            4
+                156     RETURN_VALUE                    
+            [Exception Table]
+        'label'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/help.py
+            Object Name: field_label
+            Qualified Name: field_label
+            Arg Count: 2
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 7
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'hstack'
+                'text'
+                'help_button'
+                'fragment'
+            [Locals+Names]
+                'label'
+                'key'
+            [Constants]
+                'Small field caption with an optional help button.'
+                '1'
+                'var(--gray-10)'
+                (
+                    'size'
+                    'color'
+                )
+                'center'
+                (
+                    'spacing'
+                    'align'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: hstack
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: text
+                46      LOAD_FAST                       0: label
+                48      LOAD_CONST                      1: '1'
+                50      LOAD_CONST                      2: 'var(--gray-10)'
+                52      KW_NAMES                        3: ('size', 'color')
+                54      PRECALL                         3
+                58      CALL                            3
+                68      LOAD_FAST                       1: key
+                70      POP_JUMP_FORWARD_IF_FALSE       15 (to 102)
+                72      LOAD_GLOBAL                     7: NULL + help_button
+                84      LOAD_FAST                       1: key
+                86      PRECALL                         1
+                90      CALL                            1
+                100     JUMP_FORWARD                    18 (to 138)
+                102     LOAD_GLOBAL                     1: NULL + rx
+                114     LOAD_ATTR                       4: fragment
+                124     PRECALL                         0
+                128     CALL                            0
+                138     LOAD_CONST                      1: '1'
+                140     LOAD_CONST                      4: 'center'
+                142     KW_NAMES                        5: ('spacing', 'align')
+                144     PRECALL                         4
+                148     CALL                            4
+                158     RETURN_VALUE                    
+            [Exception Table]
+        (
+            'text'
+            'str'
+            'return'
+            'list[rx.Component]'
+        )
+        (
+            'md'
+            'str'
+            'return'
+            'rx.Component'
+        )
+        (
+            'key'
+            'str'
+            'return'
+            'rx.Component'
+        )
+        (
+            None
+            '3'
+        )
+        (
+            'title'
+            'str'
+            'key'
+            'str | None'
+            'size'
+            'str'
+            'return'
+            'rx.Component'
+        )
+        (
+            None
+        )
+        (
+            'label'
+            'str'
+            'key'
+            'str | None'
+            'return'
+            'rx.Component'
+        )
+    [Disassembly]
+        0       RESUME                          0
+        2       LOAD_CONST                      0: 'Help popover ("?") with colored text + section headers (data/help_texts).'
+        4       STORE_NAME                      0: __doc__
+        6       LOAD_CONST                      1: 0
+        8       LOAD_CONST                      2: ('annotations',)
+        10      IMPORT_NAME                     1: __future__
+        12      IMPORT_FROM                     2: annotations
+        14      STORE_NAME                      2: annotations
+        16      POP_TOP                         
+        18      LOAD_CONST                      1: 0
+        20      LOAD_CONST                      3: None
+        22      IMPORT_NAME                     3: re
+        24      STORE_NAME                      3: re
+        26      LOAD_CONST                      1: 0
+        28      LOAD_CONST                      3: None
+        30      IMPORT_NAME                     4: reflex
+        32      STORE_NAME                      5: rx
+        34      LOAD_CONST                      1: 0
+        36      LOAD_CONST                      4: ('HELP',)
+        38      IMPORT_NAME                     6: bearhub.data.help_texts
+        40      IMPORT_FROM                     7: HELP
+        42      STORE_NAME                      7: HELP
+        44      POP_TOP                         
+        46      PUSH_NULL                       
+        48      LOAD_NAME                       3: re
+        50      LOAD_ATTR                       8: compile
+        60      LOAD_CONST                      5: '(--?[A-Za-z][\\w-]*)'
+        62      PRECALL                         1
+        66      CALL                            1
+        76      STORE_NAME                      9: _FLAG
+        78      LOAD_CONST                      23: ('text', 'str', 'return', 'list[rx.Component]')
+        80      LOAD_CONST                      10: <CODE> _inline
+        82      MAKE_FUNCTION                   4
+        84      STORE_NAME                      10: _inline
+        86      LOAD_CONST                      24: ('md', 'str', 'return', 'rx.Component')
+        88      LOAD_CONST                      13: <CODE> render_help
+        90      MAKE_FUNCTION                   4
+        92      STORE_NAME                      11: render_help
+        94      LOAD_CONST                      25: ('key', 'str', 'return', 'rx.Component')
+        96      LOAD_CONST                      15: <CODE> help_button
+        98      MAKE_FUNCTION                   4
+        100     STORE_NAME                      12: help_button
+        102     LOAD_CONST                      26: (None, '3')
+        104     LOAD_CONST                      27: ('title', 'str', 'key', 'str | None', 'size', 'str', 'return', 'rx.Component')
+        106     LOAD_CONST                      20: <CODE> section
+        108     MAKE_FUNCTION                   5
+        110     STORE_NAME                      13: section
+        112     LOAD_CONST                      28: (None,)
+        114     LOAD_CONST                      29: ('label', 'str', 'key', 'str | None', 'return', 'rx.Component')
+        116     LOAD_CONST                      22: <CODE> field_label
+        118     MAKE_FUNCTION                   5
+        120     STORE_NAME                      14: field_label
+        122     LOAD_CONST                      3: None
+        124     RETURN_VALUE                    
+    [Exception Table]

@@ -1,0 +1,2262 @@
+wizard.cpython-311.pyc (Python 3.11)
+[Code]
+    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/wizard.py
+    Object Name: <module>
+    Qualified Name: <module>
+    Arg Count: 0
+    Pos Only Arg Count: 0
+    KW Only Arg Count: 0
+    Stack Size: 5
+    Flags: 0x01000000 (CO_FUTURE_ANNOTATIONS)
+    [Names]
+        '__doc__'
+        '__future__'
+        'annotations'
+        'os'
+        'reflex'
+        'rx'
+        'bearhub.components.help'
+        'section'
+        'help_section'
+        'min'
+        'cpu_count'
+        '_MAX_CPUS'
+        'hero'
+        'step_indicator'
+        'nav_buttons'
+        'labeled'
+        'run_panel'
+        'dir_picker'
+        'dir_input'
+        'dir_field'
+        'samples_field'
+        'merged_panel'
+        '_slider_field'
+        'general_params'
+    [Locals+Names]
+    [Constants]
+        'Reusable wizard chrome: hero banner, step indicator, run panel, dir picker.'
+        0
+        (
+            'annotations'
+        )
+        None
+        (
+            'section'
+        )
+        64
+        128
+        'icon'
+        'str'
+        'title'
+        'subtitle'
+        'return'
+        'rx.Component'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/wizard.py
+            Object Name: hero
+            Qualified Name: hero
+            Arg Count: 3
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 14
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'box'
+                'hstack'
+                'icon'
+                'vstack'
+                'heading'
+                'text'
+            [Locals+Names]
+                'icon'
+                'title'
+                'subtitle'
+            [Constants]
+                None
+                32
+                'white'
+                (
+                    'size'
+                    'color'
+                )
+                '6'
+                '2'
+                '0.85'
+                (
+                    'size'
+                    'color'
+                    'opacity'
+                )
+                '0'
+                'start'
+                (
+                    'spacing'
+                    'align'
+                )
+                '4'
+                'center'
+                '20px 24px'
+                '16px'
+                '100%'
+                'linear-gradient(135deg, #0f766e 0%, #115e59 55%, #134e4a 100%)'
+                '0 8px 24px rgba(15,118,110,.25)'
+                (
+                    'padding'
+                    'border_radius'
+                    'width'
+                    'background'
+                    'box_shadow'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: box
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: hstack
+                46      LOAD_GLOBAL                     1: NULL + rx
+                58      LOAD_ATTR                       3: icon
+                68      LOAD_FAST                       0: icon
+                70      LOAD_CONST                      1: 32
+                72      LOAD_CONST                      2: 'white'
+                74      KW_NAMES                        3: ('size', 'color')
+                76      PRECALL                         3
+                80      CALL                            3
+                90      LOAD_GLOBAL                     1: NULL + rx
+                102     LOAD_ATTR                       4: vstack
+                112     LOAD_GLOBAL                     1: NULL + rx
+                124     LOAD_ATTR                       5: heading
+                134     LOAD_FAST                       1: title
+                136     LOAD_CONST                      4: '6'
+                138     LOAD_CONST                      2: 'white'
+                140     KW_NAMES                        3: ('size', 'color')
+                142     PRECALL                         3
+                146     CALL                            3
+                156     LOAD_GLOBAL                     1: NULL + rx
+                168     LOAD_ATTR                       6: text
+                178     LOAD_FAST                       2: subtitle
+                180     LOAD_CONST                      5: '2'
+                182     LOAD_CONST                      2: 'white'
+                184     LOAD_CONST                      6: '0.85'
+                186     KW_NAMES                        7: ('size', 'color', 'opacity')
+                188     PRECALL                         4
+                192     CALL                            4
+                202     LOAD_CONST                      8: '0'
+                204     LOAD_CONST                      9: 'start'
+                206     KW_NAMES                        10: ('spacing', 'align')
+                208     PRECALL                         4
+                212     CALL                            4
+                222     LOAD_CONST                      11: '4'
+                224     LOAD_CONST                      12: 'center'
+                226     KW_NAMES                        10: ('spacing', 'align')
+                228     PRECALL                         4
+                232     CALL                            4
+                242     LOAD_CONST                      13: '20px 24px'
+                244     LOAD_CONST                      14: '16px'
+                246     LOAD_CONST                      15: '100%'
+                248     LOAD_CONST                      16: 'linear-gradient(135deg, #0f766e 0%, #115e59 55%, #134e4a 100%)'
+                250     LOAD_CONST                      17: '0 8px 24px rgba(15,118,110,.25)'
+                252     KW_NAMES                        18: ('padding', 'border_radius', 'width', 'background', 'box_shadow')
+                254     PRECALL                         6
+                258     CALL                            6
+                268     RETURN_VALUE                    
+            [Exception Table]
+        'steps'
+        'list[str]'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/wizard.py
+            Object Name: step_indicator
+            Qualified Name: step_indicator
+            Arg Count: 3
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 16
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'enumerate'
+                'rx'
+                'box'
+                'cond'
+                'icon'
+                'text'
+                'append'
+                'hstack'
+                'len'
+            [Locals+Names]
+                'steps'
+                'current'
+                'goto'
+                'nodes'
+                'idx'
+                'label'
+                'active'
+                'done'
+                'circle'
+            [Constants]
+                '`current` is a state int Var; `goto` is an event handler taking the index.'
+                'check'
+                16
+                'white'
+                (
+                    'size'
+                    'color'
+                )
+                1
+                '2'
+                'bold'
+                (
+                    'size'
+                    'weight'
+                    'color'
+                )
+                '30px'
+                '9999px'
+                'flex'
+                'center'
+                'var(--teal-9)'
+                'var(--gray-6)'
+                '0 0 0 4px var(--teal-4)'
+                'none'
+                'all .15s ease'
+                (
+                    'width'
+                    'height'
+                    'border_radius'
+                    'display'
+                    'align_items'
+                    'justify_content'
+                    'background'
+                    'box_shadow'
+                    'transition'
+                )
+                'regular'
+                'var(--teal-11)'
+                'var(--gray-10)'
+                'pointer'
+                (
+                    'spacing'
+                    'align'
+                    'cursor'
+                    'on_click'
+                )
+                '32px'
+                '2px'
+                (
+                    'width'
+                    'height'
+                    'border_radius'
+                    'background'
+                )
+                '3'
+                'wrap'
+                '100%'
+                '6px'
+                (
+                    'spacing'
+                    'align'
+                    'wrap'
+                    'justify'
+                    'width'
+                    'padding_y'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       BUILD_LIST                      0
+                4       STORE_FAST                      3: nodes
+                6       LOAD_GLOBAL                     1: NULL + enumerate
+                18      LOAD_FAST                       0: steps
+                20      PRECALL                         1
+                24      CALL                            1
+                34      GET_ITER                        
+                36      FOR_ITER                        361 (to 762)
+                40      UNPACK_SEQUENCE                 2
+                44      STORE_FAST                      4: idx
+                46      STORE_FAST                      5: label
+                48      LOAD_FAST                       1: current
+                50      LOAD_FAST                       4: idx
+                52      COMPARE_OP                      2 (==)
+                58      STORE_FAST                      6: active
+                60      LOAD_FAST                       1: current
+                62      LOAD_FAST                       4: idx
+                64      COMPARE_OP                      4 (>)
+                70      STORE_FAST                      7: done
+                72      LOAD_GLOBAL                     3: NULL + rx
+                84      LOAD_ATTR                       2: box
+                94      LOAD_GLOBAL                     3: NULL + rx
+                106     LOAD_ATTR                       3: cond
+                116     LOAD_FAST                       7: done
+                118     LOAD_GLOBAL                     3: NULL + rx
+                130     LOAD_ATTR                       4: icon
+                140     LOAD_CONST                      1: 'check'
+                142     LOAD_CONST                      2: 16
+                144     LOAD_CONST                      3: 'white'
+                146     KW_NAMES                        4: ('size', 'color')
+                148     PRECALL                         3
+                152     CALL                            3
+                162     LOAD_GLOBAL                     3: NULL + rx
+                174     LOAD_ATTR                       5: text
+                184     LOAD_FAST                       4: idx
+                186     LOAD_CONST                      5: 1
+                188     BINARY_OP                       0 (+)
+                192     LOAD_CONST                      6: '2'
+                194     LOAD_CONST                      7: 'bold'
+                196     LOAD_CONST                      3: 'white'
+                198     KW_NAMES                        8: ('size', 'weight', 'color')
+                200     PRECALL                         4
+                204     CALL                            4
+                214     PRECALL                         3
+                218     CALL                            3
+                228     LOAD_CONST                      9: '30px'
+                230     LOAD_CONST                      9: '30px'
+                232     LOAD_CONST                      10: '9999px'
+                234     LOAD_CONST                      11: 'flex'
+                236     LOAD_CONST                      12: 'center'
+                238     LOAD_CONST                      12: 'center'
+                240     LOAD_GLOBAL                     3: NULL + rx
+                252     LOAD_ATTR                       3: cond
+                262     LOAD_FAST                       6: active
+                264     LOAD_FAST                       7: done
+                266     BINARY_OP                       7 (|)
+                270     LOAD_CONST                      13: 'var(--teal-9)'
+                272     LOAD_CONST                      14: 'var(--gray-6)'
+                274     PRECALL                         3
+                278     CALL                            3
+                288     LOAD_GLOBAL                     3: NULL + rx
+                300     LOAD_ATTR                       3: cond
+                310     LOAD_FAST                       6: active
+                312     LOAD_CONST                      15: '0 0 0 4px var(--teal-4)'
+                314     LOAD_CONST                      16: 'none'
+                316     PRECALL                         3
+                320     CALL                            3
+                330     LOAD_CONST                      17: 'all .15s ease'
+                332     KW_NAMES                        18: ('width', 'height', 'border_radius', 'display', 'align_items', 'justify_content', 'background', 'box_shadow', 'transition')
+                334     PRECALL                         10
+                338     CALL                            10
+                348     STORE_FAST                      8: circle
+                350     LOAD_FAST                       3: nodes
+                352     LOAD_METHOD                     6: append
+                374     LOAD_GLOBAL                     3: NULL + rx
+                386     LOAD_ATTR                       7: hstack
+                396     LOAD_FAST                       8: circle
+                398     LOAD_GLOBAL                     3: NULL + rx
+                410     LOAD_ATTR                       5: text
+                420     LOAD_FAST                       5: label
+                422     LOAD_CONST                      6: '2'
+                424     LOAD_GLOBAL                     3: NULL + rx
+                436     LOAD_ATTR                       3: cond
+                446     LOAD_FAST                       6: active
+                448     LOAD_CONST                      7: 'bold'
+                450     LOAD_CONST                      19: 'regular'
+                452     PRECALL                         3
+                456     CALL                            3
+                466     LOAD_GLOBAL                     3: NULL + rx
+                478     LOAD_ATTR                       3: cond
+                488     LOAD_FAST                       6: active
+                490     LOAD_FAST                       7: done
+                492     BINARY_OP                       7 (|)
+                496     LOAD_CONST                      20: 'var(--teal-11)'
+                498     LOAD_CONST                      21: 'var(--gray-10)'
+                500     PRECALL                         3
+                504     CALL                            3
+                514     KW_NAMES                        8: ('size', 'weight', 'color')
+                516     PRECALL                         4
+                520     CALL                            4
+                530     LOAD_CONST                      6: '2'
+                532     LOAD_CONST                      12: 'center'
+                534     LOAD_CONST                      22: 'pointer'
+                536     PUSH_NULL                       
+                538     LOAD_FAST                       2: goto
+                540     LOAD_FAST                       4: idx
+                542     PRECALL                         1
+                546     CALL                            1
+                556     KW_NAMES                        23: ('spacing', 'align', 'cursor', 'on_click')
+                558     PRECALL                         6
+                562     CALL                            6
+                572     PRECALL                         1
+                576     CALL                            1
+                586     POP_TOP                         
+                588     LOAD_FAST                       4: idx
+                590     LOAD_GLOBAL                     17: NULL + len
+                602     LOAD_FAST                       0: steps
+                604     PRECALL                         1
+                608     CALL                            1
+                618     LOAD_CONST                      5: 1
+                620     BINARY_OP                       10 (-)
+                624     COMPARE_OP                      0 (<)
+                630     POP_JUMP_FORWARD_IF_FALSE       63 (to 758)
+                632     LOAD_FAST                       3: nodes
+                634     LOAD_METHOD                     6: append
+                656     LOAD_GLOBAL                     3: NULL + rx
+                668     LOAD_ATTR                       2: box
+                678     LOAD_CONST                      24: '32px'
+                680     LOAD_CONST                      25: '2px'
+                682     LOAD_CONST                      25: '2px'
+                684     LOAD_GLOBAL                     3: NULL + rx
+                696     LOAD_ATTR                       3: cond
+                706     LOAD_FAST                       7: done
+                708     LOAD_CONST                      13: 'var(--teal-9)'
+                710     LOAD_CONST                      14: 'var(--gray-6)'
+                712     PRECALL                         3
+                716     CALL                            3
+                726     KW_NAMES                        26: ('width', 'height', 'border_radius', 'background')
+                728     PRECALL                         4
+                732     CALL                            4
+                742     PRECALL                         1
+                746     CALL                            1
+                756     POP_TOP                         
+                758     JUMP_BACKWARD                   363 (to 36)
+                762     LOAD_GLOBAL                     3: NULL + rx
+                774     LOAD_ATTR                       7: hstack
+                784     LOAD_FAST                       3: nodes
+                786     LOAD_CONST                      27: '3'
+                788     LOAD_CONST                      12: 'center'
+                790     LOAD_CONST                      28: 'wrap'
+                792     LOAD_CONST                      12: 'center'
+                794     LOAD_CONST                      29: '100%'
+                796     LOAD_CONST                      30: '6px'
+                798     LOAD_CONST                      31: ('spacing', 'align', 'wrap', 'justify', 'width', 'padding_y')
+                800     BUILD_CONST_KEY_MAP             6
+                802     CALL_FUNCTION_EX                1
+                804     RETURN_VALUE                    
+            [Exception Table]
+        False
+        'Next'
+        'arrow-right'
+        (
+            'first'
+            'next_label'
+            'next_icon'
+            'next_handler'
+        )
+        'first'
+        'bool'
+        'next_label'
+        'next_icon'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/wizard.py
+            Object Name: nav_buttons
+            Qualified Name: nav_buttons
+            Arg Count: 2
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 4
+            Stack Size: 9
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'append'
+                'rx'
+                'button'
+                'icon'
+                'hstack'
+            [Locals+Names]
+                'prev_step'
+                'next_step'
+                'first'
+                'next_label'
+                'next_icon'
+                'next_handler'
+                'btns'
+            [Constants]
+                None
+                'Back'
+                'soft'
+                'gray'
+                '3'
+                (
+                    'on_click'
+                    'variant'
+                    'color_scheme'
+                    'size'
+                )
+                16
+                (
+                    'size'
+                )
+                'teal'
+                (
+                    'on_click'
+                    'color_scheme'
+                    'size'
+                )
+                '4'
+                '20px'
+                (
+                    'spacing'
+                    'margin_top'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       BUILD_LIST                      0
+                4       STORE_FAST                      6: btns
+                6       LOAD_FAST                       2: first
+                8       POP_JUMP_FORWARD_IF_TRUE        44 (to 98)
+                10      LOAD_FAST                       6: btns
+                12      LOAD_METHOD                     0: append
+                34      LOAD_GLOBAL                     3: NULL + rx
+                46      LOAD_ATTR                       2: button
+                56      LOAD_CONST                      1: 'Back'
+                58      LOAD_FAST                       0: prev_step
+                60      LOAD_CONST                      2: 'soft'
+                62      LOAD_CONST                      3: 'gray'
+                64      LOAD_CONST                      4: '3'
+                66      KW_NAMES                        5: ('on_click', 'variant', 'color_scheme', 'size')
+                68      PRECALL                         5
+                72      CALL                            5
+                82      PRECALL                         1
+                86      CALL                            1
+                96      POP_TOP                         
+                98      LOAD_FAST                       6: btns
+                100     LOAD_METHOD                     0: append
+                122     LOAD_GLOBAL                     3: NULL + rx
+                134     LOAD_ATTR                       2: button
+                144     LOAD_FAST                       3: next_label
+                146     LOAD_GLOBAL                     3: NULL + rx
+                158     LOAD_ATTR                       3: icon
+                168     LOAD_FAST                       4: next_icon
+                170     LOAD_CONST                      6: 16
+                172     KW_NAMES                        7: ('size',)
+                174     PRECALL                         2
+                178     CALL                            2
+                188     LOAD_FAST                       5: next_handler
+                190     JUMP_IF_TRUE_OR_POP             1 (to 2)
+                192     LOAD_FAST                       1: next_step
+                194     LOAD_CONST                      8: 'teal'
+                196     LOAD_CONST                      4: '3'
+                198     KW_NAMES                        9: ('on_click', 'color_scheme', 'size')
+                200     PRECALL                         5
+                204     CALL                            5
+                214     PRECALL                         1
+                218     CALL                            1
+                228     POP_TOP                         
+                230     LOAD_GLOBAL                     3: NULL + rx
+                242     LOAD_ATTR                       4: hstack
+                252     LOAD_FAST                       6: btns
+                254     LOAD_CONST                      10: '4'
+                256     LOAD_CONST                      11: '20px'
+                258     LOAD_CONST                      12: ('spacing', 'margin_top')
+                260     BUILD_CONST_KEY_MAP             2
+                262     CALL_FUNCTION_EX                1
+                264     RETURN_VALUE                    
+            [Exception Table]
+        'auto'
+        (
+            'width'
+        )
+        'label'
+        'width'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/wizard.py
+            Object Name: labeled
+            Qualified Name: labeled
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 1
+            Stack Size: 7
+            Flags: 0x01000007 (CO_OPTIMIZED | CO_NEWLOCALS | CO_VARARGS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                'text'
+            [Locals+Names]
+                'label'
+                'width'
+                'children'
+            [Constants]
+                None
+                '1'
+                'var(--gray-10)'
+                (
+                    'size'
+                    'color'
+                )
+                'start'
+                (
+                    'spacing'
+                    'align'
+                    'width'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: vstack
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: text
+                46      LOAD_FAST                       0: label
+                48      LOAD_CONST                      1: '1'
+                50      LOAD_CONST                      2: 'var(--gray-10)'
+                52      KW_NAMES                        3: ('size', 'color')
+                54      PRECALL                         3
+                58      CALL                            3
+                68      BUILD_LIST                      1
+                70      LOAD_FAST                       2: children
+                72      LIST_EXTEND                     1
+                74      LIST_TO_TUPLE                   
+                76      LOAD_CONST                      1: '1'
+                78      LOAD_CONST                      4: 'start'
+                80      LOAD_FAST                       1: width
+                82      LOAD_CONST                      5: ('spacing', 'align', 'width')
+                84      BUILD_CONST_KEY_MAP             3
+                86      CALL_FUNCTION_EX                1
+                88      RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/wizard.py
+            Object Name: run_panel
+            Qualified Name: run_panel
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 15
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                'hstack'
+                'button'
+                'icon'
+                'run'
+                'running'
+                'stop_run'
+                'cond'
+                'status'
+                'badge'
+                'status_label'
+                'status_color'
+                'box'
+                'code_block'
+                'log_text'
+                'log'
+                'length'
+                'text'
+            [Locals+Names]
+                'S'
+            [Constants]
+                'Run/Stop buttons, status badge, and the live log. `S` is a page state.'
+                'play'
+                18
+                (
+                    'size'
+                )
+                'Run'
+                'teal'
+                '4'
+                (
+                    'on_click'
+                    'color_scheme'
+                    'size'
+                    'disabled'
+                    'loading'
+                )
+                'square'
+                16
+                'Stop'
+                'red'
+                'soft'
+                (
+                    'on_click'
+                    'color_scheme'
+                    'variant'
+                    'size'
+                    'disabled'
+                )
+                'idle'
+                '2'
+                (
+                    'color_scheme'
+                    'size'
+                )
+                '5'
+                'center'
+                (
+                    'spacing'
+                    'align'
+                )
+                'bash'
+                '100%'
+                True
+                (
+                    'language'
+                    'width'
+                    'wrap_long_lines'
+                )
+                0
+                'Output will stream here when you run.'
+                '1'
+                'var(--gray-9)'
+                '8px'
+                (
+                    'size'
+                    'color'
+                    'padding'
+                )
+                '320px'
+                'auto'
+                '1px solid var(--gray-5)'
+                'var(--gray-2)'
+                (
+                    'width'
+                    'height'
+                    'overflow'
+                    'border'
+                    'border_radius'
+                    'background'
+                )
+                'start'
+                (
+                    'spacing'
+                    'width'
+                    'align'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: vstack
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: hstack
+                46      LOAD_GLOBAL                     1: NULL + rx
+                58      LOAD_ATTR                       3: button
+                68      LOAD_GLOBAL                     1: NULL + rx
+                80      LOAD_ATTR                       4: icon
+                90      LOAD_CONST                      1: 'play'
+                92      LOAD_CONST                      2: 18
+                94      KW_NAMES                        3: ('size',)
+                96      PRECALL                         2
+                100     CALL                            2
+                110     LOAD_CONST                      4: 'Run'
+                112     LOAD_FAST                       0: S
+                114     LOAD_ATTR                       5: run
+                124     LOAD_CONST                      5: 'teal'
+                126     LOAD_CONST                      6: '4'
+                128     LOAD_FAST                       0: S
+                130     LOAD_ATTR                       6: running
+                140     LOAD_FAST                       0: S
+                142     LOAD_ATTR                       6: running
+                152     KW_NAMES                        7: ('on_click', 'color_scheme', 'size', 'disabled', 'loading')
+                154     PRECALL                         7
+                158     CALL                            7
+                168     LOAD_GLOBAL                     1: NULL + rx
+                180     LOAD_ATTR                       3: button
+                190     LOAD_GLOBAL                     1: NULL + rx
+                202     LOAD_ATTR                       4: icon
+                212     LOAD_CONST                      8: 'square'
+                214     LOAD_CONST                      9: 16
+                216     KW_NAMES                        3: ('size',)
+                218     PRECALL                         2
+                222     CALL                            2
+                232     LOAD_CONST                      10: 'Stop'
+                234     LOAD_FAST                       0: S
+                236     LOAD_ATTR                       7: stop_run
+                246     LOAD_CONST                      11: 'red'
+                248     LOAD_CONST                      12: 'soft'
+                250     LOAD_CONST                      6: '4'
+                252     LOAD_FAST                       0: S
+                254     LOAD_ATTR                       6: running
+                264     UNARY_INVERT                    
+                266     KW_NAMES                        13: ('on_click', 'color_scheme', 'variant', 'size', 'disabled')
+                268     PRECALL                         7
+                272     CALL                            7
+                282     LOAD_GLOBAL                     1: NULL + rx
+                294     LOAD_ATTR                       8: cond
+                304     LOAD_FAST                       0: S
+                306     LOAD_ATTR                       9: status
+                316     LOAD_CONST                      14: 'idle'
+                318     COMPARE_OP                      3 (!=)
+                324     LOAD_GLOBAL                     1: NULL + rx
+                336     LOAD_ATTR                       10: badge
+                346     LOAD_FAST                       0: S
+                348     LOAD_ATTR                       11: status_label
+                358     LOAD_FAST                       0: S
+                360     LOAD_ATTR                       12: status_color
+                370     LOAD_CONST                      15: '2'
+                372     KW_NAMES                        16: ('color_scheme', 'size')
+                374     PRECALL                         3
+                378     CALL                            3
+                388     PRECALL                         2
+                392     CALL                            2
+                402     LOAD_CONST                      17: '5'
+                404     LOAD_CONST                      18: 'center'
+                406     KW_NAMES                        19: ('spacing', 'align')
+                408     PRECALL                         5
+                412     CALL                            5
+                422     LOAD_GLOBAL                     1: NULL + rx
+                434     LOAD_ATTR                       13: box
+                444     LOAD_GLOBAL                     1: NULL + rx
+                456     LOAD_ATTR                       14: code_block
+                466     LOAD_FAST                       0: S
+                468     LOAD_ATTR                       15: log_text
+                478     LOAD_CONST                      20: 'bash'
+                480     LOAD_CONST                      21: '100%'
+                482     LOAD_CONST                      22: True
+                484     KW_NAMES                        23: ('language', 'width', 'wrap_long_lines')
+                486     PRECALL                         4
+                490     CALL                            4
+                500     LOAD_GLOBAL                     1: NULL + rx
+                512     LOAD_ATTR                       8: cond
+                522     LOAD_FAST                       0: S
+                524     LOAD_ATTR                       16: log
+                534     LOAD_METHOD                     17: length
+                556     PRECALL                         0
+                560     CALL                            0
+                570     LOAD_CONST                      24: 0
+                572     COMPARE_OP                      2 (==)
+                578     LOAD_GLOBAL                     1: NULL + rx
+                590     LOAD_ATTR                       18: text
+                600     LOAD_CONST                      25: 'Output will stream here when you run.'
+                602     LOAD_CONST                      26: '1'
+                604     LOAD_CONST                      27: 'var(--gray-9)'
+                606     LOAD_CONST                      28: '8px'
+                608     KW_NAMES                        29: ('size', 'color', 'padding')
+                610     PRECALL                         4
+                614     CALL                            4
+                624     PRECALL                         2
+                628     CALL                            2
+                638     LOAD_CONST                      21: '100%'
+                640     LOAD_CONST                      30: '320px'
+                642     LOAD_CONST                      31: 'auto'
+                644     LOAD_CONST                      32: '1px solid var(--gray-5)'
+                646     LOAD_CONST                      28: '8px'
+                648     LOAD_CONST                      33: 'var(--gray-2)'
+                650     KW_NAMES                        34: ('width', 'height', 'overflow', 'border', 'border_radius', 'background')
+                652     PRECALL                         8
+                656     CALL                            8
+                666     LOAD_CONST                      17: '5'
+                668     LOAD_CONST                      21: '100%'
+                670     LOAD_CONST                      35: 'start'
+                672     KW_NAMES                        36: ('spacing', 'width', 'align')
+                674     PRECALL                         5
+                678     CALL                            5
+                688     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/wizard.py
+            Object Name: dir_picker
+            Qualified Name: dir_picker
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 18
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'dialog'
+                'root'
+                'content'
+                'title'
+                'text'
+                'picker_cur'
+                'hstack'
+                'button'
+                'icon'
+                'picker_up'
+                'picker_home'
+                'scroll_area'
+                'vstack'
+                'foreach'
+                'picker_dirs'
+                'close'
+                'picker_select'
+                'picker_open'
+                'set_picker_open'
+            [Locals+Names]
+                'S'
+            [Constants]
+                'Directory browser dialog bound to a WizardMixin-derived state `S`.'
+                'Select a directory'
+                'monospace'
+                '1'
+                'var(--gray-10)'
+                'break-all'
+                (
+                    'font_family'
+                    'size'
+                    'color'
+                    'word_break'
+                )
+                'Up'
+                'arrow-up'
+                14
+                (
+                    'size'
+                )
+                'soft'
+                '2'
+                (
+                    'on_click'
+                    'variant'
+                    'size'
+                )
+                'Home'
+                'house'
+                '8px'
+                (
+                    'spacing'
+                    'margin_y'
+                )
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/wizard.py
+                    Object Name: <lambda>
+                    Qualified Name: dir_picker.<locals>.<lambda>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 13
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'rx'
+                        'hstack'
+                        'icon'
+                        'text'
+                        'picker_enter'
+                    [Locals+Names]
+                        'd'
+                        'S'
+                    [Constants]
+                        None
+                        'folder'
+                        'var(--amber-9)'
+                        18
+                        (
+                            'color'
+                            'size'
+                        )
+                        'monospace'
+                        '2'
+                        (
+                            'font_family'
+                            'size'
+                        )
+                        'center'
+                        '100%'
+                        '6px 8px'
+                        '6px'
+                        'pointer'
+                        'background'
+                        'var(--gray-3)'
+                        (
+                            'spacing'
+                            'align'
+                            'width'
+                            'padding'
+                            'border_radius'
+                            'cursor'
+                            'on_click'
+                            '_hover'
+                        )
+                    [Disassembly]
+                        0       COPY_FREE_VARS                  1
+                        2       RESUME                          0
+                        4       LOAD_GLOBAL                     1: NULL + rx
+                        16      LOAD_ATTR                       1: hstack
+                        26      LOAD_GLOBAL                     1: NULL + rx
+                        38      LOAD_ATTR                       2: icon
+                        48      LOAD_CONST                      1: 'folder'
+                        50      LOAD_CONST                      2: 'var(--amber-9)'
+                        52      LOAD_CONST                      3: 18
+                        54      KW_NAMES                        4: ('color', 'size')
+                        56      PRECALL                         3
+                        60      CALL                            3
+                        70      LOAD_GLOBAL                     1: NULL + rx
+                        82      LOAD_ATTR                       3: text
+                        92      LOAD_FAST                       0: d
+                        94      LOAD_CONST                      5: 'monospace'
+                        96      LOAD_CONST                      6: '2'
+                        98      KW_NAMES                        7: ('font_family', 'size')
+                        100     PRECALL                         3
+                        104     CALL                            3
+                        114     LOAD_CONST                      6: '2'
+                        116     LOAD_CONST                      8: 'center'
+                        118     LOAD_CONST                      9: '100%'
+                        120     LOAD_CONST                      10: '6px 8px'
+                        122     LOAD_CONST                      11: '6px'
+                        124     LOAD_CONST                      12: 'pointer'
+                        126     LOAD_DEREF                      1: S
+                        128     LOAD_METHOD                     4: picker_enter
+                        150     LOAD_FAST                       0: d
+                        152     PRECALL                         1
+                        156     CALL                            1
+                        166     LOAD_CONST                      13: 'background'
+                        168     LOAD_CONST                      14: 'var(--gray-3)'
+                        170     BUILD_MAP                       1
+                        172     KW_NAMES                        15: ('spacing', 'align', 'width', 'padding', 'border_radius', 'cursor', 'on_click', '_hover')
+                        174     PRECALL                         10
+                        178     CALL                            10
+                        188     RETURN_VALUE                    
+                    [Exception Table]
+                '0'
+                '100%'
+                (
+                    'spacing'
+                    'width'
+                )
+                'auto'
+                'vertical'
+                '260px'
+                '1px solid var(--gray-5)'
+                '4px'
+                (
+                    'type'
+                    'scrollbars'
+                    'height'
+                    'border'
+                    'border_radius'
+                    'padding'
+                )
+                'Cancel'
+                'gray'
+                (
+                    'variant'
+                    'color_scheme'
+                )
+                'Select this folder'
+                'check'
+                16
+                'teal'
+                (
+                    'on_click'
+                    'color_scheme'
+                )
+                'end'
+                '12px'
+                (
+                    'justify'
+                    'spacing'
+                    'margin_top'
+                    'width'
+                )
+                '540px'
+                (
+                    'max_width'
+                )
+                (
+                    'open'
+                    'on_open_change'
+                )
+            [Disassembly]
+                0       MAKE_CELL                       0: S
+                2       RESUME                          0
+                4       LOAD_GLOBAL                     0: rx
+                16      LOAD_ATTR                       1: dialog
+                26      LOAD_METHOD                     2: root
+                48      LOAD_GLOBAL                     0: rx
+                60      LOAD_ATTR                       1: dialog
+                70      LOAD_METHOD                     3: content
+                92      LOAD_GLOBAL                     0: rx
+                104     LOAD_ATTR                       1: dialog
+                114     LOAD_METHOD                     4: title
+                136     LOAD_CONST                      1: 'Select a directory'
+                138     PRECALL                         1
+                142     CALL                            1
+                152     LOAD_GLOBAL                     1: NULL + rx
+                164     LOAD_ATTR                       5: text
+                174     LOAD_DEREF                      0: S
+                176     LOAD_ATTR                       6: picker_cur
+                186     LOAD_CONST                      2: 'monospace'
+                188     LOAD_CONST                      3: '1'
+                190     LOAD_CONST                      4: 'var(--gray-10)'
+                192     LOAD_CONST                      5: 'break-all'
+                194     KW_NAMES                        6: ('font_family', 'size', 'color', 'word_break')
+                196     PRECALL                         5
+                200     CALL                            5
+                210     LOAD_GLOBAL                     1: NULL + rx
+                222     LOAD_ATTR                       7: hstack
+                232     LOAD_GLOBAL                     1: NULL + rx
+                244     LOAD_ATTR                       8: button
+                254     LOAD_CONST                      7: 'Up'
+                256     LOAD_GLOBAL                     1: NULL + rx
+                268     LOAD_ATTR                       9: icon
+                278     LOAD_CONST                      8: 'arrow-up'
+                280     LOAD_CONST                      9: 14
+                282     KW_NAMES                        10: ('size',)
+                284     PRECALL                         2
+                288     CALL                            2
+                298     LOAD_DEREF                      0: S
+                300     LOAD_ATTR                       10: picker_up
+                310     LOAD_CONST                      11: 'soft'
+                312     LOAD_CONST                      12: '2'
+                314     KW_NAMES                        13: ('on_click', 'variant', 'size')
+                316     PRECALL                         5
+                320     CALL                            5
+                330     LOAD_GLOBAL                     1: NULL + rx
+                342     LOAD_ATTR                       8: button
+                352     LOAD_CONST                      14: 'Home'
+                354     LOAD_GLOBAL                     1: NULL + rx
+                366     LOAD_ATTR                       9: icon
+                376     LOAD_CONST                      15: 'house'
+                378     LOAD_CONST                      9: 14
+                380     KW_NAMES                        10: ('size',)
+                382     PRECALL                         2
+                386     CALL                            2
+                396     LOAD_DEREF                      0: S
+                398     LOAD_ATTR                       11: picker_home
+                408     LOAD_CONST                      11: 'soft'
+                410     LOAD_CONST                      12: '2'
+                412     KW_NAMES                        13: ('on_click', 'variant', 'size')
+                414     PRECALL                         5
+                418     CALL                            5
+                428     LOAD_CONST                      12: '2'
+                430     LOAD_CONST                      16: '8px'
+                432     KW_NAMES                        17: ('spacing', 'margin_y')
+                434     PRECALL                         4
+                438     CALL                            4
+                448     LOAD_GLOBAL                     1: NULL + rx
+                460     LOAD_ATTR                       12: scroll_area
+                470     LOAD_GLOBAL                     1: NULL + rx
+                482     LOAD_ATTR                       13: vstack
+                492     LOAD_GLOBAL                     1: NULL + rx
+                504     LOAD_ATTR                       14: foreach
+                514     LOAD_DEREF                      0: S
+                516     LOAD_ATTR                       15: picker_dirs
+                526     LOAD_CLOSURE                    0: S
+                528     BUILD_TUPLE                     1
+                530     LOAD_CONST                      18: <CODE> <lambda>
+                532     MAKE_FUNCTION                   8
+                534     PRECALL                         2
+                538     CALL                            2
+                548     LOAD_CONST                      19: '0'
+                550     LOAD_CONST                      20: '100%'
+                552     KW_NAMES                        21: ('spacing', 'width')
+                554     PRECALL                         3
+                558     CALL                            3
+                568     LOAD_CONST                      22: 'auto'
+                570     LOAD_CONST                      23: 'vertical'
+                572     LOAD_CONST                      24: '260px'
+                574     LOAD_CONST                      25: '1px solid var(--gray-5)'
+                576     LOAD_CONST                      16: '8px'
+                578     LOAD_CONST                      26: '4px'
+                580     KW_NAMES                        27: ('type', 'scrollbars', 'height', 'border', 'border_radius', 'padding')
+                582     PRECALL                         7
+                586     CALL                            7
+                596     LOAD_GLOBAL                     1: NULL + rx
+                608     LOAD_ATTR                       7: hstack
+                618     LOAD_GLOBAL                     0: rx
+                630     LOAD_ATTR                       1: dialog
+                640     LOAD_METHOD                     16: close
+                662     LOAD_GLOBAL                     1: NULL + rx
+                674     LOAD_ATTR                       8: button
+                684     LOAD_CONST                      28: 'Cancel'
+                686     LOAD_CONST                      11: 'soft'
+                688     LOAD_CONST                      29: 'gray'
+                690     KW_NAMES                        30: ('variant', 'color_scheme')
+                692     PRECALL                         3
+                696     CALL                            3
+                706     PRECALL                         1
+                710     CALL                            1
+                720     LOAD_GLOBAL                     1: NULL + rx
+                732     LOAD_ATTR                       8: button
+                742     LOAD_CONST                      31: 'Select this folder'
+                744     LOAD_GLOBAL                     1: NULL + rx
+                756     LOAD_ATTR                       9: icon
+                766     LOAD_CONST                      32: 'check'
+                768     LOAD_CONST                      33: 16
+                770     KW_NAMES                        10: ('size',)
+                772     PRECALL                         2
+                776     CALL                            2
+                786     LOAD_DEREF                      0: S
+                788     LOAD_ATTR                       17: picker_select
+                798     LOAD_CONST                      34: 'teal'
+                800     KW_NAMES                        35: ('on_click', 'color_scheme')
+                802     PRECALL                         4
+                806     CALL                            4
+                816     LOAD_CONST                      36: 'end'
+                818     LOAD_CONST                      12: '2'
+                820     LOAD_CONST                      37: '12px'
+                822     LOAD_CONST                      20: '100%'
+                824     KW_NAMES                        38: ('justify', 'spacing', 'margin_top', 'width')
+                826     PRECALL                         6
+                830     CALL                            6
+                840     LOAD_CONST                      39: '540px'
+                842     KW_NAMES                        40: ('max_width',)
+                844     PRECALL                         6
+                848     CALL                            6
+                858     LOAD_DEREF                      0: S
+                860     LOAD_ATTR                       18: picker_open
+                870     LOAD_DEREF                      0: S
+                872     LOAD_ATTR                       19: set_picker_open
+                882     KW_NAMES                        41: ('open', 'on_open_change')
+                884     PRECALL                         3
+                888     CALL                            3
+                898     RETURN_VALUE                    
+            [Exception Table]
+        'outdir'
+        True
+        'target'
+        'with_rescan'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/wizard.py
+            Object Name: dir_input
+            Qualified Name: dir_input
+            Arg Count: 4
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 8
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'outdir'
+                'rx'
+                'input'
+                'button'
+                'icon'
+                'open_picker_for'
+                'append'
+                'scan'
+                'hstack'
+            [Locals+Names]
+                'S'
+                'target'
+                'value'
+                'with_rescan'
+                'val'
+                'btns'
+            [Constants]
+                'Read-only directory input + Browse (+ optional Rescan). No dialog.'
+                None
+                True
+                'monospace'
+                '100%'
+                '3'
+                (
+                    'value'
+                    'read_only'
+                    'font_family'
+                    'width'
+                    'size'
+                )
+                'folder-open'
+                16
+                (
+                    'size'
+                )
+                'Browse…'
+                'teal'
+                (
+                    'on_click'
+                    'color_scheme'
+                    'size'
+                )
+                'refresh-cw'
+                'soft'
+                (
+                    'on_click'
+                    'variant'
+                    'size'
+                )
+                '2'
+                'center'
+                (
+                    'spacing'
+                    'width'
+                    'align'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_FAST                       2: value
+                4       POP_JUMP_FORWARD_IF_NOT_NONE    7 (to 20)
+                6       LOAD_FAST                       0: S
+                8       LOAD_ATTR                       0: outdir
+                18      JUMP_FORWARD                    1 (to 22)
+                20      LOAD_FAST                       2: value
+                22      STORE_FAST                      4: val
+                24      LOAD_GLOBAL                     3: NULL + rx
+                36      LOAD_ATTR                       2: input
+                46      LOAD_FAST                       4: val
+                48      LOAD_CONST                      2: True
+                50      LOAD_CONST                      3: 'monospace'
+                52      LOAD_CONST                      4: '100%'
+                54      LOAD_CONST                      5: '3'
+                56      KW_NAMES                        6: ('value', 'read_only', 'font_family', 'width', 'size')
+                58      PRECALL                         5
+                62      CALL                            5
+                72      LOAD_GLOBAL                     3: NULL + rx
+                84      LOAD_ATTR                       3: button
+                94      LOAD_GLOBAL                     3: NULL + rx
+                106     LOAD_ATTR                       4: icon
+                116     LOAD_CONST                      7: 'folder-open'
+                118     LOAD_CONST                      8: 16
+                120     KW_NAMES                        9: ('size',)
+                122     PRECALL                         2
+                126     CALL                            2
+                136     LOAD_CONST                      10: 'Browse…'
+                138     LOAD_FAST                       0: S
+                140     LOAD_METHOD                     5: open_picker_for
+                162     LOAD_FAST                       1: target
+                164     PRECALL                         1
+                168     CALL                            1
+                178     LOAD_CONST                      11: 'teal'
+                180     LOAD_CONST                      5: '3'
+                182     KW_NAMES                        12: ('on_click', 'color_scheme', 'size')
+                184     PRECALL                         5
+                188     CALL                            5
+                198     BUILD_LIST                      2
+                200     STORE_FAST                      5: btns
+                202     LOAD_FAST                       3: with_rescan
+                204     POP_JUMP_FORWARD_IF_FALSE       68 (to 342)
+                206     LOAD_FAST                       5: btns
+                208     LOAD_METHOD                     6: append
+                230     LOAD_GLOBAL                     3: NULL + rx
+                242     LOAD_ATTR                       3: button
+                252     LOAD_GLOBAL                     3: NULL + rx
+                264     LOAD_ATTR                       4: icon
+                274     LOAD_CONST                      13: 'refresh-cw'
+                276     LOAD_CONST                      8: 16
+                278     KW_NAMES                        9: ('size',)
+                280     PRECALL                         2
+                284     CALL                            2
+                294     LOAD_FAST                       0: S
+                296     LOAD_ATTR                       7: scan
+                306     LOAD_CONST                      14: 'soft'
+                308     LOAD_CONST                      5: '3'
+                310     KW_NAMES                        15: ('on_click', 'variant', 'size')
+                312     PRECALL                         4
+                316     CALL                            4
+                326     PRECALL                         1
+                330     CALL                            1
+                340     POP_TOP                         
+                342     LOAD_GLOBAL                     3: NULL + rx
+                354     LOAD_ATTR                       8: hstack
+                364     LOAD_FAST                       5: btns
+                366     LOAD_CONST                      16: '2'
+                368     LOAD_CONST                      4: '100%'
+                370     LOAD_CONST                      17: 'center'
+                372     LOAD_CONST                      18: ('spacing', 'width', 'align')
+                374     BUILD_CONST_KEY_MAP             3
+                376     CALL_FUNCTION_EX                1
+                378     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/wizard.py
+            Object Name: dir_field
+            Qualified Name: dir_field
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 6
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                'dir_input'
+                'dir_picker'
+            [Locals+Names]
+                'S'
+            [Constants]
+                'Output-dir input + the picker dialog (single-picker pages).'
+                'outdir'
+                '100%'
+                (
+                    'width'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: vstack
+                24      LOAD_GLOBAL                     5: NULL + dir_input
+                36      LOAD_FAST                       0: S
+                38      LOAD_CONST                      1: 'outdir'
+                40      PRECALL                         2
+                44      CALL                            2
+                54      LOAD_GLOBAL                     7: NULL + dir_picker
+                66      LOAD_FAST                       0: S
+                68      PRECALL                         1
+                72      CALL                            1
+                82      LOAD_CONST                      2: '100%'
+                84      KW_NAMES                        3: ('width',)
+                86      PRECALL                         3
+                90      CALL                            3
+                100     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/wizard.py
+            Object Name: samples_field
+            Qualified Name: samples_field
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 13
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                'hstack'
+                'text'
+                'cond'
+                'has_samples'
+                'n_selected'
+                'n_samples'
+                'spacer'
+                'button'
+                'select_all_samples'
+                'clear_samples'
+                'scroll_area'
+                'flex'
+                'foreach'
+                'samples'
+            [Locals+Names]
+                'S'
+            [Constants]
+                'Discovered samples as toggle chips + select-all/clear.'
+                ' / '
+                ' samples selected'
+                'No samples found in this folder.'
+                '2'
+                'var(--gray-10)'
+                (
+                    'size'
+                    'color'
+                )
+                'All'
+                'soft'
+                '1'
+                (
+                    'on_click'
+                    'variant'
+                    'size'
+                )
+                'None'
+                '100%'
+                'center'
+                (
+                    'width'
+                    'align'
+                )
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/wizard.py
+                    Object Name: <lambda>
+                    Qualified Name: samples_field.<locals>.<lambda>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 10
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'rx'
+                        'badge'
+                        'cond'
+                        'selected'
+                        'contains'
+                        'toggle_sample'
+                    [Locals+Names]
+                        's'
+                        'S'
+                    [Constants]
+                        None
+                        'teal'
+                        'gray'
+                        'solid'
+                        'soft'
+                        '2'
+                        'pointer'
+                        (
+                            'color_scheme'
+                            'variant'
+                            'size'
+                            'cursor'
+                            'on_click'
+                        )
+                    [Disassembly]
+                        0       COPY_FREE_VARS                  1
+                        2       RESUME                          0
+                        4       LOAD_GLOBAL                     1: NULL + rx
+                        16      LOAD_ATTR                       1: badge
+                        26      LOAD_FAST                       0: s
+                        28      LOAD_GLOBAL                     1: NULL + rx
+                        40      LOAD_ATTR                       2: cond
+                        50      LOAD_DEREF                      1: S
+                        52      LOAD_ATTR                       3: selected
+                        62      LOAD_METHOD                     4: contains
+                        84      LOAD_FAST                       0: s
+                        86      PRECALL                         1
+                        90      CALL                            1
+                        100     LOAD_CONST                      1: 'teal'
+                        102     LOAD_CONST                      2: 'gray'
+                        104     PRECALL                         3
+                        108     CALL                            3
+                        118     LOAD_GLOBAL                     1: NULL + rx
+                        130     LOAD_ATTR                       2: cond
+                        140     LOAD_DEREF                      1: S
+                        142     LOAD_ATTR                       3: selected
+                        152     LOAD_METHOD                     4: contains
+                        174     LOAD_FAST                       0: s
+                        176     PRECALL                         1
+                        180     CALL                            1
+                        190     LOAD_CONST                      3: 'solid'
+                        192     LOAD_CONST                      4: 'soft'
+                        194     PRECALL                         3
+                        198     CALL                            3
+                        208     LOAD_CONST                      5: '2'
+                        210     LOAD_CONST                      6: 'pointer'
+                        212     LOAD_DEREF                      1: S
+                        214     LOAD_METHOD                     5: toggle_sample
+                        236     LOAD_FAST                       0: s
+                        238     PRECALL                         1
+                        242     CALL                            1
+                        252     KW_NAMES                        7: ('color_scheme', 'variant', 'size', 'cursor', 'on_click')
+                        254     PRECALL                         6
+                        258     CALL                            6
+                        268     RETURN_VALUE                    
+                    [Exception Table]
+                'wrap'
+                '3'
+                (
+                    'wrap'
+                    'spacing'
+                )
+                'auto'
+                'vertical'
+                '170px'
+                (
+                    'type'
+                    'scrollbars'
+                    'max_height'
+                    'width'
+                )
+                'start'
+                (
+                    'spacing'
+                    'width'
+                    'align'
+                )
+            [Disassembly]
+                0       MAKE_CELL                       0: S
+                2       RESUME                          0
+                4       LOAD_GLOBAL                     1: NULL + rx
+                16      LOAD_ATTR                       1: vstack
+                26      LOAD_GLOBAL                     1: NULL + rx
+                38      LOAD_ATTR                       2: hstack
+                48      LOAD_GLOBAL                     1: NULL + rx
+                60      LOAD_ATTR                       3: text
+                70      LOAD_GLOBAL                     1: NULL + rx
+                82      LOAD_ATTR                       4: cond
+                92      LOAD_DEREF                      0: S
+                94      LOAD_ATTR                       5: has_samples
+                104     LOAD_DEREF                      0: S
+                106     LOAD_ATTR                       6: n_selected
+                116     FORMAT_VALUE                    0 (FVC_NONE)
+                118     LOAD_CONST                      1: ' / '
+                120     LOAD_DEREF                      0: S
+                122     LOAD_ATTR                       7: n_samples
+                132     FORMAT_VALUE                    0 (FVC_NONE)
+                134     LOAD_CONST                      2: ' samples selected'
+                136     BUILD_STRING                    4
+                138     LOAD_CONST                      3: 'No samples found in this folder.'
+                140     PRECALL                         3
+                144     CALL                            3
+                154     LOAD_CONST                      4: '2'
+                156     LOAD_CONST                      5: 'var(--gray-10)'
+                158     KW_NAMES                        6: ('size', 'color')
+                160     PRECALL                         3
+                164     CALL                            3
+                174     LOAD_GLOBAL                     1: NULL + rx
+                186     LOAD_ATTR                       8: spacer
+                196     PRECALL                         0
+                200     CALL                            0
+                210     LOAD_GLOBAL                     1: NULL + rx
+                222     LOAD_ATTR                       9: button
+                232     LOAD_CONST                      7: 'All'
+                234     LOAD_DEREF                      0: S
+                236     LOAD_ATTR                       10: select_all_samples
+                246     LOAD_CONST                      8: 'soft'
+                248     LOAD_CONST                      9: '1'
+                250     KW_NAMES                        10: ('on_click', 'variant', 'size')
+                252     PRECALL                         4
+                256     CALL                            4
+                266     LOAD_GLOBAL                     1: NULL + rx
+                278     LOAD_ATTR                       9: button
+                288     LOAD_CONST                      11: 'None'
+                290     LOAD_DEREF                      0: S
+                292     LOAD_ATTR                       11: clear_samples
+                302     LOAD_CONST                      8: 'soft'
+                304     LOAD_CONST                      9: '1'
+                306     KW_NAMES                        10: ('on_click', 'variant', 'size')
+                308     PRECALL                         4
+                312     CALL                            4
+                322     LOAD_CONST                      12: '100%'
+                324     LOAD_CONST                      13: 'center'
+                326     KW_NAMES                        14: ('width', 'align')
+                328     PRECALL                         6
+                332     CALL                            6
+                342     LOAD_GLOBAL                     1: NULL + rx
+                354     LOAD_ATTR                       12: scroll_area
+                364     LOAD_GLOBAL                     1: NULL + rx
+                376     LOAD_ATTR                       13: flex
+                386     LOAD_GLOBAL                     1: NULL + rx
+                398     LOAD_ATTR                       14: foreach
+                408     LOAD_DEREF                      0: S
+                410     LOAD_ATTR                       15: samples
+                420     LOAD_CLOSURE                    0: S
+                422     BUILD_TUPLE                     1
+                424     LOAD_CONST                      15: <CODE> <lambda>
+                426     MAKE_FUNCTION                   8
+                428     PRECALL                         2
+                432     CALL                            2
+                442     LOAD_CONST                      16: 'wrap'
+                444     LOAD_CONST                      17: '3'
+                446     KW_NAMES                        18: ('wrap', 'spacing')
+                448     PRECALL                         3
+                452     CALL                            3
+                462     LOAD_CONST                      19: 'auto'
+                464     LOAD_CONST                      20: 'vertical'
+                466     LOAD_CONST                      21: '170px'
+                468     LOAD_CONST                      12: '100%'
+                470     KW_NAMES                        22: ('type', 'scrollbars', 'max_height', 'width')
+                472     PRECALL                         5
+                476     CALL                            5
+                486     LOAD_CONST                      17: '3'
+                488     LOAD_CONST                      12: '100%'
+                490     LOAD_CONST                      23: 'start'
+                492     KW_NAMES                        24: ('spacing', 'width', 'align')
+                494     PRECALL                         5
+                498     CALL                            5
+                508     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/wizard.py
+            Object Name: merged_panel
+            Qualified Name: merged_panel
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 15
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'card'
+                'hstack'
+                'help_section'
+                'spacer'
+                'button'
+                'icon'
+                'refresh_merged'
+                'cond'
+                'merged'
+                'length'
+                'vstack'
+                'foreach'
+                'text'
+                'merged_dir'
+            [Locals+Names]
+                'S'
+            [Constants]
+                'Lists merged-results TSVs from the latest bactopia-runs (with a Refresh).'
+                'merged-results (latest run)'
+                'merged'
+                '3'
+                (
+                    'size'
+                )
+                'refresh-cw'
+                14
+                'Refresh'
+                'soft'
+                '1'
+                (
+                    'on_click'
+                    'variant'
+                    'size'
+                )
+                '100%'
+                'center'
+                (
+                    'width'
+                    'align'
+                )
+                0
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/wizard.py
+                    Object Name: <lambda>
+                    Qualified Name: merged_panel.<locals>.<lambda>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 8
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'rx'
+                        'hstack'
+                        'icon'
+                        'text'
+                    [Locals+Names]
+                        'f'
+                    [Constants]
+                        None
+                        'file-text'
+                        16
+                        'var(--teal-9)'
+                        (
+                            'size'
+                            'color'
+                        )
+                        'monospace'
+                        '2'
+                        (
+                            'font_family'
+                            'size'
+                        )
+                        'center'
+                        (
+                            'spacing'
+                            'align'
+                        )
+                    [Disassembly]
+                        0       RESUME                          0
+                        2       LOAD_GLOBAL                     1: NULL + rx
+                        14      LOAD_ATTR                       1: hstack
+                        24      LOAD_GLOBAL                     1: NULL + rx
+                        36      LOAD_ATTR                       2: icon
+                        46      LOAD_CONST                      1: 'file-text'
+                        48      LOAD_CONST                      2: 16
+                        50      LOAD_CONST                      3: 'var(--teal-9)'
+                        52      KW_NAMES                        4: ('size', 'color')
+                        54      PRECALL                         3
+                        58      CALL                            3
+                        68      LOAD_GLOBAL                     1: NULL + rx
+                        80      LOAD_ATTR                       3: text
+                        90      LOAD_FAST                       0: f
+                        92      LOAD_CONST                      5: 'monospace'
+                        94      LOAD_CONST                      6: '2'
+                        96      KW_NAMES                        7: ('font_family', 'size')
+                        98      PRECALL                         3
+                        102     CALL                            3
+                        112     LOAD_CONST                      6: '2'
+                        114     LOAD_CONST                      8: 'center'
+                        116     KW_NAMES                        9: ('spacing', 'align')
+                        118     PRECALL                         4
+                        122     CALL                            4
+                        132     RETURN_VALUE                    
+                    [Exception Table]
+                'var(--gray-9)'
+                'monospace'
+                (
+                    'size'
+                    'color'
+                    'font_family'
+                )
+                'start'
+                (
+                    'spacing'
+                    'align'
+                    'width'
+                )
+                'No merged-results yet. Run a workflow, then Refresh.'
+                (
+                    'size'
+                    'color'
+                )
+                (
+                    'width'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: card
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: hstack
+                46      LOAD_GLOBAL                     7: NULL + help_section
+                58      LOAD_CONST                      1: 'merged-results (latest run)'
+                60      LOAD_CONST                      2: 'merged'
+                62      LOAD_CONST                      3: '3'
+                64      KW_NAMES                        4: ('size',)
+                66      PRECALL                         3
+                70      CALL                            3
+                80      LOAD_GLOBAL                     1: NULL + rx
+                92      LOAD_ATTR                       4: spacer
+                102     PRECALL                         0
+                106     CALL                            0
+                116     LOAD_GLOBAL                     1: NULL + rx
+                128     LOAD_ATTR                       5: button
+                138     LOAD_GLOBAL                     1: NULL + rx
+                150     LOAD_ATTR                       6: icon
+                160     LOAD_CONST                      5: 'refresh-cw'
+                162     LOAD_CONST                      6: 14
+                164     KW_NAMES                        4: ('size',)
+                166     PRECALL                         2
+                170     CALL                            2
+                180     LOAD_CONST                      7: 'Refresh'
+                182     LOAD_FAST                       0: S
+                184     LOAD_ATTR                       7: refresh_merged
+                194     LOAD_CONST                      8: 'soft'
+                196     LOAD_CONST                      9: '1'
+                198     KW_NAMES                        10: ('on_click', 'variant', 'size')
+                200     PRECALL                         5
+                204     CALL                            5
+                214     LOAD_CONST                      11: '100%'
+                216     LOAD_CONST                      12: 'center'
+                218     KW_NAMES                        13: ('width', 'align')
+                220     PRECALL                         5
+                224     CALL                            5
+                234     LOAD_GLOBAL                     1: NULL + rx
+                246     LOAD_ATTR                       8: cond
+                256     LOAD_FAST                       0: S
+                258     LOAD_ATTR                       9: merged
+                268     LOAD_METHOD                     10: length
+                290     PRECALL                         0
+                294     CALL                            0
+                304     LOAD_CONST                      14: 0
+                306     COMPARE_OP                      4 (>)
+                312     LOAD_GLOBAL                     1: NULL + rx
+                324     LOAD_ATTR                       11: vstack
+                334     LOAD_GLOBAL                     1: NULL + rx
+                346     LOAD_ATTR                       12: foreach
+                356     LOAD_FAST                       0: S
+                358     LOAD_ATTR                       9: merged
+                368     LOAD_CONST                      15: <CODE> <lambda>
+                370     MAKE_FUNCTION                   0
+                372     PRECALL                         2
+                376     CALL                            2
+                386     LOAD_GLOBAL                     1: NULL + rx
+                398     LOAD_ATTR                       13: text
+                408     LOAD_FAST                       0: S
+                410     LOAD_ATTR                       14: merged_dir
+                420     LOAD_CONST                      9: '1'
+                422     LOAD_CONST                      16: 'var(--gray-9)'
+                424     LOAD_CONST                      17: 'monospace'
+                426     KW_NAMES                        18: ('size', 'color', 'font_family')
+                428     PRECALL                         4
+                432     CALL                            4
+                442     LOAD_CONST                      9: '1'
+                444     LOAD_CONST                      19: 'start'
+                446     LOAD_CONST                      11: '100%'
+                448     KW_NAMES                        20: ('spacing', 'align', 'width')
+                450     PRECALL                         5
+                454     CALL                            5
+                464     LOAD_GLOBAL                     1: NULL + rx
+                476     LOAD_ATTR                       13: text
+                486     LOAD_CONST                      21: 'No merged-results yet. Run a workflow, then Refresh.'
+                488     LOAD_CONST                      9: '1'
+                490     LOAD_CONST                      16: 'var(--gray-9)'
+                492     KW_NAMES                        22: ('size', 'color')
+                494     PRECALL                         3
+                498     CALL                            3
+                508     PRECALL                         3
+                512     CALL                            3
+                522     LOAD_CONST                      11: '100%'
+                524     KW_NAMES                        23: ('width',)
+                526     PRECALL                         3
+                530     CALL                            3
+                540     RETURN_VALUE                    
+            [Exception Table]
+        ''
+        'lo'
+        'int'
+        'hi'
+        'suffix'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/wizard.py
+            Object Name: _slider_field
+            Qualified Name: _slider_field
+            Arg Count: 6
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 13
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                'hstack'
+                'text'
+                'badge'
+                'cond'
+                'to_string'
+                'slider'
+            [Locals+Names]
+                'label'
+                'value_var'
+                'handler'
+                'lo'
+                'hi'
+                'suffix'
+            [Constants]
+                None
+                '1'
+                'var(--gray-10)'
+                (
+                    'size'
+                    'color'
+                )
+                0
+                '∞'
+                'teal'
+                'soft'
+                (
+                    'color_scheme'
+                    'variant'
+                )
+                '2'
+                'center'
+                (
+                    'spacing'
+                    'align'
+                )
+                1
+                '240px'
+                (
+                    'value'
+                    'min'
+                    'max'
+                    'step'
+                    'on_change'
+                    'color_scheme'
+                    'width'
+                )
+                'start'
+                (
+                    'spacing'
+                    'align'
+                    'width'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: vstack
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: hstack
+                46      LOAD_GLOBAL                     1: NULL + rx
+                58      LOAD_ATTR                       3: text
+                68      LOAD_FAST                       0: label
+                70      LOAD_CONST                      1: '1'
+                72      LOAD_CONST                      2: 'var(--gray-10)'
+                74      KW_NAMES                        3: ('size', 'color')
+                76      PRECALL                         3
+                80      CALL                            3
+                90      LOAD_GLOBAL                     1: NULL + rx
+                102     LOAD_ATTR                       4: badge
+                112     LOAD_GLOBAL                     1: NULL + rx
+                124     LOAD_ATTR                       5: cond
+                134     LOAD_FAST                       1: value_var
+                136     LOAD_CONST                      4: 0
+                138     COMPARE_OP                      2 (==)
+                144     LOAD_CONST                      5: '∞'
+                146     LOAD_FAST                       1: value_var
+                148     LOAD_METHOD                     6: to_string
+                170     PRECALL                         0
+                174     CALL                            0
+                184     LOAD_FAST                       5: suffix
+                186     BINARY_OP                       0 (+)
+                190     PRECALL                         3
+                194     CALL                            3
+                204     LOAD_CONST                      6: 'teal'
+                206     LOAD_CONST                      7: 'soft'
+                208     KW_NAMES                        8: ('color_scheme', 'variant')
+                210     PRECALL                         3
+                214     CALL                            3
+                224     LOAD_CONST                      9: '2'
+                226     LOAD_CONST                      10: 'center'
+                228     KW_NAMES                        11: ('spacing', 'align')
+                230     PRECALL                         4
+                234     CALL                            4
+                244     LOAD_GLOBAL                     1: NULL + rx
+                256     LOAD_ATTR                       7: slider
+                266     LOAD_FAST                       1: value_var
+                268     BUILD_LIST                      1
+                270     LOAD_FAST                       3: lo
+                272     LOAD_FAST                       4: hi
+                274     LOAD_CONST                      12: 1
+                276     LOAD_FAST                       2: handler
+                278     LOAD_CONST                      6: 'teal'
+                280     LOAD_CONST                      13: '240px'
+                282     KW_NAMES                        14: ('value', 'min', 'max', 'step', 'on_change', 'color_scheme', 'width')
+                284     PRECALL                         7
+                288     CALL                            7
+                298     LOAD_CONST                      9: '2'
+                300     LOAD_CONST                      15: 'start'
+                302     LOAD_CONST                      13: '240px'
+                304     KW_NAMES                        16: ('spacing', 'align', 'width')
+                306     PRECALL                         5
+                310     CALL                            5
+                320     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/wizard.py
+            Object Name: general_params
+            Qualified Name: general_params
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 13
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'flex'
+                'labeled'
+                'select'
+                'profile'
+                'set_profile'
+                '_slider_field'
+                'threads'
+                'set_threads'
+                '_MAX_CPUS'
+                'memory'
+                'set_memory'
+                'switch'
+                'resume'
+                'set_resume'
+            [Locals+Names]
+                'S'
+            [Constants]
+                None
+                '-profile'
+                (
+                    'docker'
+                    'singularity'
+                    'standard'
+                )
+                '3'
+                (
+                    'value'
+                    'on_change'
+                    'size'
+                )
+                '--max_cpus (0 = ∞)'
+                0
+                '--max_memory (0 = ∞)'
+                256
+                ' GB'
+                '-resume'
+                'teal'
+                (
+                    'checked'
+                    'on_change'
+                    'color_scheme'
+                )
+                'wrap'
+                '5'
+                'end'
+                '100%'
+                (
+                    'wrap'
+                    'spacing'
+                    'align'
+                    'width'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: flex
+                24      LOAD_GLOBAL                     5: NULL + labeled
+                36      LOAD_CONST                      1: '-profile'
+                38      LOAD_GLOBAL                     1: NULL + rx
+                50      LOAD_ATTR                       3: select
+                60      BUILD_LIST                      0
+                62      LOAD_CONST                      2: ('docker', 'singularity', 'standard')
+                64      LIST_EXTEND                     1
+                66      LOAD_FAST                       0: S
+                68      LOAD_ATTR                       4: profile
+                78      LOAD_FAST                       0: S
+                80      LOAD_ATTR                       5: set_profile
+                90      LOAD_CONST                      3: '3'
+                92      KW_NAMES                        4: ('value', 'on_change', 'size')
+                94      PRECALL                         4
+                98      CALL                            4
+                108     PRECALL                         2
+                112     CALL                            2
+                122     LOAD_GLOBAL                     13: NULL + _slider_field
+                134     LOAD_CONST                      5: '--max_cpus (0 = ∞)'
+                136     LOAD_FAST                       0: S
+                138     LOAD_ATTR                       7: threads
+                148     LOAD_FAST                       0: S
+                150     LOAD_ATTR                       8: set_threads
+                160     LOAD_CONST                      6: 0
+                162     LOAD_GLOBAL                     18: _MAX_CPUS
+                174     PRECALL                         5
+                178     CALL                            5
+                188     LOAD_GLOBAL                     13: NULL + _slider_field
+                200     LOAD_CONST                      7: '--max_memory (0 = ∞)'
+                202     LOAD_FAST                       0: S
+                204     LOAD_ATTR                       10: memory
+                214     LOAD_FAST                       0: S
+                216     LOAD_ATTR                       11: set_memory
+                226     LOAD_CONST                      6: 0
+                228     LOAD_CONST                      8: 256
+                230     LOAD_CONST                      9: ' GB'
+                232     PRECALL                         6
+                236     CALL                            6
+                246     LOAD_GLOBAL                     5: NULL + labeled
+                258     LOAD_CONST                      10: '-resume'
+                260     LOAD_GLOBAL                     1: NULL + rx
+                272     LOAD_ATTR                       12: switch
+                282     LOAD_FAST                       0: S
+                284     LOAD_ATTR                       13: resume
+                294     LOAD_FAST                       0: S
+                296     LOAD_ATTR                       14: set_resume
+                306     LOAD_CONST                      11: 'teal'
+                308     KW_NAMES                        12: ('checked', 'on_change', 'color_scheme')
+                310     PRECALL                         3
+                314     CALL                            3
+                324     PRECALL                         2
+                328     CALL                            2
+                338     LOAD_CONST                      13: 'wrap'
+                340     LOAD_CONST                      14: '5'
+                342     LOAD_CONST                      15: 'end'
+                344     LOAD_CONST                      16: '100%'
+                346     KW_NAMES                        17: ('wrap', 'spacing', 'align', 'width')
+                348     PRECALL                         8
+                352     CALL                            8
+                362     RETURN_VALUE                    
+            [Exception Table]
+        (
+            'icon'
+            'str'
+            'title'
+            'str'
+            'subtitle'
+            'str'
+            'return'
+            'rx.Component'
+        )
+        (
+            'steps'
+            'list[str]'
+            'return'
+            'rx.Component'
+        )
+        (
+            'first'
+            'bool'
+            'next_label'
+            'str'
+            'next_icon'
+            'str'
+            'return'
+            'rx.Component'
+        )
+        (
+            'label'
+            'str'
+            'width'
+            'str'
+            'return'
+            'rx.Component'
+        )
+        (
+            'return'
+            'rx.Component'
+        )
+        (
+            'outdir'
+            None
+            True
+        )
+        (
+            'target'
+            'str'
+            'with_rescan'
+            'bool'
+            'return'
+            'rx.Component'
+        )
+        (
+            ''
+        )
+        (
+            'label'
+            'str'
+            'lo'
+            'int'
+            'hi'
+            'int'
+            'suffix'
+            'str'
+            'return'
+            'rx.Component'
+        )
+    [Disassembly]
+        0       RESUME                          0
+        2       LOAD_CONST                      0: 'Reusable wizard chrome: hero banner, step indicator, run panel, dir picker.'
+        4       STORE_NAME                      0: __doc__
+        6       LOAD_CONST                      1: 0
+        8       LOAD_CONST                      2: ('annotations',)
+        10      IMPORT_NAME                     1: __future__
+        12      IMPORT_FROM                     2: annotations
+        14      STORE_NAME                      2: annotations
+        16      POP_TOP                         
+        18      LOAD_CONST                      1: 0
+        20      LOAD_CONST                      3: None
+        22      IMPORT_NAME                     3: os
+        24      STORE_NAME                      3: os
+        26      LOAD_CONST                      1: 0
+        28      LOAD_CONST                      3: None
+        30      IMPORT_NAME                     4: reflex
+        32      STORE_NAME                      5: rx
+        34      LOAD_CONST                      1: 0
+        36      LOAD_CONST                      4: ('section',)
+        38      IMPORT_NAME                     6: bearhub.components.help
+        40      IMPORT_FROM                     7: section
+        42      STORE_NAME                      8: help_section
+        44      POP_TOP                         
+        46      PUSH_NULL                       
+        48      LOAD_NAME                       9: min
+        50      PUSH_NULL                       
+        52      LOAD_NAME                       3: os
+        54      LOAD_ATTR                       10: cpu_count
+        64      PRECALL                         0
+        68      CALL                            0
+        78      JUMP_IF_TRUE_OR_POP             1 (to 2)
+        80      LOAD_CONST                      5: 64
+        82      LOAD_CONST                      6: 128
+        84      PRECALL                         2
+        88      CALL                            2
+        98      STORE_NAME                      11: _MAX_CPUS
+        100     LOAD_CONST                      48: ('icon', 'str', 'title', 'str', 'subtitle', 'str', 'return', 'rx.Component')
+        102     LOAD_CONST                      13: <CODE> hero
+        104     MAKE_FUNCTION                   4
+        106     STORE_NAME                      12: hero
+        108     LOAD_CONST                      49: ('steps', 'list[str]', 'return', 'rx.Component')
+        110     LOAD_CONST                      16: <CODE> step_indicator
+        112     MAKE_FUNCTION                   4
+        114     STORE_NAME                      13: step_indicator
+        116     LOAD_CONST                      17: False
+        118     LOAD_CONST                      18: 'Next'
+        120     LOAD_CONST                      19: 'arrow-right'
+        122     LOAD_CONST                      3: None
+        124     LOAD_CONST                      20: ('first', 'next_label', 'next_icon', 'next_handler')
+        126     BUILD_CONST_KEY_MAP             4
+        128     LOAD_CONST                      50: ('first', 'bool', 'next_label', 'str', 'next_icon', 'str', 'return', 'rx.Component')
+        130     LOAD_CONST                      25: <CODE> nav_buttons
+        132     MAKE_FUNCTION                   6
+        134     STORE_NAME                      14: nav_buttons
+        136     LOAD_CONST                      26: 'auto'
+        138     LOAD_CONST                      27: ('width',)
+        140     BUILD_CONST_KEY_MAP             1
+        142     LOAD_CONST                      51: ('label', 'str', 'width', 'str', 'return', 'rx.Component')
+        144     LOAD_CONST                      30: <CODE> labeled
+        146     MAKE_FUNCTION                   6
+        148     STORE_NAME                      15: labeled
+        150     LOAD_CONST                      52: ('return', 'rx.Component')
+        152     LOAD_CONST                      31: <CODE> run_panel
+        154     MAKE_FUNCTION                   4
+        156     STORE_NAME                      16: run_panel
+        158     LOAD_CONST                      52: ('return', 'rx.Component')
+        160     LOAD_CONST                      32: <CODE> dir_picker
+        162     MAKE_FUNCTION                   4
+        164     STORE_NAME                      17: dir_picker
+        166     NOP                             
+        168     NOP                             
+        170     LOAD_CONST                      53: ('outdir', None, True)
+        172     LOAD_CONST                      54: ('target', 'str', 'with_rescan', 'bool', 'return', 'rx.Component')
+        174     LOAD_CONST                      37: <CODE> dir_input
+        176     MAKE_FUNCTION                   5
+        178     STORE_NAME                      18: dir_input
+        180     LOAD_CONST                      52: ('return', 'rx.Component')
+        182     LOAD_CONST                      38: <CODE> dir_field
+        184     MAKE_FUNCTION                   4
+        186     STORE_NAME                      19: dir_field
+        188     LOAD_CONST                      52: ('return', 'rx.Component')
+        190     LOAD_CONST                      39: <CODE> samples_field
+        192     MAKE_FUNCTION                   4
+        194     STORE_NAME                      20: samples_field
+        196     LOAD_CONST                      52: ('return', 'rx.Component')
+        198     LOAD_CONST                      40: <CODE> merged_panel
+        200     MAKE_FUNCTION                   4
+        202     STORE_NAME                      21: merged_panel
+        204     NOP                             
+        206     LOAD_CONST                      55: ('',)
+        208     LOAD_CONST                      56: ('label', 'str', 'lo', 'int', 'hi', 'int', 'suffix', 'str', 'return', 'rx.Component')
+        210     LOAD_CONST                      46: <CODE> _slider_field
+        212     MAKE_FUNCTION                   5
+        214     STORE_NAME                      22: _slider_field
+        216     LOAD_CONST                      52: ('return', 'rx.Component')
+        218     LOAD_CONST                      47: <CODE> general_params
+        220     MAKE_FUNCTION                   4
+        222     STORE_NAME                      23: general_params
+        224     LOAD_CONST                      3: None
+        226     RETURN_VALUE                    
+    [Exception Table]

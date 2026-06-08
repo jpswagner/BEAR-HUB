@@ -1,0 +1,245 @@
+bearhub.cpython-311.pyc (Python 3.11)
+[Code]
+    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/bearhub.py
+    Object Name: <module>
+    Qualified Name: <module>
+    Arg Count: 0
+    Pos Only Arg Count: 0
+    KW Only Arg Count: 0
+    Stack Size: 8
+    Flags: 0x01000000 (CO_FUTURE_ANNOTATIONS)
+    [Names]
+        '__doc__'
+        '__future__'
+        'annotations'
+        'reflex'
+        'rx'
+        'bearhub.core'
+        'system'
+        'bootstrap_env'
+        'bearhub.pages.bactopia'
+        'bactopia_page'
+        'bearhub.pages.hub'
+        'hub_page'
+        'bearhub.pages.merlin'
+        'merlin_page'
+        'bearhub.pages.status'
+        'status_page'
+        'bearhub.pages.tools'
+        'tools_page'
+        'bearhub.state'
+        'BactopiaState'
+        'MerlinState'
+        'StatusState'
+        'ToolsState'
+        'App'
+        'theme'
+        'app'
+        'add_page'
+        'init_outdir'
+        'load'
+    [Locals+Names]
+    [Constants]
+        'BEAR-HUB — Reflex application entry point.'
+        0
+        (
+            'annotations'
+        )
+        None
+        (
+            'system'
+        )
+        (
+            'bactopia_page'
+        )
+        (
+            'hub_page'
+        )
+        (
+            'merlin_page'
+        )
+        (
+            'status_page'
+        )
+        (
+            'tools_page'
+        )
+        (
+            'BactopiaState'
+            'MerlinState'
+            'StatusState'
+            'ToolsState'
+        )
+        'teal'
+        'slate'
+        'large'
+        'light'
+        (
+            'accent_color'
+            'gray_color'
+            'radius'
+            'appearance'
+        )
+        (
+            'theme'
+        )
+        '/'
+        'BEAR-HUB'
+        (
+            'route'
+            'title'
+        )
+        '/bactopia'
+        'Bactopia — BEAR-HUB'
+        (
+            'route'
+            'title'
+            'on_load'
+        )
+        '/tools'
+        'Bactopia Tools — BEAR-HUB'
+        '/merlin'
+        'MERLIN — BEAR-HUB'
+        '/status'
+        'Status — BEAR-HUB'
+    [Disassembly]
+        0       RESUME                          0
+        2       LOAD_CONST                      0: 'BEAR-HUB — Reflex application entry point.'
+        4       STORE_NAME                      0: __doc__
+        6       LOAD_CONST                      1: 0
+        8       LOAD_CONST                      2: ('annotations',)
+        10      IMPORT_NAME                     1: __future__
+        12      IMPORT_FROM                     2: annotations
+        14      STORE_NAME                      2: annotations
+        16      POP_TOP                         
+        18      LOAD_CONST                      1: 0
+        20      LOAD_CONST                      3: None
+        22      IMPORT_NAME                     3: reflex
+        24      STORE_NAME                      4: rx
+        26      LOAD_CONST                      1: 0
+        28      LOAD_CONST                      4: ('system',)
+        30      IMPORT_NAME                     5: bearhub.core
+        32      IMPORT_FROM                     6: system
+        34      STORE_NAME                      6: system
+        36      POP_TOP                         
+        38      PUSH_NULL                       
+        40      LOAD_NAME                       6: system
+        42      LOAD_ATTR                       7: bootstrap_env
+        52      PRECALL                         0
+        56      CALL                            0
+        66      POP_TOP                         
+        68      LOAD_CONST                      1: 0
+        70      LOAD_CONST                      5: ('bactopia_page',)
+        72      IMPORT_NAME                     8: bearhub.pages.bactopia
+        74      IMPORT_FROM                     9: bactopia_page
+        76      STORE_NAME                      9: bactopia_page
+        78      POP_TOP                         
+        80      LOAD_CONST                      1: 0
+        82      LOAD_CONST                      6: ('hub_page',)
+        84      IMPORT_NAME                     10: bearhub.pages.hub
+        86      IMPORT_FROM                     11: hub_page
+        88      STORE_NAME                      11: hub_page
+        90      POP_TOP                         
+        92      LOAD_CONST                      1: 0
+        94      LOAD_CONST                      7: ('merlin_page',)
+        96      IMPORT_NAME                     12: bearhub.pages.merlin
+        98      IMPORT_FROM                     13: merlin_page
+        100     STORE_NAME                      13: merlin_page
+        102     POP_TOP                         
+        104     LOAD_CONST                      1: 0
+        106     LOAD_CONST                      8: ('status_page',)
+        108     IMPORT_NAME                     14: bearhub.pages.status
+        110     IMPORT_FROM                     15: status_page
+        112     STORE_NAME                      15: status_page
+        114     POP_TOP                         
+        116     LOAD_CONST                      1: 0
+        118     LOAD_CONST                      9: ('tools_page',)
+        120     IMPORT_NAME                     16: bearhub.pages.tools
+        122     IMPORT_FROM                     17: tools_page
+        124     STORE_NAME                      17: tools_page
+        126     POP_TOP                         
+        128     LOAD_CONST                      1: 0
+        130     LOAD_CONST                      10: ('BactopiaState', 'MerlinState', 'StatusState', 'ToolsState')
+        132     IMPORT_NAME                     18: bearhub.state
+        134     IMPORT_FROM                     19: BactopiaState
+        136     STORE_NAME                      19: BactopiaState
+        138     IMPORT_FROM                     20: MerlinState
+        140     STORE_NAME                      20: MerlinState
+        142     IMPORT_FROM                     21: StatusState
+        144     STORE_NAME                      21: StatusState
+        146     IMPORT_FROM                     22: ToolsState
+        148     STORE_NAME                      22: ToolsState
+        150     POP_TOP                         
+        152     PUSH_NULL                       
+        154     LOAD_NAME                       4: rx
+        156     LOAD_ATTR                       23: App
+        166     PUSH_NULL                       
+        168     LOAD_NAME                       4: rx
+        170     LOAD_ATTR                       24: theme
+        180     LOAD_CONST                      11: 'teal'
+        182     LOAD_CONST                      12: 'slate'
+        184     LOAD_CONST                      13: 'large'
+        186     LOAD_CONST                      14: 'light'
+        188     KW_NAMES                        15: ('accent_color', 'gray_color', 'radius', 'appearance')
+        190     PRECALL                         4
+        194     CALL                            4
+        204     KW_NAMES                        16: ('theme',)
+        206     PRECALL                         1
+        210     CALL                            1
+        220     STORE_NAME                      25: app
+        222     LOAD_NAME                       25: app
+        224     LOAD_METHOD                     26: add_page
+        246     LOAD_NAME                       11: hub_page
+        248     LOAD_CONST                      17: '/'
+        250     LOAD_CONST                      18: 'BEAR-HUB'
+        252     KW_NAMES                        19: ('route', 'title')
+        254     PRECALL                         3
+        258     CALL                            3
+        268     POP_TOP                         
+        270     LOAD_NAME                       25: app
+        272     LOAD_METHOD                     26: add_page
+        294     LOAD_NAME                       9: bactopia_page
+        296     LOAD_CONST                      20: '/bactopia'
+        298     LOAD_CONST                      21: 'Bactopia — BEAR-HUB'
+        300     LOAD_NAME                       19: BactopiaState
+        302     LOAD_ATTR                       27: init_outdir
+        312     KW_NAMES                        22: ('route', 'title', 'on_load')
+        314     PRECALL                         4
+        318     CALL                            4
+        328     POP_TOP                         
+        330     LOAD_NAME                       25: app
+        332     LOAD_METHOD                     26: add_page
+        354     LOAD_NAME                       17: tools_page
+        356     LOAD_CONST                      23: '/tools'
+        358     LOAD_CONST                      24: 'Bactopia Tools — BEAR-HUB'
+        360     LOAD_NAME                       22: ToolsState
+        362     LOAD_ATTR                       27: init_outdir
+        372     KW_NAMES                        22: ('route', 'title', 'on_load')
+        374     PRECALL                         4
+        378     CALL                            4
+        388     POP_TOP                         
+        390     LOAD_NAME                       25: app
+        392     LOAD_METHOD                     26: add_page
+        414     LOAD_NAME                       13: merlin_page
+        416     LOAD_CONST                      25: '/merlin'
+        418     LOAD_CONST                      26: 'MERLIN — BEAR-HUB'
+        420     LOAD_NAME                       20: MerlinState
+        422     LOAD_ATTR                       27: init_outdir
+        432     KW_NAMES                        22: ('route', 'title', 'on_load')
+        434     PRECALL                         4
+        438     CALL                            4
+        448     POP_TOP                         
+        450     LOAD_NAME                       25: app
+        452     LOAD_METHOD                     26: add_page
+        474     LOAD_NAME                       15: status_page
+        476     LOAD_CONST                      27: '/status'
+        478     LOAD_CONST                      28: 'Status — BEAR-HUB'
+        480     LOAD_NAME                       21: StatusState
+        482     LOAD_ATTR                       28: load
+        492     KW_NAMES                        22: ('route', 'title', 'on_load')
+        494     PRECALL                         4
+        498     CALL                            4
+        508     POP_TOP                         
+        510     LOAD_CONST                      3: None
+        512     RETURN_VALUE                    
+    [Exception Table]

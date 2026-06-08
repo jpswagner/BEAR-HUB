@@ -1,0 +1,50 @@
+rxconfig.cpython-311.pyc (Python 3.11)
+[Code]
+    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/rxconfig.py
+    Object Name: <module>
+    Qualified Name: <module>
+    Arg Count: 0
+    Pos Only Arg Count: 0
+    KW Only Arg Count: 0
+    Stack Size: 5
+    Flags: 0x00000000
+    [Names]
+        '__doc__'
+        'reflex'
+        'rx'
+        'Config'
+        'config'
+    [Locals+Names]
+    [Constants]
+        'Reflex config for the BEAR-HUB app.\n\nRun from this folder:\n\n    reflex run\n\nFrontend on :3000, backend on :8000.\n'
+        0
+        None
+        'bearhub'
+        3200
+        8200
+        (
+            'app_name'
+            'frontend_port'
+            'backend_port'
+        )
+    [Disassembly]
+        0       RESUME                          0
+        2       LOAD_CONST                      0: 'Reflex config for the BEAR-HUB app.\n\nRun from this folder:\n\n    reflex run\n\nFrontend on :3000, backend on :8000.\n'
+        4       STORE_NAME                      0: __doc__
+        6       LOAD_CONST                      1: 0
+        8       LOAD_CONST                      2: None
+        10      IMPORT_NAME                     1: reflex
+        12      STORE_NAME                      2: rx
+        14      PUSH_NULL                       
+        16      LOAD_NAME                       2: rx
+        18      LOAD_ATTR                       3: Config
+        28      LOAD_CONST                      3: 'bearhub'
+        30      LOAD_CONST                      4: 3200
+        32      LOAD_CONST                      5: 8200
+        34      KW_NAMES                        6: ('app_name', 'frontend_port', 'backend_port')
+        36      PRECALL                         3
+        40      CALL                            3
+        50      STORE_NAME                      4: config
+        52      LOAD_CONST                      2: None
+        54      RETURN_VALUE                    
+    [Exception Table]

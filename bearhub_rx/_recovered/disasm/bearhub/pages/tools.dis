@@ -1,0 +1,1703 @@
+tools.cpython-311.pyc (Python 3.11)
+[Code]
+    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/tools.py
+    Object Name: <module>
+    Qualified Name: <module>
+    Arg Count: 0
+    Pos Only Arg Count: 0
+    KW Only Arg Count: 0
+    Stack Size: 2
+    Flags: 0x01000000 (CO_FUTURE_ANNOTATIONS)
+    [Names]
+        '__doc__'
+        '__future__'
+        'annotations'
+        'reflex'
+        'rx'
+        'bearhub.components.shell'
+        'shell'
+        'bearhub.components'
+        'wizard'
+        'wz'
+        'help'
+        'helpmod'
+        'bearhub.data'
+        'catalog'
+        'bearhub.data.catalog'
+        'CATEGORY_ORDER'
+        'FIELD_SPECS'
+        'TOOLS'
+        'tools_in_category'
+        'bearhub.state'
+        'ToolsState'
+        'STEPS'
+        '_tool_card'
+        '_category_block'
+        '_field'
+        '_HELP_KEY'
+        '_detailed_panel'
+        '_step_data'
+        '_step_tools'
+        '_step_params'
+        '_step_run'
+        'tools_page'
+    [Locals+Names]
+    [Constants]
+        'Bactopia Tools — guided wizard over all official --wf tools.'
+        0
+        (
+            'annotations'
+        )
+        None
+        (
+            'shell'
+        )
+        (
+            'wizard'
+        )
+        (
+            'help'
+        )
+        (
+            'catalog'
+        )
+        (
+            'CATEGORY_ORDER'
+            'FIELD_SPECS'
+            'TOOLS'
+            'tools_in_category'
+        )
+        (
+            'ToolsState'
+        )
+        (
+            'Data'
+            'Tools'
+            'Parameters'
+            'Run'
+        )
+        'tool'
+        'dict'
+        'return'
+        'rx.Component'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/tools.py
+            Object Name: _tool_card
+            Qualified Name: _tool_card
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 13
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'ToolsState'
+                'picks'
+                'rx'
+                'text'
+                'append'
+                'badge'
+                'card'
+                'hstack'
+                'checkbox'
+                'vstack'
+                'toggle'
+                'cond'
+            [Locals+Names]
+                'tool'
+                'tid'
+                'checked'
+                'head'
+            [Constants]
+                None
+                'id'
+                'label'
+                'bold'
+                '2'
+                (
+                    'weight'
+                    'size'
+                )
+                'detailed'
+                'options'
+                '1'
+                'teal'
+                'soft'
+                (
+                    'size'
+                    'color_scheme'
+                    'variant'
+                )
+                '3'
+                'pointerEvents'
+                'none'
+                (
+                    'checked'
+                    'color_scheme'
+                    'size'
+                    'style'
+                )
+                'center'
+                (
+                    'spacing'
+                    'align'
+                )
+                'desc'
+                'var(--gray-10)'
+                (
+                    'size'
+                    'color'
+                )
+                '0'
+                'start'
+                '100%'
+                (
+                    'spacing'
+                    'align'
+                    'width'
+                )
+                'pointer'
+                'var(--teal-8)'
+                'var(--gray-5)'
+                'var(--teal-2)'
+                'transparent'
+                'all .12s ease'
+                (
+                    'borderColor'
+                    'background'
+                    'transition'
+                )
+                (
+                    'on_click'
+                    'cursor'
+                    'style'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_FAST                       0: tool
+                4       LOAD_CONST                      1: 'id'
+                6       BINARY_SUBSCR                   
+                16      STORE_FAST                      1: tid
+                18      LOAD_GLOBAL                     0: ToolsState
+                30      LOAD_ATTR                       1: picks
+                40      LOAD_FAST                       1: tid
+                42      BINARY_SUBSCR                   
+                52      STORE_FAST                      2: checked
+                54      LOAD_GLOBAL                     5: NULL + rx
+                66      LOAD_ATTR                       3: text
+                76      LOAD_FAST                       0: tool
+                78      LOAD_CONST                      2: 'label'
+                80      BINARY_SUBSCR                   
+                90      LOAD_CONST                      3: 'bold'
+                92      LOAD_CONST                      4: '2'
+                94      KW_NAMES                        5: ('weight', 'size')
+                96      PRECALL                         3
+                100     CALL                            3
+                110     BUILD_LIST                      1
+                112     STORE_FAST                      3: head
+                114     LOAD_FAST                       0: tool
+                116     LOAD_CONST                      6: 'detailed'
+                118     BINARY_SUBSCR                   
+                128     POP_JUMP_FORWARD_IF_FALSE       43 (to 216)
+                130     LOAD_FAST                       3: head
+                132     LOAD_METHOD                     4: append
+                154     LOAD_GLOBAL                     5: NULL + rx
+                166     LOAD_ATTR                       5: badge
+                176     LOAD_CONST                      7: 'options'
+                178     LOAD_CONST                      8: '1'
+                180     LOAD_CONST                      9: 'teal'
+                182     LOAD_CONST                      10: 'soft'
+                184     KW_NAMES                        11: ('size', 'color_scheme', 'variant')
+                186     PRECALL                         4
+                190     CALL                            4
+                200     PRECALL                         1
+                204     CALL                            1
+                214     POP_TOP                         
+                216     LOAD_GLOBAL                     5: NULL + rx
+                228     LOAD_ATTR                       6: card
+                238     LOAD_GLOBAL                     5: NULL + rx
+                250     LOAD_ATTR                       7: hstack
+                260     LOAD_GLOBAL                     5: NULL + rx
+                272     LOAD_ATTR                       8: checkbox
+                282     LOAD_FAST                       2: checked
+                284     LOAD_CONST                      9: 'teal'
+                286     LOAD_CONST                      12: '3'
+                288     LOAD_CONST                      13: 'pointerEvents'
+                290     LOAD_CONST                      14: 'none'
+                292     BUILD_MAP                       1
+                294     KW_NAMES                        15: ('checked', 'color_scheme', 'size', 'style')
+                296     PRECALL                         4
+                300     CALL                            4
+                310     LOAD_GLOBAL                     5: NULL + rx
+                322     LOAD_ATTR                       9: vstack
+                332     LOAD_GLOBAL                     5: NULL + rx
+                344     LOAD_ATTR                       7: hstack
+                354     LOAD_FAST                       3: head
+                356     LOAD_CONST                      4: '2'
+                358     LOAD_CONST                      16: 'center'
+                360     LOAD_CONST                      17: ('spacing', 'align')
+                362     BUILD_CONST_KEY_MAP             2
+                364     CALL_FUNCTION_EX                1
+                366     LOAD_GLOBAL                     5: NULL + rx
+                378     LOAD_ATTR                       3: text
+                388     LOAD_FAST                       0: tool
+                390     LOAD_CONST                      18: 'desc'
+                392     BINARY_SUBSCR                   
+                402     LOAD_CONST                      8: '1'
+                404     LOAD_CONST                      19: 'var(--gray-10)'
+                406     KW_NAMES                        20: ('size', 'color')
+                408     PRECALL                         3
+                412     CALL                            3
+                422     LOAD_CONST                      21: '0'
+                424     LOAD_CONST                      22: 'start'
+                426     KW_NAMES                        17: ('spacing', 'align')
+                428     PRECALL                         4
+                432     CALL                            4
+                442     LOAD_CONST                      12: '3'
+                444     LOAD_CONST                      16: 'center'
+                446     LOAD_CONST                      23: '100%'
+                448     KW_NAMES                        24: ('spacing', 'align', 'width')
+                450     PRECALL                         5
+                454     CALL                            5
+                464     LOAD_GLOBAL                     1: NULL + ToolsState
+                476     LOAD_ATTR                       10: toggle
+                486     LOAD_FAST                       1: tid
+                488     PRECALL                         1
+                492     CALL                            1
+                502     LOAD_CONST                      25: 'pointer'
+                504     LOAD_GLOBAL                     5: NULL + rx
+                516     LOAD_ATTR                       11: cond
+                526     LOAD_FAST                       2: checked
+                528     LOAD_CONST                      26: 'var(--teal-8)'
+                530     LOAD_CONST                      27: 'var(--gray-5)'
+                532     PRECALL                         3
+                536     CALL                            3
+                546     LOAD_GLOBAL                     5: NULL + rx
+                558     LOAD_ATTR                       11: cond
+                568     LOAD_FAST                       2: checked
+                570     LOAD_CONST                      28: 'var(--teal-2)'
+                572     LOAD_CONST                      29: 'transparent'
+                574     PRECALL                         3
+                578     CALL                            3
+                588     LOAD_CONST                      30: 'all .12s ease'
+                590     LOAD_CONST                      31: ('borderColor', 'background', 'transition')
+                592     BUILD_CONST_KEY_MAP             3
+                594     KW_NAMES                        32: ('on_click', 'cursor', 'style')
+                596     PRECALL                         4
+                600     CALL                            4
+                610     RETURN_VALUE                    
+            [Exception Table]
+        'cat'
+        'str'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/tools.py
+            Object Name: _category_block
+            Qualified Name: _category_block
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 12
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'tools_in_category'
+                'rx'
+                'vstack'
+                'hstack'
+                'heading'
+                'badge'
+                'str'
+                'len'
+                'grid'
+            [Locals+Names]
+                'cat'
+                'items'
+            [Constants]
+                None
+                '3'
+                'var(--teal-11)'
+                (
+                    'size'
+                    'color'
+                )
+                'gray'
+                'soft'
+                (
+                    'color_scheme'
+                    'variant'
+                )
+                '2'
+                'center'
+                (
+                    'spacing'
+                    'align'
+                )
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/tools.py
+                    Object Name: <listcomp>
+                    Qualified Name: _category_block.<locals>.<listcomp>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 5
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        '_tool_card'
+                    [Locals+Names]
+                        '.0'
+                        't'
+                    [Constants]
+                    [Disassembly]
+                        0       RESUME                          0
+                        2       BUILD_LIST                      0
+                        4       LOAD_FAST                       0: .0
+                        6       FOR_ITER                        17 (to 42)
+                        8       STORE_FAST                      1: t
+                        10      LOAD_GLOBAL                     1: NULL + _tool_card
+                        22      LOAD_FAST                       1: t
+                        24      PRECALL                         1
+                        28      CALL                            1
+                        38      LIST_APPEND                     2
+                        40      JUMP_BACKWARD                   18 (to 6)
+                        42      RETURN_VALUE                    
+                    [Exception Table]
+                '4'
+                '100%'
+                (
+                    'columns'
+                    'spacing'
+                    'width'
+                )
+                'start'
+                '18px'
+                (
+                    'spacing'
+                    'width'
+                    'align'
+                    'margin_bottom'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + tools_in_category
+                14      LOAD_FAST                       0: cat
+                16      PRECALL                         1
+                20      CALL                            1
+                30      STORE_FAST                      1: items
+                32      LOAD_GLOBAL                     3: NULL + rx
+                44      LOAD_ATTR                       2: vstack
+                54      LOAD_GLOBAL                     3: NULL + rx
+                66      LOAD_ATTR                       3: hstack
+                76      LOAD_GLOBAL                     3: NULL + rx
+                88      LOAD_ATTR                       4: heading
+                98      LOAD_FAST                       0: cat
+                100     LOAD_CONST                      1: '3'
+                102     LOAD_CONST                      2: 'var(--teal-11)'
+                104     KW_NAMES                        3: ('size', 'color')
+                106     PRECALL                         3
+                110     CALL                            3
+                120     LOAD_GLOBAL                     3: NULL + rx
+                132     LOAD_ATTR                       5: badge
+                142     LOAD_GLOBAL                     13: NULL + str
+                154     LOAD_GLOBAL                     15: NULL + len
+                166     LOAD_FAST                       1: items
+                168     PRECALL                         1
+                172     CALL                            1
+                182     PRECALL                         1
+                186     CALL                            1
+                196     LOAD_CONST                      4: 'gray'
+                198     LOAD_CONST                      5: 'soft'
+                200     KW_NAMES                        6: ('color_scheme', 'variant')
+                202     PRECALL                         3
+                206     CALL                            3
+                216     LOAD_CONST                      7: '2'
+                218     LOAD_CONST                      8: 'center'
+                220     KW_NAMES                        9: ('spacing', 'align')
+                222     PRECALL                         4
+                226     CALL                            4
+                236     LOAD_GLOBAL                     3: NULL + rx
+                248     LOAD_ATTR                       8: grid
+                258     LOAD_CONST                      10: <CODE> <listcomp>
+                260     MAKE_FUNCTION                   0
+                262     LOAD_FAST                       1: items
+                264     GET_ITER                        
+                266     PRECALL                         0
+                270     CALL                            0
+                280     LOAD_CONST                      1: '3'
+                282     LOAD_CONST                      11: '4'
+                284     LOAD_CONST                      12: '100%'
+                286     LOAD_CONST                      13: ('columns', 'spacing', 'width')
+                288     BUILD_CONST_KEY_MAP             3
+                290     CALL_FUNCTION_EX                1
+                292     LOAD_CONST                      1: '3'
+                294     LOAD_CONST                      12: '100%'
+                296     LOAD_CONST                      14: 'start'
+                298     LOAD_CONST                      15: '18px'
+                300     KW_NAMES                        16: ('spacing', 'width', 'align', 'margin_bottom')
+                302     PRECALL                         6
+                306     CALL                            6
+                316     RETURN_VALUE                    
+            [Exception Table]
+        'field'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/tools.py
+            Object Name: _field
+            Qualified Name: _field
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 13
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'checkbox'
+                'ToolsState'
+                'flags'
+                'wz'
+                'labeled'
+                'select'
+                'opts'
+                'input'
+                'get'
+            [Locals+Names]
+                'field'
+                'kind'
+                'label'
+                'typ'
+                'key'
+            [Constants]
+                None
+                'key'
+                'kind'
+                'label'
+                'bool'
+                'teal'
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/tools.py
+                    Object Name: <lambda>
+                    Qualified Name: _field.<locals>.<lambda>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 4
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'ToolsState'
+                        'set_flag'
+                    [Locals+Names]
+                        'v'
+                        'key'
+                    [Constants]
+                        None
+                    [Disassembly]
+                        0       COPY_FREE_VARS                  1
+                        2       RESUME                          0
+                        4       LOAD_GLOBAL                     1: NULL + ToolsState
+                        16      LOAD_ATTR                       1: set_flag
+                        26      LOAD_DEREF                      1: key
+                        28      LOAD_FAST                       0: v
+                        30      PRECALL                         2
+                        34      CALL                            2
+                        44      RETURN_VALUE                    
+                    [Exception Table]
+                (
+                    'checked'
+                    'color_scheme'
+                    'on_change'
+                )
+                'select'
+                'options'
+                '2'
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/tools.py
+                    Object Name: <lambda>
+                    Qualified Name: _field.<locals>.<lambda>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 4
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'ToolsState'
+                        'set_opt'
+                    [Locals+Names]
+                        'v'
+                        'key'
+                    [Constants]
+                        None
+                    [Disassembly]
+                        0       COPY_FREE_VARS                  1
+                        2       RESUME                          0
+                        4       LOAD_GLOBAL                     1: NULL + ToolsState
+                        16      LOAD_ATTR                       1: set_opt
+                        26      LOAD_DEREF                      1: key
+                        28      LOAD_FAST                       0: v
+                        30      PRECALL                         2
+                        34      CALL                            2
+                        44      RETURN_VALUE                    
+                    [Exception Table]
+                (
+                    'value'
+                    'size'
+                    'on_change'
+                )
+                (
+                    'int'
+                    'float'
+                )
+                'number'
+                'text'
+                '190px'
+                'help'
+                ''
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/tools.py
+                    Object Name: <lambda>
+                    Qualified Name: _field.<locals>.<lambda>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 4
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'ToolsState'
+                        'set_opt'
+                    [Locals+Names]
+                        'v'
+                        'key'
+                    [Constants]
+                        None
+                    [Disassembly]
+                        0       COPY_FREE_VARS                  1
+                        2       RESUME                          0
+                        4       LOAD_GLOBAL                     1: NULL + ToolsState
+                        16      LOAD_ATTR                       1: set_opt
+                        26      LOAD_DEREF                      1: key
+                        28      LOAD_FAST                       0: v
+                        30      PRECALL                         2
+                        34      CALL                            2
+                        44      RETURN_VALUE                    
+                    [Exception Table]
+                (
+                    'value'
+                    'type'
+                    'size'
+                    'width'
+                    'placeholder'
+                    'on_change'
+                )
+            [Disassembly]
+                0       MAKE_CELL                       4: key
+                2       RESUME                          0
+                4       LOAD_FAST                       0: field
+                6       LOAD_CONST                      1: 'key'
+                8       BINARY_SUBSCR                   
+                18      LOAD_FAST                       0: field
+                20      LOAD_CONST                      2: 'kind'
+                22      BINARY_SUBSCR                   
+                32      LOAD_FAST                       0: field
+                34      LOAD_CONST                      3: 'label'
+                36      BINARY_SUBSCR                   
+                46      SWAP                            3
+                48      STORE_DEREF                     4: key
+                50      STORE_FAST                      1: kind
+                52      STORE_FAST                      2: label
+                54      LOAD_FAST                       1: kind
+                56      LOAD_CONST                      4: 'bool'
+                58      COMPARE_OP                      2 (==)
+                64      POP_JUMP_FORWARD_IF_FALSE       43 (to 152)
+                66      LOAD_GLOBAL                     1: NULL + rx
+                78      LOAD_ATTR                       1: checkbox
+                88      LOAD_FAST                       2: label
+                90      LOAD_GLOBAL                     4: ToolsState
+                102     LOAD_ATTR                       3: flags
+                112     LOAD_DEREF                      4: key
+                114     BINARY_SUBSCR                   
+                124     LOAD_CONST                      5: 'teal'
+                126     LOAD_CLOSURE                    4: key
+                128     BUILD_TUPLE                     1
+                130     LOAD_CONST                      6: <CODE> <lambda>
+                132     MAKE_FUNCTION                   8
+                134     KW_NAMES                        7: ('checked', 'color_scheme', 'on_change')
+                136     PRECALL                         4
+                140     CALL                            4
+                150     RETURN_VALUE                    
+                152     LOAD_FAST                       1: kind
+                154     LOAD_CONST                      8: 'select'
+                156     COMPARE_OP                      2 (==)
+                162     POP_JUMP_FORWARD_IF_FALSE       68 (to 300)
+                164     LOAD_GLOBAL                     9: NULL + wz
+                176     LOAD_ATTR                       5: labeled
+                186     LOAD_FAST                       2: label
+                188     LOAD_GLOBAL                     1: NULL + rx
+                200     LOAD_ATTR                       6: select
+                210     LOAD_FAST                       0: field
+                212     LOAD_CONST                      9: 'options'
+                214     BINARY_SUBSCR                   
+                224     LOAD_GLOBAL                     4: ToolsState
+                236     LOAD_ATTR                       7: opts
+                246     LOAD_DEREF                      4: key
+                248     BINARY_SUBSCR                   
+                258     LOAD_CONST                      10: '2'
+                260     LOAD_CLOSURE                    4: key
+                262     BUILD_TUPLE                     1
+                264     LOAD_CONST                      11: <CODE> <lambda>
+                266     MAKE_FUNCTION                   8
+                268     KW_NAMES                        12: ('value', 'size', 'on_change')
+                270     PRECALL                         4
+                274     CALL                            4
+                284     PRECALL                         2
+                288     CALL                            2
+                298     RETURN_VALUE                    
+                300     LOAD_FAST                       1: kind
+                302     LOAD_CONST                      13: ('int', 'float')
+                304     CONTAINS_OP                     0 (in)
+                306     POP_JUMP_FORWARD_IF_FALSE       2 (to 312)
+                308     LOAD_CONST                      14: 'number'
+                310     JUMP_FORWARD                    1 (to 314)
+                312     LOAD_CONST                      15: 'text'
+                314     STORE_FAST                      3: typ
+                316     LOAD_GLOBAL                     9: NULL + wz
+                328     LOAD_ATTR                       5: labeled
+                338     LOAD_FAST                       2: label
+                340     LOAD_GLOBAL                     1: NULL + rx
+                352     LOAD_ATTR                       8: input
+                362     LOAD_GLOBAL                     4: ToolsState
+                374     LOAD_ATTR                       7: opts
+                384     LOAD_DEREF                      4: key
+                386     BINARY_SUBSCR                   
+                396     LOAD_FAST                       3: typ
+                398     LOAD_CONST                      10: '2'
+                400     LOAD_CONST                      16: '190px'
+                402     LOAD_FAST                       0: field
+                404     LOAD_METHOD                     9: get
+                426     LOAD_CONST                      17: 'help'
+                428     LOAD_CONST                      18: ''
+                430     PRECALL                         2
+                434     CALL                            2
+                444     LOAD_CLOSURE                    4: key
+                446     BUILD_TUPLE                     1
+                448     LOAD_CONST                      19: <CODE> <lambda>
+                450     MAKE_FUNCTION                   8
+                452     KW_NAMES                        20: ('value', 'type', 'size', 'width', 'placeholder', 'on_change')
+                454     PRECALL                         6
+                458     CALL                            6
+                468     PRECALL                         2
+                472     CALL                            2
+                482     RETURN_VALUE                    
+            [Exception Table]
+        'amrfinderplus'
+        'amrfinder'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/tools.py
+            Object Name: _detailed_panel
+            Qualified Name: _detailed_panel
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 15
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'cond'
+                'ToolsState'
+                'picks'
+                'card'
+                'vstack'
+                'helpmod'
+                'section'
+                '_HELP_KEY'
+                'get'
+                'flex'
+                'FIELD_SPECS'
+            [Locals+Names]
+                'tool'
+                'tid'
+            [Constants]
+                None
+                'id'
+                'label'
+                '3'
+                (
+                    'size'
+                )
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/tools.py
+                    Object Name: <listcomp>
+                    Qualified Name: _detailed_panel.<locals>.<listcomp>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 5
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        '_field'
+                    [Locals+Names]
+                        '.0'
+                        'f'
+                    [Constants]
+                    [Disassembly]
+                        0       RESUME                          0
+                        2       BUILD_LIST                      0
+                        4       LOAD_FAST                       0: .0
+                        6       FOR_ITER                        17 (to 42)
+                        8       STORE_FAST                      1: f
+                        10      LOAD_GLOBAL                     1: NULL + _field
+                        22      LOAD_FAST                       1: f
+                        24      PRECALL                         1
+                        28      CALL                            1
+                        38      LIST_APPEND                     2
+                        40      JUMP_BACKWARD                   18 (to 6)
+                        42      RETURN_VALUE                    
+                    [Exception Table]
+                'wrap'
+                '4'
+                'end'
+                (
+                    'wrap'
+                    'spacing'
+                    'align'
+                )
+                'start'
+                '100%'
+                (
+                    'spacing'
+                    'align'
+                    'width'
+                )
+                'var(--teal-6)'
+                'var(--teal-2)'
+                (
+                    'borderColor'
+                    'background'
+                )
+                (
+                    'width'
+                    'style'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_FAST                       0: tool
+                4       LOAD_CONST                      1: 'id'
+                6       BINARY_SUBSCR                   
+                16      STORE_FAST                      1: tid
+                18      LOAD_GLOBAL                     1: NULL + rx
+                30      LOAD_ATTR                       1: cond
+                40      LOAD_GLOBAL                     4: ToolsState
+                52      LOAD_ATTR                       3: picks
+                62      LOAD_FAST                       1: tid
+                64      BINARY_SUBSCR                   
+                74      LOAD_GLOBAL                     1: NULL + rx
+                86      LOAD_ATTR                       4: card
+                96      LOAD_GLOBAL                     1: NULL + rx
+                108     LOAD_ATTR                       5: vstack
+                118     LOAD_GLOBAL                     13: NULL + helpmod
+                130     LOAD_ATTR                       7: section
+                140     LOAD_FAST                       0: tool
+                142     LOAD_CONST                      2: 'label'
+                144     BINARY_SUBSCR                   
+                154     LOAD_GLOBAL                     16: _HELP_KEY
+                166     LOAD_METHOD                     9: get
+                188     LOAD_FAST                       1: tid
+                190     LOAD_FAST                       1: tid
+                192     PRECALL                         2
+                196     CALL                            2
+                206     LOAD_CONST                      3: '3'
+                208     KW_NAMES                        4: ('size',)
+                210     PRECALL                         3
+                214     CALL                            3
+                224     LOAD_GLOBAL                     1: NULL + rx
+                236     LOAD_ATTR                       10: flex
+                246     LOAD_CONST                      5: <CODE> <listcomp>
+                248     MAKE_FUNCTION                   0
+                250     LOAD_GLOBAL                     22: FIELD_SPECS
+                262     LOAD_FAST                       1: tid
+                264     BINARY_SUBSCR                   
+                274     GET_ITER                        
+                276     PRECALL                         0
+                280     CALL                            0
+                290     LOAD_CONST                      6: 'wrap'
+                292     LOAD_CONST                      7: '4'
+                294     LOAD_CONST                      8: 'end'
+                296     LOAD_CONST                      9: ('wrap', 'spacing', 'align')
+                298     BUILD_CONST_KEY_MAP             3
+                300     CALL_FUNCTION_EX                1
+                302     LOAD_CONST                      3: '3'
+                304     LOAD_CONST                      10: 'start'
+                306     LOAD_CONST                      11: '100%'
+                308     KW_NAMES                        12: ('spacing', 'align', 'width')
+                310     PRECALL                         5
+                314     CALL                            5
+                324     LOAD_CONST                      11: '100%'
+                326     LOAD_CONST                      13: 'var(--teal-6)'
+                328     LOAD_CONST                      14: 'var(--teal-2)'
+                330     LOAD_CONST                      15: ('borderColor', 'background')
+                332     BUILD_CONST_KEY_MAP             2
+                334     KW_NAMES                        16: ('width', 'style')
+                336     PRECALL                         3
+                340     CALL                            3
+                350     PRECALL                         2
+                354     CALL                            2
+                364     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/tools.py
+            Object Name: _step_data
+            Qualified Name: _step_data
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 10
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                'text'
+                'wz'
+                'dir_field'
+                'ToolsState'
+                'samples_field'
+                'nav_buttons'
+                'prev_step'
+                'next_step'
+            [Locals+Names]
+            [Constants]
+                None
+                'Browse to a Bactopia output directory; samples come from its subfolders.'
+                '2'
+                'var(--gray-10)'
+                (
+                    'size'
+                    'color'
+                )
+                True
+                (
+                    'first'
+                )
+                '6'
+                '100%'
+                'start'
+                (
+                    'spacing'
+                    'width'
+                    'align'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: vstack
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: text
+                46      LOAD_CONST                      1: 'Browse to a Bactopia output directory; samples come from its subfolders.'
+                48      LOAD_CONST                      2: '2'
+                50      LOAD_CONST                      3: 'var(--gray-10)'
+                52      KW_NAMES                        4: ('size', 'color')
+                54      PRECALL                         3
+                58      CALL                            3
+                68      LOAD_GLOBAL                     7: NULL + wz
+                80      LOAD_ATTR                       4: dir_field
+                90      LOAD_GLOBAL                     10: ToolsState
+                102     PRECALL                         1
+                106     CALL                            1
+                116     LOAD_GLOBAL                     7: NULL + wz
+                128     LOAD_ATTR                       6: samples_field
+                138     LOAD_GLOBAL                     10: ToolsState
+                150     PRECALL                         1
+                154     CALL                            1
+                164     LOAD_GLOBAL                     7: NULL + wz
+                176     LOAD_ATTR                       7: nav_buttons
+                186     LOAD_GLOBAL                     10: ToolsState
+                198     LOAD_ATTR                       8: prev_step
+                208     LOAD_GLOBAL                     10: ToolsState
+                220     LOAD_ATTR                       9: next_step
+                230     LOAD_CONST                      5: True
+                232     KW_NAMES                        6: ('first',)
+                234     PRECALL                         3
+                238     CALL                            3
+                248     LOAD_CONST                      7: '6'
+                250     LOAD_CONST                      8: '100%'
+                252     LOAD_CONST                      9: 'start'
+                254     KW_NAMES                        10: ('spacing', 'width', 'align')
+                256     PRECALL                         7
+                260     CALL                            7
+                270     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/tools.py
+            Object Name: _step_tools
+            Qualified Name: _step_tools
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 11
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                'hstack'
+                'text'
+                'spacer'
+                'badge'
+                'ToolsState'
+                'n_picked'
+                'CATEGORY_ORDER'
+                'wz'
+                'nav_buttons'
+                'prev_step'
+                'next_step'
+            [Locals+Names]
+            [Constants]
+                None
+                'Pick one or more tools — each runs as its own --wf, sequentially.'
+                '2'
+                'var(--gray-10)'
+                (
+                    'size'
+                    'color'
+                )
+                ' selected'
+                'teal'
+                (
+                    'color_scheme'
+                    'size'
+                )
+                '100%'
+                'center'
+                (
+                    'width'
+                    'align'
+                )
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/tools.py
+                    Object Name: <listcomp>
+                    Qualified Name: _step_tools.<locals>.<listcomp>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 5
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'tools_in_category'
+                        '_category_block'
+                    [Locals+Names]
+                        '.0'
+                        'cat'
+                    [Constants]
+                    [Disassembly]
+                        0       RESUME                          0
+                        2       BUILD_LIST                      0
+                        4       LOAD_FAST                       0: .0
+                        6       FOR_ITER                        32 (to 72)
+                        8       STORE_FAST                      1: cat
+                        10      LOAD_GLOBAL                     1: NULL + tools_in_category
+                        22      LOAD_FAST                       1: cat
+                        24      PRECALL                         1
+                        28      CALL                            1
+                        38      POP_JUMP_BACKWARD_IF_FALSE      17 (to 6)
+                        40      LOAD_GLOBAL                     3: NULL + _category_block
+                        52      LOAD_FAST                       1: cat
+                        54      PRECALL                         1
+                        58      CALL                            1
+                        68      LIST_APPEND                     2
+                        70      JUMP_BACKWARD                   33 (to 6)
+                        72      RETURN_VALUE                    
+                    [Exception Table]
+                '6'
+                'start'
+                (
+                    'spacing'
+                    'width'
+                    'align'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: vstack
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: hstack
+                46      LOAD_GLOBAL                     1: NULL + rx
+                58      LOAD_ATTR                       3: text
+                68      LOAD_CONST                      1: 'Pick one or more tools — each runs as its own --wf, sequentially.'
+                70      LOAD_CONST                      2: '2'
+                72      LOAD_CONST                      3: 'var(--gray-10)'
+                74      KW_NAMES                        4: ('size', 'color')
+                76      PRECALL                         3
+                80      CALL                            3
+                90      LOAD_GLOBAL                     1: NULL + rx
+                102     LOAD_ATTR                       4: spacer
+                112     PRECALL                         0
+                116     CALL                            0
+                126     LOAD_GLOBAL                     1: NULL + rx
+                138     LOAD_ATTR                       5: badge
+                148     LOAD_GLOBAL                     12: ToolsState
+                160     LOAD_ATTR                       7: n_picked
+                170     FORMAT_VALUE                    0 (FVC_NONE)
+                172     LOAD_CONST                      5: ' selected'
+                174     BUILD_STRING                    2
+                176     LOAD_CONST                      6: 'teal'
+                178     LOAD_CONST                      2: '2'
+                180     KW_NAMES                        7: ('color_scheme', 'size')
+                182     PRECALL                         3
+                186     CALL                            3
+                196     LOAD_CONST                      8: '100%'
+                198     LOAD_CONST                      9: 'center'
+                200     KW_NAMES                        10: ('width', 'align')
+                202     PRECALL                         5
+                206     CALL                            5
+                216     BUILD_LIST                      1
+                218     LOAD_CONST                      11: <CODE> <listcomp>
+                220     MAKE_FUNCTION                   0
+                222     LOAD_GLOBAL                     16: CATEGORY_ORDER
+                234     GET_ITER                        
+                236     PRECALL                         0
+                240     CALL                            0
+                250     LIST_EXTEND                     1
+                252     LOAD_GLOBAL                     19: NULL + wz
+                264     LOAD_ATTR                       10: nav_buttons
+                274     LOAD_GLOBAL                     12: ToolsState
+                286     LOAD_ATTR                       11: prev_step
+                296     LOAD_GLOBAL                     12: ToolsState
+                308     LOAD_ATTR                       12: next_step
+                318     PRECALL                         2
+                322     CALL                            2
+                332     LIST_APPEND                     1
+                334     LIST_TO_TUPLE                   
+                336     LOAD_CONST                      12: '6'
+                338     LOAD_CONST                      8: '100%'
+                340     LOAD_CONST                      13: 'start'
+                342     LOAD_CONST                      14: ('spacing', 'width', 'align')
+                344     BUILD_CONST_KEY_MAP             3
+                346     CALL_FUNCTION_EX                1
+                348     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/tools.py
+            Object Name: _step_params
+            Qualified Name: _step_params
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 14
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                'text'
+                'wz'
+                'general_params'
+                'ToolsState'
+                'labeled'
+                'input'
+                'extra'
+                'set_extra'
+                'cond'
+                'picked_detailed'
+                'length'
+                'TOOLS'
+                'nav_buttons'
+                'prev_step'
+                'next_step'
+            [Locals+Names]
+            [Constants]
+                None
+                'General Nextflow settings, then per-tool options for the tools you picked.'
+                '2'
+                'var(--gray-10)'
+                (
+                    'size'
+                    'color'
+                )
+                'Extras (raw line)'
+                '100%'
+                '-with-report report.html'
+                (
+                    'value'
+                    'on_change'
+                    'width'
+                    'size'
+                    'placeholder'
+                )
+                (
+                    'width'
+                )
+                0
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/tools.py
+                    Object Name: <listcomp>
+                    Qualified Name: _step_params.<locals>.<listcomp>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 5
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        '_detailed_panel'
+                    [Locals+Names]
+                        '.0'
+                        't'
+                    [Constants]
+                        'detailed'
+                    [Disassembly]
+                        0       RESUME                          0
+                        2       BUILD_LIST                      0
+                        4       LOAD_FAST                       0: .0
+                        6       FOR_ITER                        25 (to 58)
+                        8       STORE_FAST                      1: t
+                        10      LOAD_FAST                       1: t
+                        12      LOAD_CONST                      0: 'detailed'
+                        14      BINARY_SUBSCR                   
+                        24      POP_JUMP_BACKWARD_IF_FALSE      10 (to 6)
+                        26      LOAD_GLOBAL                     1: NULL + _detailed_panel
+                        38      LOAD_FAST                       1: t
+                        40      PRECALL                         1
+                        44      CALL                            1
+                        54      LIST_APPEND                     2
+                        56      JUMP_BACKWARD                   26 (to 6)
+                        58      RETURN_VALUE                    
+                    [Exception Table]
+                '4'
+                (
+                    'spacing'
+                    'width'
+                )
+                'No picked tools expose extra options.'
+                '1'
+                'var(--gray-9)'
+                'Review & run'
+                (
+                    'next_label'
+                )
+                '6'
+                'start'
+                (
+                    'spacing'
+                    'width'
+                    'align'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: vstack
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: text
+                46      LOAD_CONST                      1: 'General Nextflow settings, then per-tool options for the tools you picked.'
+                48      LOAD_CONST                      2: '2'
+                50      LOAD_CONST                      3: 'var(--gray-10)'
+                52      KW_NAMES                        4: ('size', 'color')
+                54      PRECALL                         3
+                58      CALL                            3
+                68      LOAD_GLOBAL                     7: NULL + wz
+                80      LOAD_ATTR                       4: general_params
+                90      LOAD_GLOBAL                     10: ToolsState
+                102     PRECALL                         1
+                106     CALL                            1
+                116     LOAD_GLOBAL                     7: NULL + wz
+                128     LOAD_ATTR                       6: labeled
+                138     LOAD_CONST                      5: 'Extras (raw line)'
+                140     LOAD_GLOBAL                     1: NULL + rx
+                152     LOAD_ATTR                       7: input
+                162     LOAD_GLOBAL                     10: ToolsState
+                174     LOAD_ATTR                       8: extra
+                184     LOAD_GLOBAL                     10: ToolsState
+                196     LOAD_ATTR                       9: set_extra
+                206     LOAD_CONST                      6: '100%'
+                208     LOAD_CONST                      2: '2'
+                210     LOAD_CONST                      7: '-with-report report.html'
+                212     KW_NAMES                        8: ('value', 'on_change', 'width', 'size', 'placeholder')
+                214     PRECALL                         5
+                218     CALL                            5
+                228     LOAD_CONST                      6: '100%'
+                230     KW_NAMES                        9: ('width',)
+                232     PRECALL                         3
+                236     CALL                            3
+                246     LOAD_GLOBAL                     1: NULL + rx
+                258     LOAD_ATTR                       10: cond
+                268     LOAD_GLOBAL                     10: ToolsState
+                280     LOAD_ATTR                       11: picked_detailed
+                290     LOAD_METHOD                     12: length
+                312     PRECALL                         0
+                316     CALL                            0
+                326     LOAD_CONST                      10: 0
+                328     COMPARE_OP                      4 (>)
+                334     LOAD_GLOBAL                     1: NULL + rx
+                346     LOAD_ATTR                       1: vstack
+                356     LOAD_CONST                      11: <CODE> <listcomp>
+                358     MAKE_FUNCTION                   0
+                360     LOAD_GLOBAL                     26: TOOLS
+                372     GET_ITER                        
+                374     PRECALL                         0
+                378     CALL                            0
+                388     LOAD_CONST                      12: '4'
+                390     LOAD_CONST                      6: '100%'
+                392     LOAD_CONST                      13: ('spacing', 'width')
+                394     BUILD_CONST_KEY_MAP             2
+                396     CALL_FUNCTION_EX                1
+                398     LOAD_GLOBAL                     1: NULL + rx
+                410     LOAD_ATTR                       2: text
+                420     LOAD_CONST                      14: 'No picked tools expose extra options.'
+                422     LOAD_CONST                      15: '1'
+                424     LOAD_CONST                      16: 'var(--gray-9)'
+                426     KW_NAMES                        4: ('size', 'color')
+                428     PRECALL                         3
+                432     CALL                            3
+                442     PRECALL                         3
+                446     CALL                            3
+                456     LOAD_GLOBAL                     7: NULL + wz
+                468     LOAD_ATTR                       14: nav_buttons
+                478     LOAD_GLOBAL                     10: ToolsState
+                490     LOAD_ATTR                       15: prev_step
+                500     LOAD_GLOBAL                     10: ToolsState
+                512     LOAD_ATTR                       16: next_step
+                522     LOAD_CONST                      17: 'Review & run'
+                524     KW_NAMES                        18: ('next_label',)
+                526     PRECALL                         3
+                530     CALL                            3
+                540     LOAD_CONST                      19: '6'
+                542     LOAD_CONST                      6: '100%'
+                544     LOAD_CONST                      20: 'start'
+                546     KW_NAMES                        21: ('spacing', 'width', 'align')
+                548     PRECALL                         8
+                552     CALL                            8
+                562     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/tools.py
+            Object Name: _step_run
+            Qualified Name: _step_run
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 13
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                'card'
+                'hstack'
+                'text'
+                'foreach'
+                'ToolsState'
+                'picked_ids'
+                'n_selected'
+                'profile'
+                'heading'
+                'code_block'
+                'preview'
+                'wz'
+                'run_panel'
+                'merged_panel'
+                'nav_buttons'
+                'prev_step'
+                'next_step'
+            [Locals+Names]
+            [Constants]
+                None
+                'Tools'
+                '1'
+                'var(--gray-10)'
+                (
+                    'size'
+                    'color'
+                )
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/tools.py
+                    Object Name: <lambda>
+                    Qualified Name: _step_run.<locals>.<lambda>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 4
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'rx'
+                        'badge'
+                    [Locals+Names]
+                        't'
+                    [Constants]
+                        None
+                        'teal'
+                        (
+                            'color_scheme'
+                        )
+                    [Disassembly]
+                        0       RESUME                          0
+                        2       LOAD_GLOBAL                     1: NULL + rx
+                        14      LOAD_ATTR                       1: badge
+                        24      LOAD_FAST                       0: t
+                        26      LOAD_CONST                      1: 'teal'
+                        28      KW_NAMES                        2: ('color_scheme',)
+                        30      PRECALL                         2
+                        34      CALL                            2
+                        44      RETURN_VALUE                    
+                    [Exception Table]
+                'wrap'
+                '2'
+                'center'
+                (
+                    'wrap'
+                    'spacing'
+                    'align'
+                )
+                ' samples · profile '
+                'var(--gray-11)'
+                '6px'
+                (
+                    'size'
+                    'color'
+                    'margin_top'
+                )
+                '100%'
+                'var(--teal-2)'
+                'var(--teal-6)'
+                (
+                    'background'
+                    'borderColor'
+                )
+                (
+                    'width'
+                    'style'
+                )
+                'Command preview'
+                '3'
+                (
+                    'size'
+                )
+                'bash'
+                True
+                (
+                    'language'
+                    'width'
+                    'wrap_long_lines'
+                )
+                'Back'
+                (
+                    'next_label'
+                    'next_handler'
+                )
+                '6'
+                'start'
+                (
+                    'spacing'
+                    'width'
+                    'align'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: vstack
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: card
+                46      LOAD_GLOBAL                     1: NULL + rx
+                58      LOAD_ATTR                       3: hstack
+                68      LOAD_GLOBAL                     1: NULL + rx
+                80      LOAD_ATTR                       4: text
+                90      LOAD_CONST                      1: 'Tools'
+                92      LOAD_CONST                      2: '1'
+                94      LOAD_CONST                      3: 'var(--gray-10)'
+                96      KW_NAMES                        4: ('size', 'color')
+                98      PRECALL                         3
+                102     CALL                            3
+                112     LOAD_GLOBAL                     1: NULL + rx
+                124     LOAD_ATTR                       5: foreach
+                134     LOAD_GLOBAL                     12: ToolsState
+                146     LOAD_ATTR                       7: picked_ids
+                156     LOAD_CONST                      5: <CODE> <lambda>
+                158     MAKE_FUNCTION                   0
+                160     PRECALL                         2
+                164     CALL                            2
+                174     LOAD_CONST                      6: 'wrap'
+                176     LOAD_CONST                      7: '2'
+                178     LOAD_CONST                      8: 'center'
+                180     KW_NAMES                        9: ('wrap', 'spacing', 'align')
+                182     PRECALL                         5
+                186     CALL                            5
+                196     LOAD_GLOBAL                     1: NULL + rx
+                208     LOAD_ATTR                       4: text
+                218     LOAD_GLOBAL                     12: ToolsState
+                230     LOAD_ATTR                       8: n_selected
+                240     FORMAT_VALUE                    0 (FVC_NONE)
+                242     LOAD_CONST                      10: ' samples · profile '
+                244     LOAD_GLOBAL                     12: ToolsState
+                256     LOAD_ATTR                       9: profile
+                266     FORMAT_VALUE                    0 (FVC_NONE)
+                268     BUILD_STRING                    3
+                270     LOAD_CONST                      7: '2'
+                272     LOAD_CONST                      11: 'var(--gray-11)'
+                274     LOAD_CONST                      12: '6px'
+                276     KW_NAMES                        13: ('size', 'color', 'margin_top')
+                278     PRECALL                         4
+                282     CALL                            4
+                292     LOAD_CONST                      14: '100%'
+                294     LOAD_CONST                      15: 'var(--teal-2)'
+                296     LOAD_CONST                      16: 'var(--teal-6)'
+                298     LOAD_CONST                      17: ('background', 'borderColor')
+                300     BUILD_CONST_KEY_MAP             2
+                302     KW_NAMES                        18: ('width', 'style')
+                304     PRECALL                         4
+                308     CALL                            4
+                318     LOAD_GLOBAL                     1: NULL + rx
+                330     LOAD_ATTR                       10: heading
+                340     LOAD_CONST                      19: 'Command preview'
+                342     LOAD_CONST                      20: '3'
+                344     KW_NAMES                        21: ('size',)
+                346     PRECALL                         2
+                350     CALL                            2
+                360     LOAD_GLOBAL                     1: NULL + rx
+                372     LOAD_ATTR                       11: code_block
+                382     LOAD_GLOBAL                     12: ToolsState
+                394     LOAD_ATTR                       12: preview
+                404     LOAD_CONST                      22: 'bash'
+                406     LOAD_CONST                      14: '100%'
+                408     LOAD_CONST                      23: True
+                410     KW_NAMES                        24: ('language', 'width', 'wrap_long_lines')
+                412     PRECALL                         4
+                416     CALL                            4
+                426     LOAD_GLOBAL                     27: NULL + wz
+                438     LOAD_ATTR                       14: run_panel
+                448     LOAD_GLOBAL                     12: ToolsState
+                460     PRECALL                         1
+                464     CALL                            1
+                474     LOAD_GLOBAL                     27: NULL + wz
+                486     LOAD_ATTR                       15: merged_panel
+                496     LOAD_GLOBAL                     12: ToolsState
+                508     PRECALL                         1
+                512     CALL                            1
+                522     LOAD_GLOBAL                     27: NULL + wz
+                534     LOAD_ATTR                       16: nav_buttons
+                544     LOAD_GLOBAL                     12: ToolsState
+                556     LOAD_ATTR                       17: prev_step
+                566     LOAD_GLOBAL                     12: ToolsState
+                578     LOAD_ATTR                       18: next_step
+                588     LOAD_CONST                      25: 'Back'
+                590     LOAD_GLOBAL                     12: ToolsState
+                602     LOAD_ATTR                       17: prev_step
+                612     KW_NAMES                        26: ('next_label', 'next_handler')
+                614     PRECALL                         4
+                618     CALL                            4
+                628     LOAD_CONST                      27: '6'
+                630     LOAD_CONST                      14: '100%'
+                632     LOAD_CONST                      28: 'start'
+                634     KW_NAMES                        29: ('spacing', 'width', 'align')
+                636     PRECALL                         9
+                640     CALL                            9
+                650     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/tools.py
+            Object Name: tools_page
+            Qualified Name: tools_page
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 14
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'shell'
+                'wz'
+                'hero'
+                'step_indicator'
+                'STEPS'
+                'ToolsState'
+                'step'
+                'goto'
+                'rx'
+                'divider'
+                'match'
+                '_step_data'
+                '_step_tools'
+                '_step_params'
+                '_step_run'
+            [Locals+Names]
+            [Constants]
+                None
+                'wrench'
+                'Bactopia Tools'
+                'Run official --wf workflows over already-processed samples.'
+                0
+                1
+                2
+                3
+                '/tools'
+                (
+                    'active'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + shell
+                14      LOAD_GLOBAL                     3: NULL + wz
+                26      LOAD_ATTR                       2: hero
+                36      LOAD_CONST                      1: 'wrench'
+                38      LOAD_CONST                      2: 'Bactopia Tools'
+                40      LOAD_CONST                      3: 'Run official --wf workflows over already-processed samples.'
+                42      PRECALL                         3
+                46      CALL                            3
+                56      LOAD_GLOBAL                     3: NULL + wz
+                68      LOAD_ATTR                       3: step_indicator
+                78      LOAD_GLOBAL                     8: STEPS
+                90      LOAD_GLOBAL                     10: ToolsState
+                102     LOAD_ATTR                       6: step
+                112     LOAD_GLOBAL                     10: ToolsState
+                124     LOAD_ATTR                       7: goto
+                134     PRECALL                         3
+                138     CALL                            3
+                148     LOAD_GLOBAL                     17: NULL + rx
+                160     LOAD_ATTR                       9: divider
+                170     PRECALL                         0
+                174     CALL                            0
+                184     LOAD_GLOBAL                     17: NULL + rx
+                196     LOAD_ATTR                       10: match
+                206     LOAD_GLOBAL                     10: ToolsState
+                218     LOAD_ATTR                       6: step
+                228     LOAD_CONST                      4: 0
+                230     LOAD_GLOBAL                     23: NULL + _step_data
+                242     PRECALL                         0
+                246     CALL                            0
+                256     BUILD_TUPLE                     2
+                258     LOAD_CONST                      5: 1
+                260     LOAD_GLOBAL                     25: NULL + _step_tools
+                272     PRECALL                         0
+                276     CALL                            0
+                286     BUILD_TUPLE                     2
+                288     LOAD_CONST                      6: 2
+                290     LOAD_GLOBAL                     27: NULL + _step_params
+                302     PRECALL                         0
+                306     CALL                            0
+                316     BUILD_TUPLE                     2
+                318     LOAD_CONST                      7: 3
+                320     LOAD_GLOBAL                     29: NULL + _step_run
+                332     PRECALL                         0
+                336     CALL                            0
+                346     BUILD_TUPLE                     2
+                348     LOAD_GLOBAL                     23: NULL + _step_data
+                360     PRECALL                         0
+                364     CALL                            0
+                374     PRECALL                         6
+                378     CALL                            6
+                388     LOAD_CONST                      8: '/tools'
+                390     KW_NAMES                        9: ('active',)
+                392     PRECALL                         5
+                396     CALL                            5
+                406     RETURN_VALUE                    
+            [Exception Table]
+        (
+            'tool'
+            'dict'
+            'return'
+            'rx.Component'
+        )
+        (
+            'cat'
+            'str'
+            'return'
+            'rx.Component'
+        )
+        (
+            'field'
+            'dict'
+            'return'
+            'rx.Component'
+        )
+        (
+            'return'
+            'rx.Component'
+        )
+    [Disassembly]
+        0       RESUME                          0
+        2       LOAD_CONST                      0: 'Bactopia Tools — guided wizard over all official --wf tools.'
+        4       STORE_NAME                      0: __doc__
+        6       LOAD_CONST                      1: 0
+        8       LOAD_CONST                      2: ('annotations',)
+        10      IMPORT_NAME                     1: __future__
+        12      IMPORT_FROM                     2: annotations
+        14      STORE_NAME                      2: annotations
+        16      POP_TOP                         
+        18      LOAD_CONST                      1: 0
+        20      LOAD_CONST                      3: None
+        22      IMPORT_NAME                     3: reflex
+        24      STORE_NAME                      4: rx
+        26      LOAD_CONST                      1: 0
+        28      LOAD_CONST                      4: ('shell',)
+        30      IMPORT_NAME                     5: bearhub.components.shell
+        32      IMPORT_FROM                     6: shell
+        34      STORE_NAME                      6: shell
+        36      POP_TOP                         
+        38      LOAD_CONST                      1: 0
+        40      LOAD_CONST                      5: ('wizard',)
+        42      IMPORT_NAME                     7: bearhub.components
+        44      IMPORT_FROM                     8: wizard
+        46      STORE_NAME                      9: wz
+        48      POP_TOP                         
+        50      LOAD_CONST                      1: 0
+        52      LOAD_CONST                      6: ('help',)
+        54      IMPORT_NAME                     7: bearhub.components
+        56      IMPORT_FROM                     10: help
+        58      STORE_NAME                      11: helpmod
+        60      POP_TOP                         
+        62      LOAD_CONST                      1: 0
+        64      LOAD_CONST                      7: ('catalog',)
+        66      IMPORT_NAME                     12: bearhub.data
+        68      IMPORT_FROM                     13: catalog
+        70      STORE_NAME                      13: catalog
+        72      POP_TOP                         
+        74      LOAD_CONST                      1: 0
+        76      LOAD_CONST                      8: ('CATEGORY_ORDER', 'FIELD_SPECS', 'TOOLS', 'tools_in_category')
+        78      IMPORT_NAME                     14: bearhub.data.catalog
+        80      IMPORT_FROM                     15: CATEGORY_ORDER
+        82      STORE_NAME                      15: CATEGORY_ORDER
+        84      IMPORT_FROM                     16: FIELD_SPECS
+        86      STORE_NAME                      16: FIELD_SPECS
+        88      IMPORT_FROM                     17: TOOLS
+        90      STORE_NAME                      17: TOOLS
+        92      IMPORT_FROM                     18: tools_in_category
+        94      STORE_NAME                      18: tools_in_category
+        96      POP_TOP                         
+        98      LOAD_CONST                      1: 0
+        100     LOAD_CONST                      9: ('ToolsState',)
+        102     IMPORT_NAME                     19: bearhub.state
+        104     IMPORT_FROM                     20: ToolsState
+        106     STORE_NAME                      20: ToolsState
+        108     POP_TOP                         
+        110     BUILD_LIST                      0
+        112     LOAD_CONST                      10: ('Data', 'Tools', 'Parameters', 'Run')
+        114     LIST_EXTEND                     1
+        116     STORE_NAME                      21: STEPS
+        118     LOAD_CONST                      29: ('tool', 'dict', 'return', 'rx.Component')
+        120     LOAD_CONST                      15: <CODE> _tool_card
+        122     MAKE_FUNCTION                   4
+        124     STORE_NAME                      22: _tool_card
+        126     LOAD_CONST                      30: ('cat', 'str', 'return', 'rx.Component')
+        128     LOAD_CONST                      18: <CODE> _category_block
+        130     MAKE_FUNCTION                   4
+        132     STORE_NAME                      23: _category_block
+        134     LOAD_CONST                      31: ('field', 'dict', 'return', 'rx.Component')
+        136     LOAD_CONST                      20: <CODE> _field
+        138     MAKE_FUNCTION                   4
+        140     STORE_NAME                      24: _field
+        142     LOAD_CONST                      21: 'amrfinderplus'
+        144     LOAD_CONST                      22: 'amrfinder'
+        146     BUILD_MAP                       1
+        148     STORE_NAME                      25: _HELP_KEY
+        150     LOAD_CONST                      29: ('tool', 'dict', 'return', 'rx.Component')
+        152     LOAD_CONST                      23: <CODE> _detailed_panel
+        154     MAKE_FUNCTION                   4
+        156     STORE_NAME                      26: _detailed_panel
+        158     LOAD_CONST                      32: ('return', 'rx.Component')
+        160     LOAD_CONST                      24: <CODE> _step_data
+        162     MAKE_FUNCTION                   4
+        164     STORE_NAME                      27: _step_data
+        166     LOAD_CONST                      32: ('return', 'rx.Component')
+        168     LOAD_CONST                      25: <CODE> _step_tools
+        170     MAKE_FUNCTION                   4
+        172     STORE_NAME                      28: _step_tools
+        174     LOAD_CONST                      32: ('return', 'rx.Component')
+        176     LOAD_CONST                      26: <CODE> _step_params
+        178     MAKE_FUNCTION                   4
+        180     STORE_NAME                      29: _step_params
+        182     LOAD_CONST                      32: ('return', 'rx.Component')
+        184     LOAD_CONST                      27: <CODE> _step_run
+        186     MAKE_FUNCTION                   4
+        188     STORE_NAME                      30: _step_run
+        190     LOAD_CONST                      32: ('return', 'rx.Component')
+        192     LOAD_CONST                      28: <CODE> tools_page
+        194     MAKE_FUNCTION                   4
+        196     STORE_NAME                      31: tools_page
+        198     LOAD_CONST                      3: None
+        200     RETURN_VALUE                    
+    [Exception Table]

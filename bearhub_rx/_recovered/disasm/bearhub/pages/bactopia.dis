@@ -1,0 +1,2860 @@
+bactopia.cpython-311.pyc (Python 3.11)
+[Code]
+    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+    Object Name: <module>
+    Qualified Name: <module>
+    Arg Count: 0
+    Pos Only Arg Count: 0
+    KW Only Arg Count: 0
+    Stack Size: 4
+    Flags: 0x01000000 (CO_FUTURE_ANNOTATIONS)
+    [Names]
+        '__doc__'
+        '__future__'
+        'annotations'
+        'reflex'
+        'rx'
+        'bearhub.components.shell'
+        'shell'
+        'bearhub.components'
+        'wizard'
+        'wz'
+        'help'
+        'helpmod'
+        'bearhub.data'
+        'catalog'
+        'bearhub.state'
+        'BactopiaState'
+        'S'
+        'STEPS'
+        'GENOME_SIZES'
+        'GENOME_OPTS'
+        'MLST_DISPLAY'
+        'MLST_OPTS'
+        'opt_in'
+        'opt_sel'
+        'flag_cb'
+        '_mode_is'
+        '_step_input'
+        '_fastp_card'
+        '_fastp_simple'
+        '_step_cleaning'
+        '_step_assembler'
+        '_step_typing'
+        '_step_run'
+        'bactopia_page'
+    [Locals+Names]
+    [Constants]
+        'Bactopia main pipeline — guided wizard (FOFN → cleaning → assembly → typing → run).'
+        0
+        (
+            'annotations'
+        )
+        None
+        (
+            'shell'
+        )
+        (
+            'wizard'
+        )
+        (
+            'help'
+        )
+        (
+            'catalog'
+        )
+        (
+            'BactopiaState'
+        )
+        (
+            'Input & FOFN'
+            'Read cleaning'
+            'Assembler'
+            'Typing & extras'
+            'Run'
+        )
+        '(Select or Custom)'
+        'Custom'
+        'text'
+        '160px'
+        ''
+        (
+            'typ'
+            'width'
+            'placeholder'
+        )
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+            Object Name: opt_in
+            Qualified Name: opt_in
+            Arg Count: 2
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 3
+            Stack Size: 12
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'wz'
+                'labeled'
+                'rx'
+                'input'
+                'S'
+                'bopts'
+            [Locals+Names]
+                'label'
+                'key'
+                'typ'
+                'width'
+                'placeholder'
+            [Constants]
+                None
+                '2'
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+                    Object Name: <lambda>
+                    Qualified Name: opt_in.<locals>.<lambda>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 4
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'S'
+                        'set_bopt'
+                    [Locals+Names]
+                        'v'
+                        'key'
+                    [Constants]
+                        None
+                    [Disassembly]
+                        0       COPY_FREE_VARS                  1
+                        2       RESUME                          0
+                        4       LOAD_GLOBAL                     1: NULL + S
+                        16      LOAD_ATTR                       1: set_bopt
+                        26      LOAD_DEREF                      1: key
+                        28      LOAD_FAST                       0: v
+                        30      PRECALL                         2
+                        34      CALL                            2
+                        44      RETURN_VALUE                    
+                    [Exception Table]
+                (
+                    'value'
+                    'type'
+                    'size'
+                    'width'
+                    'placeholder'
+                    'on_change'
+                )
+            [Disassembly]
+                0       MAKE_CELL                       1: key
+                2       RESUME                          0
+                4       LOAD_GLOBAL                     1: NULL + wz
+                16      LOAD_ATTR                       1: labeled
+                26      LOAD_FAST                       0: label
+                28      LOAD_GLOBAL                     5: NULL + rx
+                40      LOAD_ATTR                       3: input
+                50      LOAD_GLOBAL                     8: S
+                62      LOAD_ATTR                       5: bopts
+                72      LOAD_DEREF                      1: key
+                74      BINARY_SUBSCR                   
+                84      LOAD_FAST                       2: typ
+                86      LOAD_CONST                      1: '2'
+                88      LOAD_FAST                       3: width
+                90      LOAD_FAST                       4: placeholder
+                92      LOAD_CLOSURE                    1: key
+                94      BUILD_TUPLE                     1
+                96      LOAD_CONST                      2: <CODE> <lambda>
+                98      MAKE_FUNCTION                   8
+                100     KW_NAMES                        3: ('value', 'type', 'size', 'width', 'placeholder', 'on_change')
+                102     PRECALL                         6
+                106     CALL                            6
+                116     PRECALL                         2
+                120     CALL                            2
+                130     RETURN_VALUE                    
+            [Exception Table]
+        '200px'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+            Object Name: opt_sel
+            Qualified Name: opt_sel
+            Arg Count: 4
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 11
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'wz'
+                'labeled'
+                'rx'
+                'select'
+                'S'
+                'bopts'
+            [Locals+Names]
+                'label'
+                'key'
+                'options'
+                'width'
+            [Constants]
+                None
+                '2'
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+                    Object Name: <lambda>
+                    Qualified Name: opt_sel.<locals>.<lambda>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 4
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'S'
+                        'set_bopt'
+                    [Locals+Names]
+                        'v'
+                        'key'
+                    [Constants]
+                        None
+                    [Disassembly]
+                        0       COPY_FREE_VARS                  1
+                        2       RESUME                          0
+                        4       LOAD_GLOBAL                     1: NULL + S
+                        16      LOAD_ATTR                       1: set_bopt
+                        26      LOAD_DEREF                      1: key
+                        28      LOAD_FAST                       0: v
+                        30      PRECALL                         2
+                        34      CALL                            2
+                        44      RETURN_VALUE                    
+                    [Exception Table]
+                (
+                    'value'
+                    'size'
+                    'width'
+                    'on_change'
+                )
+            [Disassembly]
+                0       MAKE_CELL                       1: key
+                2       RESUME                          0
+                4       LOAD_GLOBAL                     1: NULL + wz
+                16      LOAD_ATTR                       1: labeled
+                26      LOAD_FAST                       0: label
+                28      LOAD_GLOBAL                     5: NULL + rx
+                40      LOAD_ATTR                       3: select
+                50      LOAD_FAST                       2: options
+                52      LOAD_GLOBAL                     8: S
+                64      LOAD_ATTR                       5: bopts
+                74      LOAD_DEREF                      1: key
+                76      BINARY_SUBSCR                   
+                86      LOAD_CONST                      1: '2'
+                88      LOAD_FAST                       3: width
+                90      LOAD_CLOSURE                    1: key
+                92      BUILD_TUPLE                     1
+                94      LOAD_CONST                      2: <CODE> <lambda>
+                96      MAKE_FUNCTION                   8
+                98      KW_NAMES                        3: ('value', 'size', 'width', 'on_change')
+                100     PRECALL                         5
+                104     CALL                            5
+                114     PRECALL                         2
+                118     CALL                            2
+                128     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+            Object Name: flag_cb
+            Qualified Name: flag_cb
+            Arg Count: 2
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 8
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'checkbox'
+                'S'
+                'bflags'
+            [Locals+Names]
+                'label'
+                'key'
+            [Constants]
+                None
+                'teal'
+                '2'
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+                    Object Name: <lambda>
+                    Qualified Name: flag_cb.<locals>.<lambda>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 4
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'S'
+                        'set_bflag'
+                    [Locals+Names]
+                        'v'
+                        'key'
+                    [Constants]
+                        None
+                    [Disassembly]
+                        0       COPY_FREE_VARS                  1
+                        2       RESUME                          0
+                        4       LOAD_GLOBAL                     1: NULL + S
+                        16      LOAD_ATTR                       1: set_bflag
+                        26      LOAD_DEREF                      1: key
+                        28      LOAD_FAST                       0: v
+                        30      PRECALL                         2
+                        34      CALL                            2
+                        44      RETURN_VALUE                    
+                    [Exception Table]
+                (
+                    'checked'
+                    'color_scheme'
+                    'size'
+                    'on_change'
+                )
+            [Disassembly]
+                0       MAKE_CELL                       1: key
+                2       RESUME                          0
+                4       LOAD_GLOBAL                     1: NULL + rx
+                16      LOAD_ATTR                       1: checkbox
+                26      LOAD_FAST                       0: label
+                28      LOAD_GLOBAL                     4: S
+                40      LOAD_ATTR                       3: bflags
+                50      LOAD_DEREF                      1: key
+                52      BINARY_SUBSCR                   
+                62      LOAD_CONST                      1: 'teal'
+                64      LOAD_CONST                      2: '2'
+                66      LOAD_CLOSURE                    1: key
+                68      BUILD_TUPLE                     1
+                70      LOAD_CONST                      3: <CODE> <lambda>
+                72      MAKE_FUNCTION                   8
+                74      KW_NAMES                        4: ('checked', 'color_scheme', 'size', 'on_change')
+                76      PRECALL                         5
+                80      CALL                            5
+                90      RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+            Object Name: _mode_is
+            Qualified Name: _mode_is
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 4
+            Flags: 0x01000007 (CO_OPTIMIZED | CO_NEWLOCALS | CO_VARARGS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'S'
+                'bopts'
+            [Locals+Names]
+                'modes'
+                'cond'
+                'm'
+            [Constants]
+                None
+                'assembly_mode'
+                0
+                1
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     0: S
+                14      LOAD_ATTR                       1: bopts
+                24      LOAD_CONST                      1: 'assembly_mode'
+                26      BINARY_SUBSCR                   
+                36      LOAD_FAST                       0: modes
+                38      LOAD_CONST                      2: 0
+                40      BINARY_SUBSCR                   
+                50      COMPARE_OP                      2 (==)
+                56      STORE_FAST                      1: cond
+                58      LOAD_FAST                       0: modes
+                60      LOAD_CONST                      3: 1
+                62      LOAD_CONST                      0: None
+                64      BUILD_SLICE                     2
+                66      BINARY_SUBSCR                   
+                76      GET_ITER                        
+                78      FOR_ITER                        27 (to 134)
+                80      STORE_FAST                      2: m
+                82      LOAD_FAST                       1: cond
+                84      LOAD_GLOBAL                     0: S
+                96      LOAD_ATTR                       1: bopts
+                106     LOAD_CONST                      1: 'assembly_mode'
+                108     BINARY_SUBSCR                   
+                118     LOAD_FAST                       2: m
+                120     COMPARE_OP                      2 (==)
+                126     BINARY_OP                       7 (|)
+                130     STORE_FAST                      1: cond
+                132     JUMP_BACKWARD                   28 (to 78)
+                134     LOAD_FAST                       1: cond
+                136     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+            Object Name: _step_input
+            Qualified Name: _step_input
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 25
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                'wz'
+                'labeled'
+                'dir_input'
+                'S'
+                'card'
+                'helpmod'
+                'section'
+                'text'
+                'base_dir'
+                'flex'
+                'opt_in'
+                'field_label'
+                'select'
+                'GENOME_OPTS'
+                'bopts'
+                'flag_cb'
+                'hstack'
+                'button'
+                'icon'
+                'scan_fofn'
+                'cond'
+                'fofn_built'
+                'badge'
+                'fofn_summary'
+                'fofn_path'
+                'fofn_issues'
+                'length'
+                'foreach'
+                'dir_picker'
+                'nav_buttons'
+                'prev_step'
+                'next_step'
+            [Locals+Names]
+            [Constants]
+                None
+                'Output directory (--outdir)'
+                'outdir'
+                '100%'
+                (
+                    'width'
+                )
+                'Generate FOFN'
+                'fofn'
+                '3'
+                (
+                    'size'
+                )
+                'Scan a folder for FASTQ/FASTA; runtype (paired-end, single-end, ont, hybrid, assembly) is inferred per sample.'
+                '1'
+                'var(--gray-10)'
+                (
+                    'size'
+                    'color'
+                )
+                'Base folder with reads/assemblies'
+                'base_dir'
+                False
+                (
+                    'value'
+                    'with_rescan'
+                )
+                'species'
+                '200px'
+                'genome_size'
+                '2'
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+                    Object Name: <lambda>
+                    Qualified Name: _step_input.<locals>.<lambda>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 4
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'S'
+                        'set_bopt'
+                    [Locals+Names]
+                        'v'
+                    [Constants]
+                        None
+                        'genome_size'
+                    [Disassembly]
+                        0       RESUME                          0
+                        2       LOAD_GLOBAL                     1: NULL + S
+                        14      LOAD_ATTR                       1: set_bopt
+                        24      LOAD_CONST                      1: 'genome_size'
+                        26      LOAD_FAST                       0: v
+                        28      PRECALL                         2
+                        32      CALL                            2
+                        42      RETURN_VALUE                    
+                    [Exception Table]
+                (
+                    'value'
+                    'size'
+                    'width'
+                    'on_change'
+                )
+                'start'
+                (
+                    'spacing'
+                    'align'
+                )
+                'wrap'
+                '4'
+                'end'
+                (
+                    'wrap'
+                    'spacing'
+                    'align'
+                )
+                'Include subfolders'
+                'recursive'
+                'Include assemblies (FASTA)'
+                'include_assemblies'
+                'Treat SE as ONT'
+                'treat_se_as_ont'
+                'Infer ONT by name'
+                'infer_ont_by_name'
+                'Merge multi-files (commas)'
+                'merge_multi'
+                '5'
+                'center'
+                'search'
+                16
+                'Scan & build FOFN'
+                'teal'
+                (
+                    'on_click'
+                    'color_scheme'
+                    'size'
+                )
+                'green'
+                (
+                    'color_scheme'
+                    'size'
+                )
+                ''
+                'red'
+                (
+                    'spacing'
+                    'align'
+                    'wrap'
+                )
+                'monospace'
+                'var(--gray-9)'
+                (
+                    'font_family'
+                    'size'
+                    'color'
+                )
+                0
+                'Issues:'
+                'bold'
+                'var(--amber-11)'
+                (
+                    'size'
+                    'weight'
+                    'color'
+                )
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+                    Object Name: <lambda>
+                    Qualified Name: _step_input.<locals>.<lambda>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 5
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'rx'
+                        'text'
+                    [Locals+Names]
+                        'm'
+                    [Constants]
+                        None
+                        '• '
+                        '1'
+                        'var(--amber-11)'
+                        (
+                            'size'
+                            'color'
+                        )
+                    [Disassembly]
+                        0       RESUME                          0
+                        2       LOAD_GLOBAL                     1: NULL + rx
+                        14      LOAD_ATTR                       1: text
+                        24      LOAD_CONST                      1: '• '
+                        26      LOAD_FAST                       0: m
+                        28      FORMAT_VALUE                    0 (FVC_NONE)
+                        30      BUILD_STRING                    2
+                        32      LOAD_CONST                      2: '1'
+                        34      LOAD_CONST                      3: 'var(--amber-11)'
+                        36      KW_NAMES                        4: ('size', 'color')
+                        38      PRECALL                         3
+                        42      CALL                            3
+                        52      RETURN_VALUE                    
+                    [Exception Table]
+                '0'
+                (
+                    'width'
+                    'spacing'
+                )
+                True
+                (
+                    'first'
+                )
+                '6'
+                (
+                    'spacing'
+                    'width'
+                    'align'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: vstack
+                24      LOAD_GLOBAL                     5: NULL + wz
+                36      LOAD_ATTR                       3: labeled
+                46      LOAD_CONST                      1: 'Output directory (--outdir)'
+                48      LOAD_GLOBAL                     5: NULL + wz
+                60      LOAD_ATTR                       4: dir_input
+                70      LOAD_GLOBAL                     10: S
+                82      LOAD_CONST                      2: 'outdir'
+                84      PRECALL                         2
+                88      CALL                            2
+                98      LOAD_CONST                      3: '100%'
+                100     KW_NAMES                        4: ('width',)
+                102     PRECALL                         3
+                106     CALL                            3
+                116     LOAD_GLOBAL                     1: NULL + rx
+                128     LOAD_ATTR                       6: card
+                138     LOAD_GLOBAL                     15: NULL + helpmod
+                150     LOAD_ATTR                       8: section
+                160     LOAD_CONST                      5: 'Generate FOFN'
+                162     LOAD_CONST                      6: 'fofn'
+                164     LOAD_CONST                      7: '3'
+                166     KW_NAMES                        8: ('size',)
+                168     PRECALL                         3
+                172     CALL                            3
+                182     LOAD_GLOBAL                     1: NULL + rx
+                194     LOAD_ATTR                       9: text
+                204     LOAD_CONST                      9: 'Scan a folder for FASTQ/FASTA; runtype (paired-end, single-end, ont, hybrid, assembly) is inferred per sample.'
+                206     LOAD_CONST                      10: '1'
+                208     LOAD_CONST                      11: 'var(--gray-10)'
+                210     KW_NAMES                        12: ('size', 'color')
+                212     PRECALL                         3
+                216     CALL                            3
+                226     LOAD_GLOBAL                     5: NULL + wz
+                238     LOAD_ATTR                       3: labeled
+                248     LOAD_CONST                      13: 'Base folder with reads/assemblies'
+                250     LOAD_GLOBAL                     5: NULL + wz
+                262     LOAD_ATTR                       4: dir_input
+                272     LOAD_GLOBAL                     10: S
+                284     LOAD_CONST                      14: 'base_dir'
+                286     LOAD_GLOBAL                     10: S
+                298     LOAD_ATTR                       10: base_dir
+                308     LOAD_CONST                      15: False
+                310     KW_NAMES                        16: ('value', 'with_rescan')
+                312     PRECALL                         4
+                316     CALL                            4
+                326     LOAD_CONST                      3: '100%'
+                328     KW_NAMES                        4: ('width',)
+                330     PRECALL                         3
+                334     CALL                            3
+                344     LOAD_GLOBAL                     1: NULL + rx
+                356     LOAD_ATTR                       11: flex
+                366     LOAD_GLOBAL                     25: NULL + opt_in
+                378     LOAD_CONST                      17: 'species'
+                380     LOAD_CONST                      17: 'species'
+                382     LOAD_CONST                      18: '200px'
+                384     KW_NAMES                        4: ('width',)
+                386     PRECALL                         3
+                390     CALL                            3
+                400     LOAD_GLOBAL                     1: NULL + rx
+                412     LOAD_ATTR                       1: vstack
+                422     LOAD_GLOBAL                     15: NULL + helpmod
+                434     LOAD_ATTR                       13: field_label
+                444     LOAD_CONST                      19: 'genome_size'
+                446     LOAD_CONST                      19: 'genome_size'
+                448     PRECALL                         2
+                452     CALL                            2
+                462     LOAD_GLOBAL                     1: NULL + rx
+                474     LOAD_ATTR                       14: select
+                484     LOAD_GLOBAL                     30: GENOME_OPTS
+                496     LOAD_GLOBAL                     10: S
+                508     LOAD_ATTR                       16: bopts
+                518     LOAD_CONST                      19: 'genome_size'
+                520     BINARY_SUBSCR                   
+                530     LOAD_CONST                      20: '2'
+                532     LOAD_CONST                      18: '200px'
+                534     LOAD_CONST                      21: <CODE> <lambda>
+                536     MAKE_FUNCTION                   0
+                538     KW_NAMES                        22: ('value', 'size', 'width', 'on_change')
+                540     PRECALL                         5
+                544     CALL                            5
+                554     LOAD_CONST                      10: '1'
+                556     LOAD_CONST                      23: 'start'
+                558     KW_NAMES                        24: ('spacing', 'align')
+                560     PRECALL                         4
+                564     CALL                            4
+                574     LOAD_CONST                      25: 'wrap'
+                576     LOAD_CONST                      26: '4'
+                578     LOAD_CONST                      27: 'end'
+                580     KW_NAMES                        28: ('wrap', 'spacing', 'align')
+                582     PRECALL                         5
+                586     CALL                            5
+                596     LOAD_GLOBAL                     1: NULL + rx
+                608     LOAD_ATTR                       11: flex
+                618     LOAD_GLOBAL                     35: NULL + flag_cb
+                630     LOAD_CONST                      29: 'Include subfolders'
+                632     LOAD_CONST                      30: 'recursive'
+                634     PRECALL                         2
+                638     CALL                            2
+                648     LOAD_GLOBAL                     35: NULL + flag_cb
+                660     LOAD_CONST                      31: 'Include assemblies (FASTA)'
+                662     LOAD_CONST                      32: 'include_assemblies'
+                664     PRECALL                         2
+                668     CALL                            2
+                678     LOAD_GLOBAL                     35: NULL + flag_cb
+                690     LOAD_CONST                      33: 'Treat SE as ONT'
+                692     LOAD_CONST                      34: 'treat_se_as_ont'
+                694     PRECALL                         2
+                698     CALL                            2
+                708     LOAD_GLOBAL                     35: NULL + flag_cb
+                720     LOAD_CONST                      35: 'Infer ONT by name'
+                722     LOAD_CONST                      36: 'infer_ont_by_name'
+                724     PRECALL                         2
+                728     CALL                            2
+                738     LOAD_GLOBAL                     35: NULL + flag_cb
+                750     LOAD_CONST                      37: 'Merge multi-files (commas)'
+                752     LOAD_CONST                      38: 'merge_multi'
+                754     PRECALL                         2
+                758     CALL                            2
+                768     LOAD_CONST                      25: 'wrap'
+                770     LOAD_CONST                      39: '5'
+                772     LOAD_CONST                      40: 'center'
+                774     KW_NAMES                        28: ('wrap', 'spacing', 'align')
+                776     PRECALL                         8
+                780     CALL                            8
+                790     LOAD_GLOBAL                     1: NULL + rx
+                802     LOAD_ATTR                       18: hstack
+                812     LOAD_GLOBAL                     1: NULL + rx
+                824     LOAD_ATTR                       19: button
+                834     LOAD_GLOBAL                     1: NULL + rx
+                846     LOAD_ATTR                       20: icon
+                856     LOAD_CONST                      41: 'search'
+                858     LOAD_CONST                      42: 16
+                860     KW_NAMES                        8: ('size',)
+                862     PRECALL                         2
+                866     CALL                            2
+                876     LOAD_CONST                      43: 'Scan & build FOFN'
+                878     LOAD_GLOBAL                     10: S
+                890     LOAD_ATTR                       21: scan_fofn
+                900     LOAD_CONST                      44: 'teal'
+                902     LOAD_CONST                      20: '2'
+                904     KW_NAMES                        45: ('on_click', 'color_scheme', 'size')
+                906     PRECALL                         5
+                910     CALL                            5
+                920     LOAD_GLOBAL                     1: NULL + rx
+                932     LOAD_ATTR                       22: cond
+                942     LOAD_GLOBAL                     10: S
+                954     LOAD_ATTR                       23: fofn_built
+                964     LOAD_GLOBAL                     1: NULL + rx
+                976     LOAD_ATTR                       24: badge
+                986     LOAD_GLOBAL                     10: S
+                998     LOAD_ATTR                       25: fofn_summary
+                1008    LOAD_CONST                      46: 'green'
+                1010    LOAD_CONST                      20: '2'
+                1012    KW_NAMES                        47: ('color_scheme', 'size')
+                1014    PRECALL                         3
+                1018    CALL                            3
+                1028    LOAD_GLOBAL                     1: NULL + rx
+                1040    LOAD_ATTR                       22: cond
+                1050    LOAD_GLOBAL                     10: S
+                1062    LOAD_ATTR                       25: fofn_summary
+                1072    LOAD_CONST                      48: ''
+                1074    COMPARE_OP                      3 (!=)
+                1080    LOAD_GLOBAL                     1: NULL + rx
+                1092    LOAD_ATTR                       24: badge
+                1102    LOAD_GLOBAL                     10: S
+                1114    LOAD_ATTR                       25: fofn_summary
+                1124    LOAD_CONST                      49: 'red'
+                1126    LOAD_CONST                      20: '2'
+                1128    KW_NAMES                        47: ('color_scheme', 'size')
+                1130    PRECALL                         3
+                1134    CALL                            3
+                1144    PRECALL                         2
+                1148    CALL                            2
+                1158    PRECALL                         3
+                1162    CALL                            3
+                1172    LOAD_CONST                      7: '3'
+                1174    LOAD_CONST                      40: 'center'
+                1176    LOAD_CONST                      25: 'wrap'
+                1178    KW_NAMES                        50: ('spacing', 'align', 'wrap')
+                1180    PRECALL                         5
+                1184    CALL                            5
+                1194    LOAD_GLOBAL                     1: NULL + rx
+                1206    LOAD_ATTR                       22: cond
+                1216    LOAD_GLOBAL                     10: S
+                1228    LOAD_ATTR                       26: fofn_path
+                1238    LOAD_CONST                      48: ''
+                1240    COMPARE_OP                      3 (!=)
+                1246    LOAD_GLOBAL                     1: NULL + rx
+                1258    LOAD_ATTR                       9: text
+                1268    LOAD_GLOBAL                     10: S
+                1280    LOAD_ATTR                       26: fofn_path
+                1290    LOAD_CONST                      51: 'monospace'
+                1292    LOAD_CONST                      10: '1'
+                1294    LOAD_CONST                      52: 'var(--gray-9)'
+                1296    KW_NAMES                        53: ('font_family', 'size', 'color')
+                1298    PRECALL                         4
+                1302    CALL                            4
+                1312    PRECALL                         2
+                1316    CALL                            2
+                1326    LOAD_GLOBAL                     1: NULL + rx
+                1338    LOAD_ATTR                       22: cond
+                1348    LOAD_GLOBAL                     10: S
+                1360    LOAD_ATTR                       27: fofn_issues
+                1370    LOAD_METHOD                     28: length
+                1392    PRECALL                         0
+                1396    CALL                            0
+                1406    LOAD_CONST                      54: 0
+                1408    COMPARE_OP                      4 (>)
+                1414    LOAD_GLOBAL                     1: NULL + rx
+                1426    LOAD_ATTR                       1: vstack
+                1436    LOAD_GLOBAL                     1: NULL + rx
+                1448    LOAD_ATTR                       9: text
+                1458    LOAD_CONST                      55: 'Issues:'
+                1460    LOAD_CONST                      10: '1'
+                1462    LOAD_CONST                      56: 'bold'
+                1464    LOAD_CONST                      57: 'var(--amber-11)'
+                1466    KW_NAMES                        58: ('size', 'weight', 'color')
+                1468    PRECALL                         4
+                1472    CALL                            4
+                1482    LOAD_GLOBAL                     1: NULL + rx
+                1494    LOAD_ATTR                       29: foreach
+                1504    LOAD_GLOBAL                     10: S
+                1516    LOAD_ATTR                       27: fofn_issues
+                1526    LOAD_CONST                      59: <CODE> <lambda>
+                1528    MAKE_FUNCTION                   0
+                1530    PRECALL                         2
+                1534    CALL                            2
+                1544    LOAD_CONST                      60: '0'
+                1546    LOAD_CONST                      23: 'start'
+                1548    KW_NAMES                        24: ('spacing', 'align')
+                1550    PRECALL                         4
+                1554    CALL                            4
+                1564    PRECALL                         2
+                1568    CALL                            2
+                1578    LOAD_CONST                      3: '100%'
+                1580    LOAD_CONST                      7: '3'
+                1582    KW_NAMES                        61: ('width', 'spacing')
+                1584    PRECALL                         10
+                1588    CALL                            10
+                1598    LOAD_GLOBAL                     5: NULL + wz
+                1610    LOAD_ATTR                       30: dir_picker
+                1620    LOAD_GLOBAL                     10: S
+                1632    PRECALL                         1
+                1636    CALL                            1
+                1646    LOAD_GLOBAL                     5: NULL + wz
+                1658    LOAD_ATTR                       31: nav_buttons
+                1668    LOAD_GLOBAL                     10: S
+                1680    LOAD_ATTR                       32: prev_step
+                1690    LOAD_GLOBAL                     10: S
+                1702    LOAD_ATTR                       33: next_step
+                1712    LOAD_CONST                      62: True
+                1714    KW_NAMES                        63: ('first',)
+                1716    PRECALL                         3
+                1720    CALL                            3
+                1730    LOAD_CONST                      64: '6'
+                1732    LOAD_CONST                      3: '100%'
+                1734    LOAD_CONST                      23: 'start'
+                1736    KW_NAMES                        65: ('spacing', 'width', 'align')
+                1738    PRECALL                         7
+                1742    CALL                            7
+                1752    RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+            Object Name: _fastp_card
+            Qualified Name: _fastp_card
+            Arg Count: 4
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 9
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'helpmod'
+                'section'
+                'append'
+                'rx'
+                'flex'
+                'card'
+                'vstack'
+            [Locals+Names]
+                'title'
+                'key'
+                'checks'
+                'inputs'
+                'body'
+            [Constants]
+                None
+                '2'
+                (
+                    'size'
+                )
+                'wrap'
+                '5'
+                'center'
+                (
+                    'wrap'
+                    'spacing'
+                    'align'
+                )
+                '4'
+                'end'
+                'start'
+                '100%'
+                (
+                    'spacing'
+                    'align'
+                    'width'
+                )
+                (
+                    'width'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + helpmod
+                14      LOAD_ATTR                       1: section
+                24      LOAD_FAST                       0: title
+                26      LOAD_FAST                       1: key
+                28      LOAD_CONST                      1: '2'
+                30      KW_NAMES                        2: ('size',)
+                32      PRECALL                         3
+                36      CALL                            3
+                46      BUILD_LIST                      1
+                48      STORE_FAST                      4: body
+                50      LOAD_FAST                       2: checks
+                52      POP_JUMP_FORWARD_IF_FALSE       38 (to 130)
+                54      LOAD_FAST                       4: body
+                56      LOAD_METHOD                     2: append
+                78      LOAD_GLOBAL                     7: NULL + rx
+                90      LOAD_ATTR                       4: flex
+                100     LOAD_FAST                       2: checks
+                102     LOAD_CONST                      3: 'wrap'
+                104     LOAD_CONST                      4: '5'
+                106     LOAD_CONST                      5: 'center'
+                108     LOAD_CONST                      6: ('wrap', 'spacing', 'align')
+                110     BUILD_CONST_KEY_MAP             3
+                112     CALL_FUNCTION_EX                1
+                114     PRECALL                         1
+                118     CALL                            1
+                128     POP_TOP                         
+                130     LOAD_FAST                       3: inputs
+                132     POP_JUMP_FORWARD_IF_FALSE       38 (to 210)
+                134     LOAD_FAST                       4: body
+                136     LOAD_METHOD                     2: append
+                158     LOAD_GLOBAL                     7: NULL + rx
+                170     LOAD_ATTR                       4: flex
+                180     LOAD_FAST                       3: inputs
+                182     LOAD_CONST                      3: 'wrap'
+                184     LOAD_CONST                      7: '4'
+                186     LOAD_CONST                      8: 'end'
+                188     LOAD_CONST                      6: ('wrap', 'spacing', 'align')
+                190     BUILD_CONST_KEY_MAP             3
+                192     CALL_FUNCTION_EX                1
+                194     PRECALL                         1
+                198     CALL                            1
+                208     POP_TOP                         
+                210     LOAD_GLOBAL                     7: NULL + rx
+                222     LOAD_ATTR                       5: card
+                232     LOAD_GLOBAL                     7: NULL + rx
+                244     LOAD_ATTR                       6: vstack
+                254     LOAD_FAST                       4: body
+                256     LOAD_CONST                      7: '4'
+                258     LOAD_CONST                      9: 'start'
+                260     LOAD_CONST                      10: '100%'
+                262     LOAD_CONST                      11: ('spacing', 'align', 'width')
+                264     BUILD_CONST_KEY_MAP             3
+                266     CALL_FUNCTION_EX                1
+                268     LOAD_CONST                      10: '100%'
+                270     KW_NAMES                        12: ('width',)
+                272     PRECALL                         2
+                276     CALL                            2
+                286     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+            Object Name: _fastp_simple
+            Qualified Name: _fastp_simple
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 20
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                '_fastp_card'
+                'flag_cb'
+                'opt_in'
+                'cond'
+                'S'
+                'bflags'
+                'card'
+                'flex'
+                'opt_sel'
+                'wz'
+                'labeled'
+                'input'
+                'bopts'
+            [Locals+Names]
+            [Constants]
+                None
+                'Sliding window / cutting'
+                'fastp_window'
+                'Cut tail (-3)'
+                'fastp_dash3'
+                'Cut front (-5)'
+                'fastp_5prime'
+                'Cut right (-r)'
+                'fastp_cut_right'
+                'Mean quality (-M)'
+                'fastp_M'
+                'number'
+                '150px'
+                (
+                    'typ'
+                    'width'
+                )
+                'Window size (-W)'
+                'fastp_W'
+                'Quality & length filters'
+                'fastp_filters'
+                'Enable -q'
+                'fastp_q_enable'
+                'Enable -l'
+                'fastp_l_enable'
+                '-q value'
+                'fastp_q'
+                '130px'
+                '-l value'
+                'fastp_l'
+                'Max N (-n)'
+                'fastp_n'
+                'Max % unqual (-u)'
+                'fastp_u'
+                'Adapters'
+                'fastp_adapters'
+                'Detect adapters (PE)'
+                'fastp_detect_adapter_pe'
+                'Adapter R1 (-a)'
+                'fastp_adapter_r1'
+                '240px'
+                (
+                    'width'
+                )
+                'Adapter R2'
+                'fastp_adapter_r2'
+                'Additional processing'
+                'fastp_processing'
+                'Dedup (-D)'
+                'fastp_dedup'
+                'Correction (-c)'
+                'fastp_correction'
+                'Trim polyG (-g)'
+                'fastp_poly_g'
+                'Trim polyX (-x)'
+                'fastp_poly_x'
+                'Overrep (-p)'
+                'fastp_overrep'
+                'UMI (-U)'
+                'fastp_umi'
+                'UMI location'
+                'fastp_umi_loc'
+                (
+                    'index1'
+                    'index2'
+                    'read1'
+                    'read2'
+                    'per_index'
+                    'per_read'
+                )
+                '170px'
+                'UMI length'
+                'fastp_umi_len'
+                'wrap'
+                '4'
+                'end'
+                (
+                    'wrap'
+                    'spacing'
+                    'align'
+                )
+                '100%'
+                'Advanced extra (append)'
+                'fastp_extra'
+                '2'
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+                    Object Name: <lambda>
+                    Qualified Name: _fastp_simple.<locals>.<lambda>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 4
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'S'
+                        'set_bopt'
+                    [Locals+Names]
+                        'v'
+                    [Constants]
+                        None
+                        'fastp_extra'
+                    [Disassembly]
+                        0       RESUME                          0
+                        2       LOAD_GLOBAL                     1: NULL + S
+                        14      LOAD_ATTR                       1: set_bopt
+                        24      LOAD_CONST                      1: 'fastp_extra'
+                        26      LOAD_FAST                       0: v
+                        28      PRECALL                         2
+                        32      CALL                            2
+                        42      RETURN_VALUE                    
+                    [Exception Table]
+                (
+                    'value'
+                    'size'
+                    'width'
+                    'on_change'
+                )
+                '6'
+                'start'
+                (
+                    'spacing'
+                    'width'
+                    'align'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: vstack
+                24      LOAD_GLOBAL                     5: NULL + _fastp_card
+                36      LOAD_CONST                      1: 'Sliding window / cutting'
+                38      LOAD_CONST                      2: 'fastp_window'
+                40      LOAD_GLOBAL                     7: NULL + flag_cb
+                52      LOAD_CONST                      3: 'Cut tail (-3)'
+                54      LOAD_CONST                      4: 'fastp_dash3'
+                56      PRECALL                         2
+                60      CALL                            2
+                70      LOAD_GLOBAL                     7: NULL + flag_cb
+                82      LOAD_CONST                      5: 'Cut front (-5)'
+                84      LOAD_CONST                      6: 'fastp_5prime'
+                86      PRECALL                         2
+                90      CALL                            2
+                100     LOAD_GLOBAL                     7: NULL + flag_cb
+                112     LOAD_CONST                      7: 'Cut right (-r)'
+                114     LOAD_CONST                      8: 'fastp_cut_right'
+                116     PRECALL                         2
+                120     CALL                            2
+                130     BUILD_LIST                      3
+                132     LOAD_GLOBAL                     9: NULL + opt_in
+                144     LOAD_CONST                      9: 'Mean quality (-M)'
+                146     LOAD_CONST                      10: 'fastp_M'
+                148     LOAD_CONST                      11: 'number'
+                150     LOAD_CONST                      12: '150px'
+                152     KW_NAMES                        13: ('typ', 'width')
+                154     PRECALL                         4
+                158     CALL                            4
+                168     LOAD_GLOBAL                     9: NULL + opt_in
+                180     LOAD_CONST                      14: 'Window size (-W)'
+                182     LOAD_CONST                      15: 'fastp_W'
+                184     LOAD_CONST                      11: 'number'
+                186     LOAD_CONST                      12: '150px'
+                188     KW_NAMES                        13: ('typ', 'width')
+                190     PRECALL                         4
+                194     CALL                            4
+                204     BUILD_LIST                      2
+                206     PRECALL                         4
+                210     CALL                            4
+                220     LOAD_GLOBAL                     5: NULL + _fastp_card
+                232     LOAD_CONST                      16: 'Quality & length filters'
+                234     LOAD_CONST                      17: 'fastp_filters'
+                236     LOAD_GLOBAL                     7: NULL + flag_cb
+                248     LOAD_CONST                      18: 'Enable -q'
+                250     LOAD_CONST                      19: 'fastp_q_enable'
+                252     PRECALL                         2
+                256     CALL                            2
+                266     LOAD_GLOBAL                     7: NULL + flag_cb
+                278     LOAD_CONST                      20: 'Enable -l'
+                280     LOAD_CONST                      21: 'fastp_l_enable'
+                282     PRECALL                         2
+                286     CALL                            2
+                296     BUILD_LIST                      2
+                298     LOAD_GLOBAL                     9: NULL + opt_in
+                310     LOAD_CONST                      22: '-q value'
+                312     LOAD_CONST                      23: 'fastp_q'
+                314     LOAD_CONST                      11: 'number'
+                316     LOAD_CONST                      24: '130px'
+                318     KW_NAMES                        13: ('typ', 'width')
+                320     PRECALL                         4
+                324     CALL                            4
+                334     LOAD_GLOBAL                     9: NULL + opt_in
+                346     LOAD_CONST                      25: '-l value'
+                348     LOAD_CONST                      26: 'fastp_l'
+                350     LOAD_CONST                      11: 'number'
+                352     LOAD_CONST                      24: '130px'
+                354     KW_NAMES                        13: ('typ', 'width')
+                356     PRECALL                         4
+                360     CALL                            4
+                370     LOAD_GLOBAL                     9: NULL + opt_in
+                382     LOAD_CONST                      27: 'Max N (-n)'
+                384     LOAD_CONST                      28: 'fastp_n'
+                386     LOAD_CONST                      11: 'number'
+                388     LOAD_CONST                      24: '130px'
+                390     KW_NAMES                        13: ('typ', 'width')
+                392     PRECALL                         4
+                396     CALL                            4
+                406     LOAD_GLOBAL                     9: NULL + opt_in
+                418     LOAD_CONST                      29: 'Max % unqual (-u)'
+                420     LOAD_CONST                      30: 'fastp_u'
+                422     LOAD_CONST                      11: 'number'
+                424     LOAD_CONST                      12: '150px'
+                426     KW_NAMES                        13: ('typ', 'width')
+                428     PRECALL                         4
+                432     CALL                            4
+                442     BUILD_LIST                      4
+                444     PRECALL                         4
+                448     CALL                            4
+                458     LOAD_GLOBAL                     5: NULL + _fastp_card
+                470     LOAD_CONST                      31: 'Adapters'
+                472     LOAD_CONST                      32: 'fastp_adapters'
+                474     LOAD_GLOBAL                     7: NULL + flag_cb
+                486     LOAD_CONST                      33: 'Detect adapters (PE)'
+                488     LOAD_CONST                      34: 'fastp_detect_adapter_pe'
+                490     PRECALL                         2
+                494     CALL                            2
+                504     BUILD_LIST                      1
+                506     LOAD_GLOBAL                     9: NULL + opt_in
+                518     LOAD_CONST                      35: 'Adapter R1 (-a)'
+                520     LOAD_CONST                      36: 'fastp_adapter_r1'
+                522     LOAD_CONST                      37: '240px'
+                524     KW_NAMES                        38: ('width',)
+                526     PRECALL                         3
+                530     CALL                            3
+                540     LOAD_GLOBAL                     9: NULL + opt_in
+                552     LOAD_CONST                      39: 'Adapter R2'
+                554     LOAD_CONST                      40: 'fastp_adapter_r2'
+                556     LOAD_CONST                      37: '240px'
+                558     KW_NAMES                        38: ('width',)
+                560     PRECALL                         3
+                564     CALL                            3
+                574     BUILD_LIST                      2
+                576     PRECALL                         4
+                580     CALL                            4
+                590     LOAD_GLOBAL                     5: NULL + _fastp_card
+                602     LOAD_CONST                      41: 'Additional processing'
+                604     LOAD_CONST                      42: 'fastp_processing'
+                606     LOAD_GLOBAL                     7: NULL + flag_cb
+                618     LOAD_CONST                      43: 'Dedup (-D)'
+                620     LOAD_CONST                      44: 'fastp_dedup'
+                622     PRECALL                         2
+                626     CALL                            2
+                636     LOAD_GLOBAL                     7: NULL + flag_cb
+                648     LOAD_CONST                      45: 'Correction (-c)'
+                650     LOAD_CONST                      46: 'fastp_correction'
+                652     PRECALL                         2
+                656     CALL                            2
+                666     LOAD_GLOBAL                     7: NULL + flag_cb
+                678     LOAD_CONST                      47: 'Trim polyG (-g)'
+                680     LOAD_CONST                      48: 'fastp_poly_g'
+                682     PRECALL                         2
+                686     CALL                            2
+                696     LOAD_GLOBAL                     7: NULL + flag_cb
+                708     LOAD_CONST                      49: 'Trim polyX (-x)'
+                710     LOAD_CONST                      50: 'fastp_poly_x'
+                712     PRECALL                         2
+                716     CALL                            2
+                726     LOAD_GLOBAL                     7: NULL + flag_cb
+                738     LOAD_CONST                      51: 'Overrep (-p)'
+                740     LOAD_CONST                      52: 'fastp_overrep'
+                742     PRECALL                         2
+                746     CALL                            2
+                756     LOAD_GLOBAL                     7: NULL + flag_cb
+                768     LOAD_CONST                      53: 'UMI (-U)'
+                770     LOAD_CONST                      54: 'fastp_umi'
+                772     PRECALL                         2
+                776     CALL                            2
+                786     BUILD_LIST                      6
+                788     LOAD_CONST                      0: None
+                790     PRECALL                         4
+                794     CALL                            4
+                804     LOAD_GLOBAL                     1: NULL + rx
+                816     LOAD_ATTR                       5: cond
+                826     LOAD_GLOBAL                     12: S
+                838     LOAD_ATTR                       7: bflags
+                848     LOAD_CONST                      54: 'fastp_umi'
+                850     BINARY_SUBSCR                   
+                860     LOAD_GLOBAL                     1: NULL + rx
+                872     LOAD_ATTR                       8: card
+                882     LOAD_GLOBAL                     1: NULL + rx
+                894     LOAD_ATTR                       9: flex
+                904     LOAD_GLOBAL                     21: NULL + opt_sel
+                916     LOAD_CONST                      55: 'UMI location'
+                918     LOAD_CONST                      56: 'fastp_umi_loc'
+                920     BUILD_LIST                      0
+                922     LOAD_CONST                      57: ('index1', 'index2', 'read1', 'read2', 'per_index', 'per_read')
+                924     LIST_EXTEND                     1
+                926     LOAD_CONST                      58: '170px'
+                928     KW_NAMES                        38: ('width',)
+                930     PRECALL                         4
+                934     CALL                            4
+                944     LOAD_GLOBAL                     9: NULL + opt_in
+                956     LOAD_CONST                      59: 'UMI length'
+                958     LOAD_CONST                      60: 'fastp_umi_len'
+                960     LOAD_CONST                      11: 'number'
+                962     LOAD_CONST                      24: '130px'
+                964     KW_NAMES                        13: ('typ', 'width')
+                966     PRECALL                         4
+                970     CALL                            4
+                980     LOAD_CONST                      61: 'wrap'
+                982     LOAD_CONST                      62: '4'
+                984     LOAD_CONST                      63: 'end'
+                986     KW_NAMES                        64: ('wrap', 'spacing', 'align')
+                988     PRECALL                         5
+                992     CALL                            5
+                1002    LOAD_CONST                      65: '100%'
+                1004    KW_NAMES                        38: ('width',)
+                1006    PRECALL                         2
+                1010    CALL                            2
+                1020    PRECALL                         2
+                1024    CALL                            2
+                1034    LOAD_GLOBAL                     23: NULL + wz
+                1046    LOAD_ATTR                       12: labeled
+                1056    LOAD_CONST                      66: 'Advanced extra (append)'
+                1058    LOAD_GLOBAL                     1: NULL + rx
+                1070    LOAD_ATTR                       13: input
+                1080    LOAD_GLOBAL                     12: S
+                1092    LOAD_ATTR                       14: bopts
+                1102    LOAD_CONST                      67: 'fastp_extra'
+                1104    BINARY_SUBSCR                   
+                1114    LOAD_CONST                      68: '2'
+                1116    LOAD_CONST                      65: '100%'
+                1118    LOAD_CONST                      69: <CODE> <lambda>
+                1120    MAKE_FUNCTION                   0
+                1122    KW_NAMES                        70: ('value', 'size', 'width', 'on_change')
+                1124    PRECALL                         4
+                1128    CALL                            4
+                1138    LOAD_CONST                      65: '100%'
+                1140    KW_NAMES                        38: ('width',)
+                1142    PRECALL                         3
+                1146    CALL                            3
+                1156    LOAD_CONST                      71: '6'
+                1158    LOAD_CONST                      65: '100%'
+                1160    LOAD_CONST                      72: 'start'
+                1162    KW_NAMES                        73: ('spacing', 'width', 'align')
+                1164    PRECALL                         9
+                1168    CALL                            9
+                1178    RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+            Object Name: _step_cleaning
+            Qualified Name: _step_cleaning
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 17
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                'hstack'
+                'helpmod'
+                'section'
+                'spacer'
+                'opt_sel'
+                'text'
+                'cond'
+                'S'
+                'bopts'
+                '_fastp_simple'
+                'wz'
+                'labeled'
+                'input'
+                'nav_buttons'
+                'prev_step'
+                'next_step'
+            [Locals+Names]
+            [Constants]
+                None
+                'Read cleaning (fastp)'
+                'fastp_window'
+                '4'
+                (
+                    'size'
+                )
+                'Mode'
+                'fastp_mode'
+                'Simple'
+                'Advanced'
+                '150px'
+                (
+                    'width'
+                )
+                '100%'
+                'center'
+                (
+                    'width'
+                    'align'
+                )
+                'Builds the --fastp_opts string. Default: -3 -M 20 -W 5.'
+                '2'
+                'var(--gray-10)'
+                (
+                    'size'
+                    'color'
+                )
+                'Full fastp line (advanced)'
+                'fastp_raw'
+                '3'
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+                    Object Name: <lambda>
+                    Qualified Name: _step_cleaning.<locals>.<lambda>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 4
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'S'
+                        'set_bopt'
+                    [Locals+Names]
+                        'v'
+                    [Constants]
+                        None
+                        'fastp_raw'
+                    [Disassembly]
+                        0       RESUME                          0
+                        2       LOAD_GLOBAL                     1: NULL + S
+                        14      LOAD_ATTR                       1: set_bopt
+                        24      LOAD_CONST                      1: 'fastp_raw'
+                        26      LOAD_FAST                       0: v
+                        28      PRECALL                         2
+                        32      CALL                            2
+                        42      RETURN_VALUE                    
+                    [Exception Table]
+                (
+                    'value'
+                    'size'
+                    'width'
+                    'on_change'
+                )
+                '6'
+                'start'
+                (
+                    'spacing'
+                    'width'
+                    'align'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: vstack
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: hstack
+                46      LOAD_GLOBAL                     7: NULL + helpmod
+                58      LOAD_ATTR                       4: section
+                68      LOAD_CONST                      1: 'Read cleaning (fastp)'
+                70      LOAD_CONST                      2: 'fastp_window'
+                72      LOAD_CONST                      3: '4'
+                74      KW_NAMES                        4: ('size',)
+                76      PRECALL                         3
+                80      CALL                            3
+                90      LOAD_GLOBAL                     1: NULL + rx
+                102     LOAD_ATTR                       5: spacer
+                112     PRECALL                         0
+                116     CALL                            0
+                126     LOAD_GLOBAL                     13: NULL + opt_sel
+                138     LOAD_CONST                      5: 'Mode'
+                140     LOAD_CONST                      6: 'fastp_mode'
+                142     LOAD_CONST                      7: 'Simple'
+                144     LOAD_CONST                      8: 'Advanced'
+                146     BUILD_LIST                      2
+                148     LOAD_CONST                      9: '150px'
+                150     KW_NAMES                        10: ('width',)
+                152     PRECALL                         4
+                156     CALL                            4
+                166     LOAD_CONST                      11: '100%'
+                168     LOAD_CONST                      12: 'center'
+                170     KW_NAMES                        13: ('width', 'align')
+                172     PRECALL                         5
+                176     CALL                            5
+                186     LOAD_GLOBAL                     1: NULL + rx
+                198     LOAD_ATTR                       7: text
+                208     LOAD_CONST                      14: 'Builds the --fastp_opts string. Default: -3 -M 20 -W 5.'
+                210     LOAD_CONST                      15: '2'
+                212     LOAD_CONST                      16: 'var(--gray-10)'
+                214     KW_NAMES                        17: ('size', 'color')
+                216     PRECALL                         3
+                220     CALL                            3
+                230     LOAD_GLOBAL                     1: NULL + rx
+                242     LOAD_ATTR                       8: cond
+                252     LOAD_GLOBAL                     18: S
+                264     LOAD_ATTR                       10: bopts
+                274     LOAD_CONST                      6: 'fastp_mode'
+                276     BINARY_SUBSCR                   
+                286     LOAD_CONST                      7: 'Simple'
+                288     COMPARE_OP                      2 (==)
+                294     LOAD_GLOBAL                     23: NULL + _fastp_simple
+                306     PRECALL                         0
+                310     CALL                            0
+                320     LOAD_GLOBAL                     25: NULL + wz
+                332     LOAD_ATTR                       13: labeled
+                342     LOAD_CONST                      18: 'Full fastp line (advanced)'
+                344     LOAD_GLOBAL                     1: NULL + rx
+                356     LOAD_ATTR                       14: input
+                366     LOAD_GLOBAL                     18: S
+                378     LOAD_ATTR                       10: bopts
+                388     LOAD_CONST                      19: 'fastp_raw'
+                390     BINARY_SUBSCR                   
+                400     LOAD_CONST                      20: '3'
+                402     LOAD_CONST                      11: '100%'
+                404     LOAD_CONST                      21: <CODE> <lambda>
+                406     MAKE_FUNCTION                   0
+                408     KW_NAMES                        22: ('value', 'size', 'width', 'on_change')
+                410     PRECALL                         4
+                414     CALL                            4
+                424     LOAD_CONST                      11: '100%'
+                426     KW_NAMES                        10: ('width',)
+                428     PRECALL                         3
+                432     CALL                            3
+                442     PRECALL                         3
+                446     CALL                            3
+                456     LOAD_GLOBAL                     25: NULL + wz
+                468     LOAD_ATTR                       15: nav_buttons
+                478     LOAD_GLOBAL                     18: S
+                490     LOAD_ATTR                       16: prev_step
+                500     LOAD_GLOBAL                     18: S
+                512     LOAD_ATTR                       17: next_step
+                522     PRECALL                         2
+                526     CALL                            2
+                536     LOAD_CONST                      23: '6'
+                538     LOAD_CONST                      11: '100%'
+                540     LOAD_CONST                      24: 'start'
+                542     KW_NAMES                        25: ('spacing', 'width', 'align')
+                544     PRECALL                         7
+                548     CALL                            7
+                558     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+            Object Name: _step_assembler
+            Qualified Name: _step_assembler
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 22
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                'hstack'
+                'helpmod'
+                'field_label'
+                'select'
+                'S'
+                'bopts'
+                'cond'
+                '_mode_is'
+                'card'
+                'section'
+                'flex'
+                'opt_sel'
+                'opt_in'
+                'flag_cb'
+                'wz'
+                'nav_buttons'
+                'prev_step'
+                'next_step'
+            [Locals+Names]
+            [Constants]
+                None
+                'Assembly mode'
+                'assembly_mode'
+                (
+                    'Illumina PE (Shovill)'
+                    'Illumina PE (Unicycler)'
+                    'Illumina SE (Shovill-SE)'
+                    'ONT (Dragonflye)'
+                    'Hybrid (Unicycler --hybrid)'
+                    'Hybrid (Dragonflye --short_polish)'
+                )
+                '340px'
+                '2'
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+                    Object Name: <lambda>
+                    Qualified Name: _step_assembler.<locals>.<lambda>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 4
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'S'
+                        'set_bopt'
+                    [Locals+Names]
+                        'v'
+                    [Constants]
+                        None
+                        'assembly_mode'
+                    [Disassembly]
+                        0       RESUME                          0
+                        2       LOAD_GLOBAL                     1: NULL + S
+                        14      LOAD_ATTR                       1: set_bopt
+                        24      LOAD_CONST                      1: 'assembly_mode'
+                        26      LOAD_FAST                       0: v
+                        28      PRECALL                         2
+                        32      CALL                            2
+                        42      RETURN_VALUE                    
+                    [Exception Table]
+                (
+                    'value'
+                    'width'
+                    'size'
+                    'on_change'
+                )
+                'end'
+                (
+                    'spacing'
+                    'align'
+                )
+                'Illumina PE (Shovill)'
+                'Illumina SE (Shovill-SE)'
+                'Shovill'
+                'shovill'
+                '3'
+                (
+                    'size'
+                )
+                'Assembler'
+                'shovill_assembler'
+                (
+                    'skesa'
+                    'spades'
+                    'velvet'
+                    'megahit'
+                )
+                '150px'
+                (
+                    'width'
+                )
+                '--shovill_opts'
+                'shovill_opts'
+                '200px'
+                '--shovill_kmers'
+                'shovill_kmers'
+                '160px'
+                '21,33,55'
+                (
+                    'width'
+                    'placeholder'
+                )
+                '--trim'
+                'trim'
+                '--no_stitch'
+                'no_stitch'
+                '--no_corr'
+                'no_corr'
+                'wrap'
+                (
+                    'wrap'
+                    'spacing'
+                    'align'
+                )
+                '100%'
+                'borderColor'
+                'var(--teal-6)'
+                (
+                    'width'
+                    'style'
+                )
+                'ONT (Dragonflye)'
+                'Hybrid (Dragonflye --short_polish)'
+                'Dragonflye'
+                'dragonflye'
+                'dragonflye_assembler'
+                (
+                    'flye'
+                    'miniasm'
+                    'raven'
+                )
+                '--dragonflye_opts'
+                'dragonflye_opts'
+                '--nanohq'
+                'nanohq'
+                '--no_miniasm'
+                'no_miniasm'
+                'Illumina PE (Unicycler)'
+                'Hybrid (Unicycler --hybrid)'
+                'Unicycler'
+                'unicycler'
+                'Mode'
+                'unicycler_mode'
+                (
+                    'conservative'
+                    'normal'
+                    'bold'
+                )
+                'min_fasta_length'
+                'unicycler_min_len'
+                'number'
+                (
+                    'typ'
+                    'width'
+                )
+                'Extra (append)'
+                'unicycler_extra'
+                'General assembly'
+                'general_assembly'
+                '--reassemble'
+                'reassemble'
+                '--no_rotate'
+                'no_rotate'
+                '--skip_qc_plot'
+                'skip_qc_plot'
+                '5'
+                'center'
+                'Min contig len'
+                'min_contig_len'
+                'Min contig cov'
+                'min_contig_cov'
+                '4'
+                'start'
+                (
+                    'spacing'
+                    'align'
+                    'width'
+                )
+                'Polishing'
+                'polishing'
+                '--no_polish (skip all polishing)'
+                'no_polish'
+                'Polypolish rounds'
+                'polypolish_rounds'
+                'Pilon rounds'
+                'pilon_rounds'
+                '130px'
+                'Racon rounds'
+                'racon_rounds'
+                'Medaka rounds'
+                'medaka_rounds'
+                'Medaka model'
+                'medaka_model'
+                '6'
+                (
+                    'spacing'
+                    'width'
+                    'align'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: vstack
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: hstack
+                46      LOAD_GLOBAL                     7: NULL + helpmod
+                58      LOAD_ATTR                       4: field_label
+                68      LOAD_CONST                      1: 'Assembly mode'
+                70      LOAD_CONST                      2: 'assembly_mode'
+                72      PRECALL                         2
+                76      CALL                            2
+                86      LOAD_GLOBAL                     1: NULL + rx
+                98      LOAD_ATTR                       5: select
+                108     BUILD_LIST                      0
+                110     LOAD_CONST                      3: ('Illumina PE (Shovill)', 'Illumina PE (Unicycler)', 'Illumina SE (Shovill-SE)', 'ONT (Dragonflye)', 'Hybrid (Unicycler --hybrid)', 'Hybrid (Dragonflye --short_polish)')
+                112     LIST_EXTEND                     1
+                114     LOAD_GLOBAL                     12: S
+                126     LOAD_ATTR                       7: bopts
+                136     LOAD_CONST                      2: 'assembly_mode'
+                138     BINARY_SUBSCR                   
+                148     LOAD_CONST                      4: '340px'
+                150     LOAD_CONST                      5: '2'
+                152     LOAD_CONST                      6: <CODE> <lambda>
+                154     MAKE_FUNCTION                   0
+                156     KW_NAMES                        7: ('value', 'width', 'size', 'on_change')
+                158     PRECALL                         5
+                162     CALL                            5
+                172     LOAD_CONST                      5: '2'
+                174     LOAD_CONST                      8: 'end'
+                176     KW_NAMES                        9: ('spacing', 'align')
+                178     PRECALL                         4
+                182     CALL                            4
+                192     LOAD_GLOBAL                     1: NULL + rx
+                204     LOAD_ATTR                       8: cond
+                214     LOAD_GLOBAL                     19: NULL + _mode_is
+                226     LOAD_CONST                      10: 'Illumina PE (Shovill)'
+                228     LOAD_CONST                      11: 'Illumina SE (Shovill-SE)'
+                230     PRECALL                         2
+                234     CALL                            2
+                244     LOAD_GLOBAL                     1: NULL + rx
+                256     LOAD_ATTR                       10: card
+                266     LOAD_GLOBAL                     7: NULL + helpmod
+                278     LOAD_ATTR                       11: section
+                288     LOAD_CONST                      12: 'Shovill'
+                290     LOAD_CONST                      13: 'shovill'
+                292     LOAD_CONST                      14: '3'
+                294     KW_NAMES                        15: ('size',)
+                296     PRECALL                         3
+                300     CALL                            3
+                310     LOAD_GLOBAL                     1: NULL + rx
+                322     LOAD_ATTR                       12: flex
+                332     LOAD_GLOBAL                     27: NULL + opt_sel
+                344     LOAD_CONST                      16: 'Assembler'
+                346     LOAD_CONST                      17: 'shovill_assembler'
+                348     BUILD_LIST                      0
+                350     LOAD_CONST                      18: ('skesa', 'spades', 'velvet', 'megahit')
+                352     LIST_EXTEND                     1
+                354     LOAD_CONST                      19: '150px'
+                356     KW_NAMES                        20: ('width',)
+                358     PRECALL                         4
+                362     CALL                            4
+                372     LOAD_GLOBAL                     29: NULL + opt_in
+                384     LOAD_CONST                      21: '--shovill_opts'
+                386     LOAD_CONST                      22: 'shovill_opts'
+                388     LOAD_CONST                      23: '200px'
+                390     KW_NAMES                        20: ('width',)
+                392     PRECALL                         3
+                396     CALL                            3
+                406     LOAD_GLOBAL                     29: NULL + opt_in
+                418     LOAD_CONST                      24: '--shovill_kmers'
+                420     LOAD_CONST                      25: 'shovill_kmers'
+                422     LOAD_CONST                      26: '160px'
+                424     LOAD_CONST                      27: '21,33,55'
+                426     KW_NAMES                        28: ('width', 'placeholder')
+                428     PRECALL                         4
+                432     CALL                            4
+                442     LOAD_GLOBAL                     31: NULL + flag_cb
+                454     LOAD_CONST                      29: '--trim'
+                456     LOAD_CONST                      30: 'trim'
+                458     PRECALL                         2
+                462     CALL                            2
+                472     LOAD_GLOBAL                     31: NULL + flag_cb
+                484     LOAD_CONST                      31: '--no_stitch'
+                486     LOAD_CONST                      32: 'no_stitch'
+                488     PRECALL                         2
+                492     CALL                            2
+                502     LOAD_GLOBAL                     31: NULL + flag_cb
+                514     LOAD_CONST                      33: '--no_corr'
+                516     LOAD_CONST                      34: 'no_corr'
+                518     PRECALL                         2
+                522     CALL                            2
+                532     LOAD_CONST                      35: 'wrap'
+                534     LOAD_CONST                      14: '3'
+                536     LOAD_CONST                      8: 'end'
+                538     KW_NAMES                        36: ('wrap', 'spacing', 'align')
+                540     PRECALL                         9
+                544     CALL                            9
+                554     LOAD_CONST                      37: '100%'
+                556     LOAD_CONST                      38: 'borderColor'
+                558     LOAD_CONST                      39: 'var(--teal-6)'
+                560     BUILD_MAP                       1
+                562     KW_NAMES                        40: ('width', 'style')
+                564     PRECALL                         4
+                568     CALL                            4
+                578     PRECALL                         2
+                582     CALL                            2
+                592     LOAD_GLOBAL                     1: NULL + rx
+                604     LOAD_ATTR                       8: cond
+                614     LOAD_GLOBAL                     19: NULL + _mode_is
+                626     LOAD_CONST                      41: 'ONT (Dragonflye)'
+                628     LOAD_CONST                      42: 'Hybrid (Dragonflye --short_polish)'
+                630     PRECALL                         2
+                634     CALL                            2
+                644     LOAD_GLOBAL                     1: NULL + rx
+                656     LOAD_ATTR                       10: card
+                666     LOAD_GLOBAL                     7: NULL + helpmod
+                678     LOAD_ATTR                       11: section
+                688     LOAD_CONST                      43: 'Dragonflye'
+                690     LOAD_CONST                      44: 'dragonflye'
+                692     LOAD_CONST                      14: '3'
+                694     KW_NAMES                        15: ('size',)
+                696     PRECALL                         3
+                700     CALL                            3
+                710     LOAD_GLOBAL                     1: NULL + rx
+                722     LOAD_ATTR                       12: flex
+                732     LOAD_GLOBAL                     27: NULL + opt_sel
+                744     LOAD_CONST                      16: 'Assembler'
+                746     LOAD_CONST                      45: 'dragonflye_assembler'
+                748     BUILD_LIST                      0
+                750     LOAD_CONST                      46: ('flye', 'miniasm', 'raven')
+                752     LIST_EXTEND                     1
+                754     LOAD_CONST                      19: '150px'
+                756     KW_NAMES                        20: ('width',)
+                758     PRECALL                         4
+                762     CALL                            4
+                772     LOAD_GLOBAL                     29: NULL + opt_in
+                784     LOAD_CONST                      47: '--dragonflye_opts'
+                786     LOAD_CONST                      48: 'dragonflye_opts'
+                788     LOAD_CONST                      23: '200px'
+                790     KW_NAMES                        20: ('width',)
+                792     PRECALL                         3
+                796     CALL                            3
+                806     LOAD_GLOBAL                     31: NULL + flag_cb
+                818     LOAD_CONST                      49: '--nanohq'
+                820     LOAD_CONST                      50: 'nanohq'
+                822     PRECALL                         2
+                826     CALL                            2
+                836     LOAD_GLOBAL                     31: NULL + flag_cb
+                848     LOAD_CONST                      51: '--no_miniasm'
+                850     LOAD_CONST                      52: 'no_miniasm'
+                852     PRECALL                         2
+                856     CALL                            2
+                866     LOAD_CONST                      35: 'wrap'
+                868     LOAD_CONST                      14: '3'
+                870     LOAD_CONST                      8: 'end'
+                872     KW_NAMES                        36: ('wrap', 'spacing', 'align')
+                874     PRECALL                         7
+                878     CALL                            7
+                888     LOAD_CONST                      37: '100%'
+                890     LOAD_CONST                      38: 'borderColor'
+                892     LOAD_CONST                      39: 'var(--teal-6)'
+                894     BUILD_MAP                       1
+                896     KW_NAMES                        40: ('width', 'style')
+                898     PRECALL                         4
+                902     CALL                            4
+                912     PRECALL                         2
+                916     CALL                            2
+                926     LOAD_GLOBAL                     1: NULL + rx
+                938     LOAD_ATTR                       8: cond
+                948     LOAD_GLOBAL                     19: NULL + _mode_is
+                960     LOAD_CONST                      53: 'Illumina PE (Unicycler)'
+                962     LOAD_CONST                      54: 'Hybrid (Unicycler --hybrid)'
+                964     PRECALL                         2
+                968     CALL                            2
+                978     LOAD_GLOBAL                     1: NULL + rx
+                990     LOAD_ATTR                       10: card
+                1000    LOAD_GLOBAL                     7: NULL + helpmod
+                1012    LOAD_ATTR                       11: section
+                1022    LOAD_CONST                      55: 'Unicycler'
+                1024    LOAD_CONST                      56: 'unicycler'
+                1026    LOAD_CONST                      14: '3'
+                1028    KW_NAMES                        15: ('size',)
+                1030    PRECALL                         3
+                1034    CALL                            3
+                1044    LOAD_GLOBAL                     1: NULL + rx
+                1056    LOAD_ATTR                       12: flex
+                1066    LOAD_GLOBAL                     27: NULL + opt_sel
+                1078    LOAD_CONST                      57: 'Mode'
+                1080    LOAD_CONST                      58: 'unicycler_mode'
+                1082    BUILD_LIST                      0
+                1084    LOAD_CONST                      59: ('conservative', 'normal', 'bold')
+                1086    LIST_EXTEND                     1
+                1088    LOAD_CONST                      19: '150px'
+                1090    KW_NAMES                        20: ('width',)
+                1092    PRECALL                         4
+                1096    CALL                            4
+                1106    LOAD_GLOBAL                     29: NULL + opt_in
+                1118    LOAD_CONST                      60: 'min_fasta_length'
+                1120    LOAD_CONST                      61: 'unicycler_min_len'
+                1122    LOAD_CONST                      62: 'number'
+                1124    LOAD_CONST                      19: '150px'
+                1126    KW_NAMES                        63: ('typ', 'width')
+                1128    PRECALL                         4
+                1132    CALL                            4
+                1142    LOAD_GLOBAL                     29: NULL + opt_in
+                1154    LOAD_CONST                      64: 'Extra (append)'
+                1156    LOAD_CONST                      65: 'unicycler_extra'
+                1158    LOAD_CONST                      23: '200px'
+                1160    KW_NAMES                        20: ('width',)
+                1162    PRECALL                         3
+                1166    CALL                            3
+                1176    LOAD_CONST                      35: 'wrap'
+                1178    LOAD_CONST                      14: '3'
+                1180    LOAD_CONST                      8: 'end'
+                1182    KW_NAMES                        36: ('wrap', 'spacing', 'align')
+                1184    PRECALL                         6
+                1188    CALL                            6
+                1198    LOAD_CONST                      37: '100%'
+                1200    LOAD_CONST                      38: 'borderColor'
+                1202    LOAD_CONST                      39: 'var(--teal-6)'
+                1204    BUILD_MAP                       1
+                1206    KW_NAMES                        40: ('width', 'style')
+                1208    PRECALL                         4
+                1212    CALL                            4
+                1222    PRECALL                         2
+                1226    CALL                            2
+                1236    LOAD_GLOBAL                     1: NULL + rx
+                1248    LOAD_ATTR                       10: card
+                1258    LOAD_GLOBAL                     1: NULL + rx
+                1270    LOAD_ATTR                       1: vstack
+                1280    LOAD_GLOBAL                     7: NULL + helpmod
+                1292    LOAD_ATTR                       11: section
+                1302    LOAD_CONST                      66: 'General assembly'
+                1304    LOAD_CONST                      67: 'general_assembly'
+                1306    LOAD_CONST                      14: '3'
+                1308    KW_NAMES                        15: ('size',)
+                1310    PRECALL                         3
+                1314    CALL                            3
+                1324    LOAD_GLOBAL                     1: NULL + rx
+                1336    LOAD_ATTR                       12: flex
+                1346    LOAD_GLOBAL                     31: NULL + flag_cb
+                1358    LOAD_CONST                      68: '--reassemble'
+                1360    LOAD_CONST                      69: 'reassemble'
+                1362    PRECALL                         2
+                1366    CALL                            2
+                1376    LOAD_GLOBAL                     31: NULL + flag_cb
+                1388    LOAD_CONST                      70: '--no_rotate'
+                1390    LOAD_CONST                      71: 'no_rotate'
+                1392    PRECALL                         2
+                1396    CALL                            2
+                1406    LOAD_GLOBAL                     31: NULL + flag_cb
+                1418    LOAD_CONST                      72: '--skip_qc_plot'
+                1420    LOAD_CONST                      73: 'skip_qc_plot'
+                1422    PRECALL                         2
+                1426    CALL                            2
+                1436    LOAD_CONST                      35: 'wrap'
+                1438    LOAD_CONST                      74: '5'
+                1440    LOAD_CONST                      75: 'center'
+                1442    KW_NAMES                        36: ('wrap', 'spacing', 'align')
+                1444    PRECALL                         6
+                1448    CALL                            6
+                1458    LOAD_GLOBAL                     1: NULL + rx
+                1470    LOAD_ATTR                       12: flex
+                1480    LOAD_GLOBAL                     29: NULL + opt_in
+                1492    LOAD_CONST                      76: 'Min contig len'
+                1494    LOAD_CONST                      77: 'min_contig_len'
+                1496    LOAD_CONST                      62: 'number'
+                1498    LOAD_CONST                      19: '150px'
+                1500    KW_NAMES                        63: ('typ', 'width')
+                1502    PRECALL                         4
+                1506    CALL                            4
+                1516    LOAD_GLOBAL                     29: NULL + opt_in
+                1528    LOAD_CONST                      78: 'Min contig cov'
+                1530    LOAD_CONST                      79: 'min_contig_cov'
+                1532    LOAD_CONST                      62: 'number'
+                1534    LOAD_CONST                      19: '150px'
+                1536    KW_NAMES                        63: ('typ', 'width')
+                1538    PRECALL                         4
+                1542    CALL                            4
+                1552    LOAD_CONST                      35: 'wrap'
+                1554    LOAD_CONST                      80: '4'
+                1556    LOAD_CONST                      8: 'end'
+                1558    KW_NAMES                        36: ('wrap', 'spacing', 'align')
+                1560    PRECALL                         5
+                1564    CALL                            5
+                1574    LOAD_CONST                      14: '3'
+                1576    LOAD_CONST                      81: 'start'
+                1578    LOAD_CONST                      37: '100%'
+                1580    KW_NAMES                        82: ('spacing', 'align', 'width')
+                1582    PRECALL                         6
+                1586    CALL                            6
+                1596    LOAD_CONST                      37: '100%'
+                1598    KW_NAMES                        20: ('width',)
+                1600    PRECALL                         2
+                1604    CALL                            2
+                1614    LOAD_GLOBAL                     7: NULL + helpmod
+                1626    LOAD_ATTR                       11: section
+                1636    LOAD_CONST                      83: 'Polishing'
+                1638    LOAD_CONST                      84: 'polishing'
+                1640    LOAD_CONST                      14: '3'
+                1642    KW_NAMES                        15: ('size',)
+                1644    PRECALL                         3
+                1648    CALL                            3
+                1658    LOAD_GLOBAL                     31: NULL + flag_cb
+                1670    LOAD_CONST                      85: '--no_polish (skip all polishing)'
+                1672    LOAD_CONST                      86: 'no_polish'
+                1674    PRECALL                         2
+                1678    CALL                            2
+                1688    LOAD_GLOBAL                     1: NULL + rx
+                1700    LOAD_ATTR                       8: cond
+                1710    LOAD_GLOBAL                     19: NULL + _mode_is
+                1722    LOAD_CONST                      54: 'Hybrid (Unicycler --hybrid)'
+                1724    LOAD_CONST                      42: 'Hybrid (Dragonflye --short_polish)'
+                1726    PRECALL                         2
+                1730    CALL                            2
+                1740    LOAD_GLOBAL                     1: NULL + rx
+                1752    LOAD_ATTR                       12: flex
+                1762    LOAD_GLOBAL                     29: NULL + opt_in
+                1774    LOAD_CONST                      87: 'Polypolish rounds'
+                1776    LOAD_CONST                      88: 'polypolish_rounds'
+                1778    LOAD_CONST                      62: 'number'
+                1780    LOAD_CONST                      19: '150px'
+                1782    KW_NAMES                        63: ('typ', 'width')
+                1784    PRECALL                         4
+                1788    CALL                            4
+                1798    LOAD_GLOBAL                     29: NULL + opt_in
+                1810    LOAD_CONST                      89: 'Pilon rounds'
+                1812    LOAD_CONST                      90: 'pilon_rounds'
+                1814    LOAD_CONST                      62: 'number'
+                1816    LOAD_CONST                      91: '130px'
+                1818    KW_NAMES                        63: ('typ', 'width')
+                1820    PRECALL                         4
+                1824    CALL                            4
+                1834    LOAD_CONST                      35: 'wrap'
+                1836    LOAD_CONST                      14: '3'
+                1838    LOAD_CONST                      8: 'end'
+                1840    KW_NAMES                        36: ('wrap', 'spacing', 'align')
+                1842    PRECALL                         5
+                1846    CALL                            5
+                1856    PRECALL                         2
+                1860    CALL                            2
+                1870    LOAD_GLOBAL                     1: NULL + rx
+                1882    LOAD_ATTR                       8: cond
+                1892    LOAD_GLOBAL                     19: NULL + _mode_is
+                1904    LOAD_CONST                      41: 'ONT (Dragonflye)'
+                1906    PRECALL                         1
+                1910    CALL                            1
+                1920    LOAD_GLOBAL                     1: NULL + rx
+                1932    LOAD_ATTR                       12: flex
+                1942    LOAD_GLOBAL                     29: NULL + opt_in
+                1954    LOAD_CONST                      92: 'Racon rounds'
+                1956    LOAD_CONST                      93: 'racon_rounds'
+                1958    LOAD_CONST                      62: 'number'
+                1960    LOAD_CONST                      91: '130px'
+                1962    KW_NAMES                        63: ('typ', 'width')
+                1964    PRECALL                         4
+                1968    CALL                            4
+                1978    LOAD_GLOBAL                     29: NULL + opt_in
+                1990    LOAD_CONST                      94: 'Medaka rounds'
+                1992    LOAD_CONST                      95: 'medaka_rounds'
+                1994    LOAD_CONST                      62: 'number'
+                1996    LOAD_CONST                      91: '130px'
+                1998    KW_NAMES                        63: ('typ', 'width')
+                2000    PRECALL                         4
+                2004    CALL                            4
+                2014    LOAD_GLOBAL                     29: NULL + opt_in
+                2026    LOAD_CONST                      96: 'Medaka model'
+                2028    LOAD_CONST                      97: 'medaka_model'
+                2030    LOAD_CONST                      26: '160px'
+                2032    KW_NAMES                        20: ('width',)
+                2034    PRECALL                         3
+                2038    CALL                            3
+                2048    LOAD_CONST                      35: 'wrap'
+                2050    LOAD_CONST                      14: '3'
+                2052    LOAD_CONST                      8: 'end'
+                2054    KW_NAMES                        36: ('wrap', 'spacing', 'align')
+                2056    PRECALL                         6
+                2060    CALL                            6
+                2070    PRECALL                         2
+                2074    CALL                            2
+                2084    LOAD_GLOBAL                     33: NULL + wz
+                2096    LOAD_ATTR                       17: nav_buttons
+                2106    LOAD_GLOBAL                     12: S
+                2118    LOAD_ATTR                       18: prev_step
+                2128    LOAD_GLOBAL                     12: S
+                2140    LOAD_ATTR                       19: next_step
+                2150    PRECALL                         2
+                2154    CALL                            2
+                2164    LOAD_CONST                      98: '6'
+                2166    LOAD_CONST                      37: '100%'
+                2168    LOAD_CONST                      81: 'start'
+                2170    KW_NAMES                        99: ('spacing', 'width', 'align')
+                2172    PRECALL                         13
+                2176    CALL                            13
+                2186    RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+            Object Name: _step_typing
+            Qualified Name: _step_typing
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 20
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                'text'
+                'card'
+                'helpmod'
+                'section'
+                'flex'
+                'opt_in'
+                'field_label'
+                'select'
+                'MLST_OPTS'
+                'S'
+                'bopts'
+                'flag_cb'
+                'wz'
+                'general_params'
+                'nav_buttons'
+                'prev_step'
+                'next_step'
+            [Locals+Names]
+            [Constants]
+                None
+                'Annotation & typing run as part of the pipeline.'
+                '2'
+                'var(--gray-10)'
+                (
+                    'size'
+                    'color'
+                )
+                'AMRFinderPlus'
+                'amrfinder'
+                '3'
+                (
+                    'size'
+                )
+                '--ident_min'
+                'amr_ident_min'
+                'number'
+                '150px'
+                (
+                    'typ'
+                    'width'
+                )
+                '--coverage_min'
+                'amr_coverage_min'
+                '160px'
+                'wrap'
+                '4'
+                'end'
+                (
+                    'wrap'
+                    'spacing'
+                    'align'
+                )
+                'start'
+                '100%'
+                (
+                    'spacing'
+                    'align'
+                    'width'
+                )
+                (
+                    'width'
+                )
+                'MLST'
+                'mlst'
+                '--scheme'
+                'mlst_scheme'
+                '300px'
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+                    Object Name: <lambda>
+                    Qualified Name: _step_typing.<locals>.<lambda>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 4
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'S'
+                        'set_bopt'
+                    [Locals+Names]
+                        'v'
+                    [Constants]
+                        None
+                        'mlst_scheme'
+                    [Disassembly]
+                        0       RESUME                          0
+                        2       LOAD_GLOBAL                     1: NULL + S
+                        14      LOAD_ATTR                       1: set_bopt
+                        24      LOAD_CONST                      1: 'mlst_scheme'
+                        26      LOAD_FAST                       0: v
+                        28      PRECALL                         2
+                        32      CALL                            2
+                        42      RETURN_VALUE                    
+                    [Exception Table]
+                (
+                    'value'
+                    'size'
+                    'width'
+                    'on_change'
+                )
+                '1'
+                (
+                    'spacing'
+                    'align'
+                )
+                '--minid'
+                'mlst_minid'
+                '130px'
+                '--mincov'
+                'mlst_mincov'
+                '--minscore'
+                'mlst_minscore'
+                '--nopath'
+                'mlst_nopath'
+                '5'
+                'datasets/ (optional path)'
+                'datasets'
+                '-with-report'
+                'with_report'
+                '-with-timeline'
+                'with_timeline'
+                '-with-trace'
+                'with_trace'
+                'center'
+                'Extra parameters (raw line)'
+                'extra_params'
+                'Review & run'
+                (
+                    'next_label'
+                )
+                '6'
+                (
+                    'spacing'
+                    'width'
+                    'align'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: vstack
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: text
+                46      LOAD_CONST                      1: 'Annotation & typing run as part of the pipeline.'
+                48      LOAD_CONST                      2: '2'
+                50      LOAD_CONST                      3: 'var(--gray-10)'
+                52      KW_NAMES                        4: ('size', 'color')
+                54      PRECALL                         3
+                58      CALL                            3
+                68      LOAD_GLOBAL                     1: NULL + rx
+                80      LOAD_ATTR                       3: card
+                90      LOAD_GLOBAL                     1: NULL + rx
+                102     LOAD_ATTR                       1: vstack
+                112     LOAD_GLOBAL                     9: NULL + helpmod
+                124     LOAD_ATTR                       5: section
+                134     LOAD_CONST                      5: 'AMRFinderPlus'
+                136     LOAD_CONST                      6: 'amrfinder'
+                138     LOAD_CONST                      7: '3'
+                140     KW_NAMES                        8: ('size',)
+                142     PRECALL                         3
+                146     CALL                            3
+                156     LOAD_GLOBAL                     1: NULL + rx
+                168     LOAD_ATTR                       6: flex
+                178     LOAD_GLOBAL                     15: NULL + opt_in
+                190     LOAD_CONST                      9: '--ident_min'
+                192     LOAD_CONST                      10: 'amr_ident_min'
+                194     LOAD_CONST                      11: 'number'
+                196     LOAD_CONST                      12: '150px'
+                198     KW_NAMES                        13: ('typ', 'width')
+                200     PRECALL                         4
+                204     CALL                            4
+                214     LOAD_GLOBAL                     15: NULL + opt_in
+                226     LOAD_CONST                      14: '--coverage_min'
+                228     LOAD_CONST                      15: 'amr_coverage_min'
+                230     LOAD_CONST                      11: 'number'
+                232     LOAD_CONST                      16: '160px'
+                234     KW_NAMES                        13: ('typ', 'width')
+                236     PRECALL                         4
+                240     CALL                            4
+                250     LOAD_CONST                      17: 'wrap'
+                252     LOAD_CONST                      18: '4'
+                254     LOAD_CONST                      19: 'end'
+                256     KW_NAMES                        20: ('wrap', 'spacing', 'align')
+                258     PRECALL                         5
+                262     CALL                            5
+                272     LOAD_CONST                      7: '3'
+                274     LOAD_CONST                      21: 'start'
+                276     LOAD_CONST                      22: '100%'
+                278     KW_NAMES                        23: ('spacing', 'align', 'width')
+                280     PRECALL                         5
+                284     CALL                            5
+                294     LOAD_CONST                      22: '100%'
+                296     KW_NAMES                        24: ('width',)
+                298     PRECALL                         2
+                302     CALL                            2
+                312     LOAD_GLOBAL                     1: NULL + rx
+                324     LOAD_ATTR                       3: card
+                334     LOAD_GLOBAL                     1: NULL + rx
+                346     LOAD_ATTR                       1: vstack
+                356     LOAD_GLOBAL                     9: NULL + helpmod
+                368     LOAD_ATTR                       5: section
+                378     LOAD_CONST                      25: 'MLST'
+                380     LOAD_CONST                      26: 'mlst'
+                382     LOAD_CONST                      7: '3'
+                384     KW_NAMES                        8: ('size',)
+                386     PRECALL                         3
+                390     CALL                            3
+                400     LOAD_GLOBAL                     1: NULL + rx
+                412     LOAD_ATTR                       1: vstack
+                422     LOAD_GLOBAL                     9: NULL + helpmod
+                434     LOAD_ATTR                       8: field_label
+                444     LOAD_CONST                      27: '--scheme'
+                446     LOAD_CONST                      26: 'mlst'
+                448     PRECALL                         2
+                452     CALL                            2
+                462     LOAD_GLOBAL                     1: NULL + rx
+                474     LOAD_ATTR                       9: select
+                484     LOAD_GLOBAL                     20: MLST_OPTS
+                496     LOAD_GLOBAL                     22: S
+                508     LOAD_ATTR                       12: bopts
+                518     LOAD_CONST                      28: 'mlst_scheme'
+                520     BINARY_SUBSCR                   
+                530     LOAD_CONST                      2: '2'
+                532     LOAD_CONST                      29: '300px'
+                534     LOAD_CONST                      30: <CODE> <lambda>
+                536     MAKE_FUNCTION                   0
+                538     KW_NAMES                        31: ('value', 'size', 'width', 'on_change')
+                540     PRECALL                         5
+                544     CALL                            5
+                554     LOAD_CONST                      32: '1'
+                556     LOAD_CONST                      21: 'start'
+                558     KW_NAMES                        33: ('spacing', 'align')
+                560     PRECALL                         4
+                564     CALL                            4
+                574     LOAD_GLOBAL                     1: NULL + rx
+                586     LOAD_ATTR                       6: flex
+                596     LOAD_GLOBAL                     15: NULL + opt_in
+                608     LOAD_CONST                      34: '--minid'
+                610     LOAD_CONST                      35: 'mlst_minid'
+                612     LOAD_CONST                      11: 'number'
+                614     LOAD_CONST                      36: '130px'
+                616     KW_NAMES                        13: ('typ', 'width')
+                618     PRECALL                         4
+                622     CALL                            4
+                632     LOAD_GLOBAL                     15: NULL + opt_in
+                644     LOAD_CONST                      37: '--mincov'
+                646     LOAD_CONST                      38: 'mlst_mincov'
+                648     LOAD_CONST                      11: 'number'
+                650     LOAD_CONST                      36: '130px'
+                652     KW_NAMES                        13: ('typ', 'width')
+                654     PRECALL                         4
+                658     CALL                            4
+                668     LOAD_GLOBAL                     15: NULL + opt_in
+                680     LOAD_CONST                      39: '--minscore'
+                682     LOAD_CONST                      40: 'mlst_minscore'
+                684     LOAD_CONST                      11: 'number'
+                686     LOAD_CONST                      36: '130px'
+                688     KW_NAMES                        13: ('typ', 'width')
+                690     PRECALL                         4
+                694     CALL                            4
+                704     LOAD_GLOBAL                     27: NULL + flag_cb
+                716     LOAD_CONST                      41: '--nopath'
+                718     LOAD_CONST                      42: 'mlst_nopath'
+                720     PRECALL                         2
+                724     CALL                            2
+                734     LOAD_CONST                      17: 'wrap'
+                736     LOAD_CONST                      43: '5'
+                738     LOAD_CONST                      19: 'end'
+                740     KW_NAMES                        20: ('wrap', 'spacing', 'align')
+                742     PRECALL                         7
+                746     CALL                            7
+                756     LOAD_CONST                      7: '3'
+                758     LOAD_CONST                      21: 'start'
+                760     LOAD_CONST                      22: '100%'
+                762     KW_NAMES                        23: ('spacing', 'align', 'width')
+                764     PRECALL                         6
+                768     CALL                            6
+                778     LOAD_CONST                      22: '100%'
+                780     KW_NAMES                        24: ('width',)
+                782     PRECALL                         2
+                786     CALL                            2
+                796     LOAD_GLOBAL                     15: NULL + opt_in
+                808     LOAD_CONST                      44: 'datasets/ (optional path)'
+                810     LOAD_CONST                      45: 'datasets'
+                812     LOAD_CONST                      22: '100%'
+                814     KW_NAMES                        24: ('width',)
+                816     PRECALL                         3
+                820     CALL                            3
+                830     LOAD_GLOBAL                     29: NULL + wz
+                842     LOAD_ATTR                       15: general_params
+                852     LOAD_GLOBAL                     22: S
+                864     PRECALL                         1
+                868     CALL                            1
+                878     LOAD_GLOBAL                     1: NULL + rx
+                890     LOAD_ATTR                       6: flex
+                900     LOAD_GLOBAL                     27: NULL + flag_cb
+                912     LOAD_CONST                      46: '-with-report'
+                914     LOAD_CONST                      47: 'with_report'
+                916     PRECALL                         2
+                920     CALL                            2
+                930     LOAD_GLOBAL                     27: NULL + flag_cb
+                942     LOAD_CONST                      48: '-with-timeline'
+                944     LOAD_CONST                      49: 'with_timeline'
+                946     PRECALL                         2
+                950     CALL                            2
+                960     LOAD_GLOBAL                     27: NULL + flag_cb
+                972     LOAD_CONST                      50: '-with-trace'
+                974     LOAD_CONST                      51: 'with_trace'
+                976     PRECALL                         2
+                980     CALL                            2
+                990     LOAD_CONST                      17: 'wrap'
+                992     LOAD_CONST                      43: '5'
+                994     LOAD_CONST                      52: 'center'
+                996     KW_NAMES                        20: ('wrap', 'spacing', 'align')
+                998     PRECALL                         6
+                1002    CALL                            6
+                1012    LOAD_GLOBAL                     15: NULL + opt_in
+                1024    LOAD_CONST                      53: 'Extra parameters (raw line)'
+                1026    LOAD_CONST                      54: 'extra_params'
+                1028    LOAD_CONST                      22: '100%'
+                1030    KW_NAMES                        24: ('width',)
+                1032    PRECALL                         3
+                1036    CALL                            3
+                1046    LOAD_GLOBAL                     29: NULL + wz
+                1058    LOAD_ATTR                       16: nav_buttons
+                1068    LOAD_GLOBAL                     22: S
+                1080    LOAD_ATTR                       17: prev_step
+                1090    LOAD_GLOBAL                     22: S
+                1102    LOAD_ATTR                       18: next_step
+                1112    LOAD_CONST                      55: 'Review & run'
+                1114    KW_NAMES                        56: ('next_label',)
+                1116    PRECALL                         3
+                1120    CALL                            3
+                1130    LOAD_CONST                      57: '6'
+                1132    LOAD_CONST                      22: '100%'
+                1134    LOAD_CONST                      21: 'start'
+                1136    KW_NAMES                        58: ('spacing', 'width', 'align')
+                1138    PRECALL                         11
+                1142    CALL                            11
+                1152    RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+            Object Name: _step_run
+            Qualified Name: _step_run
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 13
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                'heading'
+                'code_block'
+                'S'
+                'preview'
+                'cond'
+                'fofn_built'
+                'callout'
+                'wz'
+                'run_panel'
+                'merged_panel'
+                'nav_buttons'
+                'prev_step'
+                'next_step'
+            [Locals+Names]
+            [Constants]
+                None
+                'Command preview'
+                '3'
+                (
+                    'size'
+                )
+                'bash'
+                '100%'
+                True
+                (
+                    'language'
+                    'width'
+                    'wrap_long_lines'
+                )
+                'Generate the FOFN in step 1 before running.'
+                'triangle_alert'
+                'amber'
+                '1'
+                (
+                    'icon'
+                    'color_scheme'
+                    'size'
+                )
+                'Back'
+                (
+                    'next_label'
+                    'next_handler'
+                )
+                '6'
+                'start'
+                (
+                    'spacing'
+                    'width'
+                    'align'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: vstack
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: heading
+                46      LOAD_CONST                      1: 'Command preview'
+                48      LOAD_CONST                      2: '3'
+                50      KW_NAMES                        3: ('size',)
+                52      PRECALL                         2
+                56      CALL                            2
+                66      LOAD_GLOBAL                     1: NULL + rx
+                78      LOAD_ATTR                       3: code_block
+                88      LOAD_GLOBAL                     8: S
+                100     LOAD_ATTR                       5: preview
+                110     LOAD_CONST                      4: 'bash'
+                112     LOAD_CONST                      5: '100%'
+                114     LOAD_CONST                      6: True
+                116     KW_NAMES                        7: ('language', 'width', 'wrap_long_lines')
+                118     PRECALL                         4
+                122     CALL                            4
+                132     LOAD_GLOBAL                     1: NULL + rx
+                144     LOAD_ATTR                       6: cond
+                154     LOAD_GLOBAL                     8: S
+                166     LOAD_ATTR                       7: fofn_built
+                176     UNARY_INVERT                    
+                178     LOAD_GLOBAL                     1: NULL + rx
+                190     LOAD_ATTR                       8: callout
+                200     LOAD_CONST                      8: 'Generate the FOFN in step 1 before running.'
+                202     LOAD_CONST                      9: 'triangle_alert'
+                204     LOAD_CONST                      10: 'amber'
+                206     LOAD_CONST                      11: '1'
+                208     KW_NAMES                        12: ('icon', 'color_scheme', 'size')
+                210     PRECALL                         4
+                214     CALL                            4
+                224     PRECALL                         2
+                228     CALL                            2
+                238     LOAD_GLOBAL                     19: NULL + wz
+                250     LOAD_ATTR                       10: run_panel
+                260     LOAD_GLOBAL                     8: S
+                272     PRECALL                         1
+                276     CALL                            1
+                286     LOAD_GLOBAL                     19: NULL + wz
+                298     LOAD_ATTR                       11: merged_panel
+                308     LOAD_GLOBAL                     8: S
+                320     PRECALL                         1
+                324     CALL                            1
+                334     LOAD_GLOBAL                     19: NULL + wz
+                346     LOAD_ATTR                       12: nav_buttons
+                356     LOAD_GLOBAL                     8: S
+                368     LOAD_ATTR                       13: prev_step
+                378     LOAD_GLOBAL                     8: S
+                390     LOAD_ATTR                       14: next_step
+                400     LOAD_CONST                      13: 'Back'
+                402     LOAD_GLOBAL                     8: S
+                414     LOAD_ATTR                       13: prev_step
+                424     KW_NAMES                        14: ('next_label', 'next_handler')
+                426     PRECALL                         4
+                430     CALL                            4
+                440     LOAD_CONST                      15: '6'
+                442     LOAD_CONST                      5: '100%'
+                444     LOAD_CONST                      16: 'start'
+                446     KW_NAMES                        17: ('spacing', 'width', 'align')
+                448     PRECALL                         9
+                452     CALL                            9
+                462     RETURN_VALUE                    
+            [Exception Table]
+        'return'
+        'rx.Component'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/bactopia.py
+            Object Name: bactopia_page
+            Qualified Name: bactopia_page
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 15
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'shell'
+                'wz'
+                'hero'
+                'step_indicator'
+                'STEPS'
+                'S'
+                'step'
+                'goto'
+                'rx'
+                'divider'
+                'match'
+                '_step_input'
+                '_step_cleaning'
+                '_step_assembler'
+                '_step_typing'
+                '_step_run'
+            [Locals+Names]
+            [Constants]
+                None
+                'dna'
+                'Bactopia'
+                'Main pipeline: QC, assembly, annotation and typing from raw reads.'
+                0
+                1
+                2
+                3
+                4
+                '/bactopia'
+                (
+                    'active'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + shell
+                14      LOAD_GLOBAL                     3: NULL + wz
+                26      LOAD_ATTR                       2: hero
+                36      LOAD_CONST                      1: 'dna'
+                38      LOAD_CONST                      2: 'Bactopia'
+                40      LOAD_CONST                      3: 'Main pipeline: QC, assembly, annotation and typing from raw reads.'
+                42      PRECALL                         3
+                46      CALL                            3
+                56      LOAD_GLOBAL                     3: NULL + wz
+                68      LOAD_ATTR                       3: step_indicator
+                78      LOAD_GLOBAL                     8: STEPS
+                90      LOAD_GLOBAL                     10: S
+                102     LOAD_ATTR                       6: step
+                112     LOAD_GLOBAL                     10: S
+                124     LOAD_ATTR                       7: goto
+                134     PRECALL                         3
+                138     CALL                            3
+                148     LOAD_GLOBAL                     17: NULL + rx
+                160     LOAD_ATTR                       9: divider
+                170     PRECALL                         0
+                174     CALL                            0
+                184     LOAD_GLOBAL                     17: NULL + rx
+                196     LOAD_ATTR                       10: match
+                206     LOAD_GLOBAL                     10: S
+                218     LOAD_ATTR                       6: step
+                228     LOAD_CONST                      4: 0
+                230     LOAD_GLOBAL                     23: NULL + _step_input
+                242     PRECALL                         0
+                246     CALL                            0
+                256     BUILD_TUPLE                     2
+                258     LOAD_CONST                      5: 1
+                260     LOAD_GLOBAL                     25: NULL + _step_cleaning
+                272     PRECALL                         0
+                276     CALL                            0
+                286     BUILD_TUPLE                     2
+                288     LOAD_CONST                      6: 2
+                290     LOAD_GLOBAL                     27: NULL + _step_assembler
+                302     PRECALL                         0
+                306     CALL                            0
+                316     BUILD_TUPLE                     2
+                318     LOAD_CONST                      7: 3
+                320     LOAD_GLOBAL                     29: NULL + _step_typing
+                332     PRECALL                         0
+                336     CALL                            0
+                346     BUILD_TUPLE                     2
+                348     LOAD_CONST                      8: 4
+                350     LOAD_GLOBAL                     31: NULL + _step_run
+                362     PRECALL                         0
+                366     CALL                            0
+                376     BUILD_TUPLE                     2
+                378     LOAD_GLOBAL                     23: NULL + _step_input
+                390     PRECALL                         0
+                394     CALL                            0
+                404     PRECALL                         7
+                408     CALL                            7
+                418     LOAD_CONST                      9: '/bactopia'
+                420     KW_NAMES                        10: ('active',)
+                422     PRECALL                         5
+                426     CALL                            5
+                436     RETURN_VALUE                    
+            [Exception Table]
+        (
+            '200px'
+        )
+        (
+            'return'
+            'rx.Component'
+        )
+    [Disassembly]
+        0       RESUME                          0
+        2       LOAD_CONST                      0: 'Bactopia main pipeline — guided wizard (FOFN → cleaning → assembly → typing → run).'
+        4       STORE_NAME                      0: __doc__
+        6       LOAD_CONST                      1: 0
+        8       LOAD_CONST                      2: ('annotations',)
+        10      IMPORT_NAME                     1: __future__
+        12      IMPORT_FROM                     2: annotations
+        14      STORE_NAME                      2: annotations
+        16      POP_TOP                         
+        18      LOAD_CONST                      1: 0
+        20      LOAD_CONST                      3: None
+        22      IMPORT_NAME                     3: reflex
+        24      STORE_NAME                      4: rx
+        26      LOAD_CONST                      1: 0
+        28      LOAD_CONST                      4: ('shell',)
+        30      IMPORT_NAME                     5: bearhub.components.shell
+        32      IMPORT_FROM                     6: shell
+        34      STORE_NAME                      6: shell
+        36      POP_TOP                         
+        38      LOAD_CONST                      1: 0
+        40      LOAD_CONST                      5: ('wizard',)
+        42      IMPORT_NAME                     7: bearhub.components
+        44      IMPORT_FROM                     8: wizard
+        46      STORE_NAME                      9: wz
+        48      POP_TOP                         
+        50      LOAD_CONST                      1: 0
+        52      LOAD_CONST                      6: ('help',)
+        54      IMPORT_NAME                     7: bearhub.components
+        56      IMPORT_FROM                     10: help
+        58      STORE_NAME                      11: helpmod
+        60      POP_TOP                         
+        62      LOAD_CONST                      1: 0
+        64      LOAD_CONST                      7: ('catalog',)
+        66      IMPORT_NAME                     12: bearhub.data
+        68      IMPORT_FROM                     13: catalog
+        70      STORE_NAME                      13: catalog
+        72      POP_TOP                         
+        74      LOAD_CONST                      1: 0
+        76      LOAD_CONST                      8: ('BactopiaState',)
+        78      IMPORT_NAME                     14: bearhub.state
+        80      IMPORT_FROM                     15: BactopiaState
+        82      STORE_NAME                      16: S
+        84      POP_TOP                         
+        86      BUILD_LIST                      0
+        88      LOAD_CONST                      9: ('Input & FOFN', 'Read cleaning', 'Assembler', 'Typing & extras', 'Run')
+        90      LIST_EXTEND                     1
+        92      STORE_NAME                      17: STEPS
+        94      LOAD_CONST                      10: '(Select or Custom)'
+        96      BUILD_LIST                      1
+        98      LOAD_NAME                       13: catalog
+        100     LOAD_ATTR                       18: GENOME_SIZES
+        110     BINARY_OP                       0 (+)
+        114     LOAD_CONST                      11: 'Custom'
+        116     BUILD_LIST                      1
+        118     BINARY_OP                       0 (+)
+        122     STORE_NAME                      19: GENOME_OPTS
+        124     LOAD_NAME                       13: catalog
+        126     LOAD_ATTR                       20: MLST_DISPLAY
+        136     STORE_NAME                      21: MLST_OPTS
+        138     LOAD_CONST                      12: 'text'
+        140     LOAD_CONST                      13: '160px'
+        142     LOAD_CONST                      14: ''
+        144     LOAD_CONST                      15: ('typ', 'width', 'placeholder')
+        146     BUILD_CONST_KEY_MAP             3
+        148     LOAD_CONST                      16: <CODE> opt_in
+        150     MAKE_FUNCTION                   2
+        152     STORE_NAME                      22: opt_in
+        154     LOAD_CONST                      31: ('200px',)
+        156     LOAD_CONST                      18: <CODE> opt_sel
+        158     MAKE_FUNCTION                   1
+        160     STORE_NAME                      23: opt_sel
+        162     LOAD_CONST                      19: <CODE> flag_cb
+        164     MAKE_FUNCTION                   0
+        166     STORE_NAME                      24: flag_cb
+        168     LOAD_CONST                      20: <CODE> _mode_is
+        170     MAKE_FUNCTION                   0
+        172     STORE_NAME                      25: _mode_is
+        174     LOAD_CONST                      21: <CODE> _step_input
+        176     MAKE_FUNCTION                   0
+        178     STORE_NAME                      26: _step_input
+        180     LOAD_CONST                      22: <CODE> _fastp_card
+        182     MAKE_FUNCTION                   0
+        184     STORE_NAME                      27: _fastp_card
+        186     LOAD_CONST                      23: <CODE> _fastp_simple
+        188     MAKE_FUNCTION                   0
+        190     STORE_NAME                      28: _fastp_simple
+        192     LOAD_CONST                      24: <CODE> _step_cleaning
+        194     MAKE_FUNCTION                   0
+        196     STORE_NAME                      29: _step_cleaning
+        198     LOAD_CONST                      25: <CODE> _step_assembler
+        200     MAKE_FUNCTION                   0
+        202     STORE_NAME                      30: _step_assembler
+        204     LOAD_CONST                      26: <CODE> _step_typing
+        206     MAKE_FUNCTION                   0
+        208     STORE_NAME                      31: _step_typing
+        210     LOAD_CONST                      27: <CODE> _step_run
+        212     MAKE_FUNCTION                   0
+        214     STORE_NAME                      32: _step_run
+        216     LOAD_CONST                      32: ('return', 'rx.Component')
+        218     LOAD_CONST                      30: <CODE> bactopia_page
+        220     MAKE_FUNCTION                   4
+        222     STORE_NAME                      33: bactopia_page
+        224     LOAD_CONST                      3: None
+        226     RETURN_VALUE                    
+    [Exception Table]

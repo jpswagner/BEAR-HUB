@@ -1,0 +1,1084 @@
+merlin.cpython-311.pyc (Python 3.11)
+[Code]
+    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/merlin.py
+    Object Name: <module>
+    Qualified Name: <module>
+    Arg Count: 0
+    Pos Only Arg Count: 0
+    KW Only Arg Count: 0
+    Stack Size: 2
+    Flags: 0x01000000 (CO_FUTURE_ANNOTATIONS)
+    [Names]
+        '__doc__'
+        '__future__'
+        'annotations'
+        'reflex'
+        'rx'
+        'bearhub.components.shell'
+        'shell'
+        'bearhub.components'
+        'wizard'
+        'wz'
+        'help'
+        'helpmod'
+        'bearhub.data.catalog'
+        'MERLIN_SPECIES'
+        'bearhub.state'
+        'MerlinState'
+        'STEPS'
+        '_species_chip'
+        '_genus_block'
+        '_step_data'
+        '_step_tools'
+        '_step_params'
+        '_step_run'
+        'merlin_page'
+    [Locals+Names]
+    [Constants]
+        'MERLIN — species-specific typing workflows (guided wizard).'
+        0
+        (
+            'annotations'
+        )
+        None
+        (
+            'shell'
+        )
+        (
+            'wizard'
+        )
+        (
+            'help'
+        )
+        (
+            'MERLIN_SPECIES'
+        )
+        (
+            'MerlinState'
+        )
+        (
+            'Data'
+            'Species tools'
+            'Parameters'
+            'Run'
+        )
+        'label'
+        'str'
+        'wf'
+        'return'
+        'rx.Component'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/merlin.py
+            Object Name: _species_chip
+            Qualified Name: _species_chip
+            Arg Count: 2
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 12
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'MerlinState'
+                'picks'
+                'rx'
+                'card'
+                'hstack'
+                'checkbox'
+                'text'
+                'code'
+                'toggle'
+                'cond'
+            [Locals+Names]
+                'label'
+                'wf'
+                'checked'
+            [Constants]
+                None
+                'teal'
+                '2'
+                'pointerEvents'
+                'none'
+                (
+                    'checked'
+                    'color_scheme'
+                    'size'
+                    'style'
+                )
+                'medium'
+                (
+                    'size'
+                    'weight'
+                )
+                '1'
+                (
+                    'size'
+                )
+                'center'
+                (
+                    'spacing'
+                    'align'
+                )
+                'pointer'
+                '8px 12px'
+                'var(--teal-8)'
+                'var(--gray-5)'
+                'var(--teal-2)'
+                'transparent'
+                (
+                    'borderColor'
+                    'background'
+                )
+                (
+                    'on_click'
+                    'cursor'
+                    'padding'
+                    'style'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     0: MerlinState
+                14      LOAD_ATTR                       1: picks
+                24      LOAD_FAST                       1: wf
+                26      BINARY_SUBSCR                   
+                36      STORE_FAST                      2: checked
+                38      LOAD_GLOBAL                     5: NULL + rx
+                50      LOAD_ATTR                       3: card
+                60      LOAD_GLOBAL                     5: NULL + rx
+                72      LOAD_ATTR                       4: hstack
+                82      LOAD_GLOBAL                     5: NULL + rx
+                94      LOAD_ATTR                       5: checkbox
+                104     LOAD_FAST                       2: checked
+                106     LOAD_CONST                      1: 'teal'
+                108     LOAD_CONST                      2: '2'
+                110     LOAD_CONST                      3: 'pointerEvents'
+                112     LOAD_CONST                      4: 'none'
+                114     BUILD_MAP                       1
+                116     KW_NAMES                        5: ('checked', 'color_scheme', 'size', 'style')
+                118     PRECALL                         4
+                122     CALL                            4
+                132     LOAD_GLOBAL                     5: NULL + rx
+                144     LOAD_ATTR                       6: text
+                154     LOAD_FAST                       0: label
+                156     LOAD_CONST                      2: '2'
+                158     LOAD_CONST                      6: 'medium'
+                160     KW_NAMES                        7: ('size', 'weight')
+                162     PRECALL                         3
+                166     CALL                            3
+                176     LOAD_GLOBAL                     5: NULL + rx
+                188     LOAD_ATTR                       7: code
+                198     LOAD_FAST                       1: wf
+                200     LOAD_CONST                      8: '1'
+                202     KW_NAMES                        9: ('size',)
+                204     PRECALL                         2
+                208     CALL                            2
+                218     LOAD_CONST                      2: '2'
+                220     LOAD_CONST                      10: 'center'
+                222     KW_NAMES                        11: ('spacing', 'align')
+                224     PRECALL                         5
+                228     CALL                            5
+                238     LOAD_GLOBAL                     1: NULL + MerlinState
+                250     LOAD_ATTR                       8: toggle
+                260     LOAD_FAST                       1: wf
+                262     PRECALL                         1
+                266     CALL                            1
+                276     LOAD_CONST                      12: 'pointer'
+                278     LOAD_CONST                      13: '8px 12px'
+                280     LOAD_GLOBAL                     5: NULL + rx
+                292     LOAD_ATTR                       9: cond
+                302     LOAD_FAST                       2: checked
+                304     LOAD_CONST                      14: 'var(--teal-8)'
+                306     LOAD_CONST                      15: 'var(--gray-5)'
+                308     PRECALL                         3
+                312     CALL                            3
+                322     LOAD_GLOBAL                     5: NULL + rx
+                334     LOAD_ATTR                       9: cond
+                344     LOAD_FAST                       2: checked
+                346     LOAD_CONST                      16: 'var(--teal-2)'
+                348     LOAD_CONST                      17: 'transparent'
+                350     PRECALL                         3
+                354     CALL                            3
+                364     LOAD_CONST                      18: ('borderColor', 'background')
+                366     BUILD_CONST_KEY_MAP             2
+                368     KW_NAMES                        19: ('on_click', 'cursor', 'padding', 'style')
+                370     PRECALL                         5
+                374     CALL                            5
+                384     RETURN_VALUE                    
+            [Exception Table]
+        'genus'
+        'tools'
+        'list'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/merlin.py
+            Object Name: _genus_block
+            Qualified Name: _genus_block
+            Arg Count: 2
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 9
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                'heading'
+                'flex'
+            [Locals+Names]
+                'genus'
+                'tools'
+            [Constants]
+                None
+                '3'
+                'var(--teal-11)'
+                (
+                    'size'
+                    'color'
+                )
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/merlin.py
+                    Object Name: <listcomp>
+                    Qualified Name: _genus_block.<locals>.<listcomp>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 6
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        '_species_chip'
+                    [Locals+Names]
+                        '.0'
+                        'label'
+                        'wf'
+                    [Constants]
+                    [Disassembly]
+                        0       RESUME                          0
+                        2       BUILD_LIST                      0
+                        4       LOAD_FAST                       0: .0
+                        6       FOR_ITER                        21 (to 50)
+                        8       UNPACK_SEQUENCE                 2
+                        12      STORE_FAST                      1: label
+                        14      STORE_FAST                      2: wf
+                        16      LOAD_GLOBAL                     1: NULL + _species_chip
+                        28      LOAD_FAST                       1: label
+                        30      LOAD_FAST                       2: wf
+                        32      PRECALL                         2
+                        36      CALL                            2
+                        46      LIST_APPEND                     2
+                        48      JUMP_BACKWARD                   22 (to 6)
+                        50      RETURN_VALUE                    
+                    [Exception Table]
+                'wrap'
+                (
+                    'wrap'
+                    'spacing'
+                )
+                '100%'
+                'start'
+                '16px'
+                (
+                    'spacing'
+                    'width'
+                    'align'
+                    'margin_bottom'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: vstack
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: heading
+                46      LOAD_FAST                       0: genus
+                48      LOAD_CONST                      1: '3'
+                50      LOAD_CONST                      2: 'var(--teal-11)'
+                52      KW_NAMES                        3: ('size', 'color')
+                54      PRECALL                         3
+                58      CALL                            3
+                68      LOAD_GLOBAL                     1: NULL + rx
+                80      LOAD_ATTR                       3: flex
+                90      LOAD_CONST                      4: <CODE> <listcomp>
+                92      MAKE_FUNCTION                   0
+                94      LOAD_FAST                       1: tools
+                96      GET_ITER                        
+                98      PRECALL                         0
+                102     CALL                            0
+                112     LOAD_CONST                      5: 'wrap'
+                114     LOAD_CONST                      1: '3'
+                116     LOAD_CONST                      6: ('wrap', 'spacing')
+                118     BUILD_CONST_KEY_MAP             2
+                120     CALL_FUNCTION_EX                1
+                122     LOAD_CONST                      1: '3'
+                124     LOAD_CONST                      7: '100%'
+                126     LOAD_CONST                      8: 'start'
+                128     LOAD_CONST                      9: '16px'
+                130     KW_NAMES                        10: ('spacing', 'width', 'align', 'margin_bottom')
+                132     PRECALL                         6
+                136     CALL                            6
+                146     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/merlin.py
+            Object Name: _step_data
+            Qualified Name: _step_data
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 10
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                'text'
+                'wz'
+                'dir_field'
+                'MerlinState'
+                'samples_field'
+                'nav_buttons'
+                'prev_step'
+                'next_step'
+            [Locals+Names]
+            [Constants]
+                None
+                'Browse to a Bactopia output directory; samples come from its subfolders.'
+                '2'
+                'var(--gray-10)'
+                (
+                    'size'
+                    'color'
+                )
+                True
+                (
+                    'first'
+                )
+                '6'
+                '100%'
+                'start'
+                (
+                    'spacing'
+                    'width'
+                    'align'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: vstack
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: text
+                46      LOAD_CONST                      1: 'Browse to a Bactopia output directory; samples come from its subfolders.'
+                48      LOAD_CONST                      2: '2'
+                50      LOAD_CONST                      3: 'var(--gray-10)'
+                52      KW_NAMES                        4: ('size', 'color')
+                54      PRECALL                         3
+                58      CALL                            3
+                68      LOAD_GLOBAL                     7: NULL + wz
+                80      LOAD_ATTR                       4: dir_field
+                90      LOAD_GLOBAL                     10: MerlinState
+                102     PRECALL                         1
+                106     CALL                            1
+                116     LOAD_GLOBAL                     7: NULL + wz
+                128     LOAD_ATTR                       6: samples_field
+                138     LOAD_GLOBAL                     10: MerlinState
+                150     PRECALL                         1
+                154     CALL                            1
+                164     LOAD_GLOBAL                     7: NULL + wz
+                176     LOAD_ATTR                       7: nav_buttons
+                186     LOAD_GLOBAL                     10: MerlinState
+                198     LOAD_ATTR                       8: prev_step
+                208     LOAD_GLOBAL                     10: MerlinState
+                220     LOAD_ATTR                       9: next_step
+                230     LOAD_CONST                      5: True
+                232     KW_NAMES                        6: ('first',)
+                234     PRECALL                         3
+                238     CALL                            3
+                248     LOAD_CONST                      7: '6'
+                250     LOAD_CONST                      8: '100%'
+                252     LOAD_CONST                      9: 'start'
+                254     KW_NAMES                        10: ('spacing', 'width', 'align')
+                256     PRECALL                         7
+                260     CALL                            7
+                270     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/merlin.py
+            Object Name: _step_tools
+            Qualified Name: _step_tools
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 11
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                'hstack'
+                'helpmod'
+                'section'
+                'spacer'
+                'badge'
+                'MerlinState'
+                'n_picked'
+                'text'
+                'MERLIN_SPECIES'
+                'wz'
+                'nav_buttons'
+                'prev_step'
+                'next_step'
+            [Locals+Names]
+            [Constants]
+                None
+                'Species-specific tools'
+                'merlin'
+                '4'
+                (
+                    'size'
+                )
+                ' selected'
+                'teal'
+                '2'
+                (
+                    'color_scheme'
+                    'size'
+                )
+                '100%'
+                'center'
+                (
+                    'width'
+                    'align'
+                )
+                'Tick the workflows to run. Each runs as its own --wf.'
+                'var(--gray-10)'
+                (
+                    'size'
+                    'color'
+                )
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/merlin.py
+                    Object Name: <listcomp>
+                    Qualified Name: _step_tools.<locals>.<listcomp>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 6
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        '_genus_block'
+                    [Locals+Names]
+                        '.0'
+                        'genus'
+                        'tools'
+                    [Constants]
+                    [Disassembly]
+                        0       RESUME                          0
+                        2       BUILD_LIST                      0
+                        4       LOAD_FAST                       0: .0
+                        6       FOR_ITER                        21 (to 50)
+                        8       UNPACK_SEQUENCE                 2
+                        12      STORE_FAST                      1: genus
+                        14      STORE_FAST                      2: tools
+                        16      LOAD_GLOBAL                     1: NULL + _genus_block
+                        28      LOAD_FAST                       1: genus
+                        30      LOAD_FAST                       2: tools
+                        32      PRECALL                         2
+                        36      CALL                            2
+                        46      LIST_APPEND                     2
+                        48      JUMP_BACKWARD                   22 (to 6)
+                        50      RETURN_VALUE                    
+                    [Exception Table]
+                '6'
+                'start'
+                (
+                    'spacing'
+                    'width'
+                    'align'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: vstack
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: hstack
+                46      LOAD_GLOBAL                     7: NULL + helpmod
+                58      LOAD_ATTR                       4: section
+                68      LOAD_CONST                      1: 'Species-specific tools'
+                70      LOAD_CONST                      2: 'merlin'
+                72      LOAD_CONST                      3: '4'
+                74      KW_NAMES                        4: ('size',)
+                76      PRECALL                         3
+                80      CALL                            3
+                90      LOAD_GLOBAL                     1: NULL + rx
+                102     LOAD_ATTR                       5: spacer
+                112     PRECALL                         0
+                116     CALL                            0
+                126     LOAD_GLOBAL                     1: NULL + rx
+                138     LOAD_ATTR                       6: badge
+                148     LOAD_GLOBAL                     14: MerlinState
+                160     LOAD_ATTR                       8: n_picked
+                170     FORMAT_VALUE                    0 (FVC_NONE)
+                172     LOAD_CONST                      5: ' selected'
+                174     BUILD_STRING                    2
+                176     LOAD_CONST                      6: 'teal'
+                178     LOAD_CONST                      7: '2'
+                180     KW_NAMES                        8: ('color_scheme', 'size')
+                182     PRECALL                         3
+                186     CALL                            3
+                196     LOAD_CONST                      9: '100%'
+                198     LOAD_CONST                      10: 'center'
+                200     KW_NAMES                        11: ('width', 'align')
+                202     PRECALL                         5
+                206     CALL                            5
+                216     LOAD_GLOBAL                     1: NULL + rx
+                228     LOAD_ATTR                       9: text
+                238     LOAD_CONST                      12: 'Tick the workflows to run. Each runs as its own --wf.'
+                240     LOAD_CONST                      7: '2'
+                242     LOAD_CONST                      13: 'var(--gray-10)'
+                244     KW_NAMES                        14: ('size', 'color')
+                246     PRECALL                         3
+                250     CALL                            3
+                260     BUILD_LIST                      2
+                262     LOAD_CONST                      15: <CODE> <listcomp>
+                264     MAKE_FUNCTION                   0
+                266     LOAD_GLOBAL                     20: MERLIN_SPECIES
+                278     GET_ITER                        
+                280     PRECALL                         0
+                284     CALL                            0
+                294     LIST_EXTEND                     1
+                296     LOAD_GLOBAL                     23: NULL + wz
+                308     LOAD_ATTR                       12: nav_buttons
+                318     LOAD_GLOBAL                     14: MerlinState
+                330     LOAD_ATTR                       13: prev_step
+                340     LOAD_GLOBAL                     14: MerlinState
+                352     LOAD_ATTR                       14: next_step
+                362     PRECALL                         2
+                366     CALL                            2
+                376     LIST_APPEND                     1
+                378     LIST_TO_TUPLE                   
+                380     LOAD_CONST                      16: '6'
+                382     LOAD_CONST                      9: '100%'
+                384     LOAD_CONST                      17: 'start'
+                386     LOAD_CONST                      18: ('spacing', 'width', 'align')
+                388     BUILD_CONST_KEY_MAP             3
+                390     CALL_FUNCTION_EX                1
+                392     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/merlin.py
+            Object Name: _step_params
+            Qualified Name: _step_params
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 13
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                'text'
+                'wz'
+                'general_params'
+                'MerlinState'
+                'labeled'
+                'input'
+                'extra'
+                'set_extra'
+                'nav_buttons'
+                'prev_step'
+                'next_step'
+            [Locals+Names]
+            [Constants]
+                None
+                'General Nextflow settings applied to every selected workflow.'
+                '2'
+                'var(--gray-10)'
+                (
+                    'size'
+                    'color'
+                )
+                'Extras (raw line)'
+                '100%'
+                (
+                    'value'
+                    'on_change'
+                    'width'
+                    'size'
+                )
+                (
+                    'width'
+                )
+                'Review & run'
+                (
+                    'next_label'
+                )
+                '6'
+                'start'
+                (
+                    'spacing'
+                    'width'
+                    'align'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: vstack
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: text
+                46      LOAD_CONST                      1: 'General Nextflow settings applied to every selected workflow.'
+                48      LOAD_CONST                      2: '2'
+                50      LOAD_CONST                      3: 'var(--gray-10)'
+                52      KW_NAMES                        4: ('size', 'color')
+                54      PRECALL                         3
+                58      CALL                            3
+                68      LOAD_GLOBAL                     7: NULL + wz
+                80      LOAD_ATTR                       4: general_params
+                90      LOAD_GLOBAL                     10: MerlinState
+                102     PRECALL                         1
+                106     CALL                            1
+                116     LOAD_GLOBAL                     7: NULL + wz
+                128     LOAD_ATTR                       6: labeled
+                138     LOAD_CONST                      5: 'Extras (raw line)'
+                140     LOAD_GLOBAL                     1: NULL + rx
+                152     LOAD_ATTR                       7: input
+                162     LOAD_GLOBAL                     10: MerlinState
+                174     LOAD_ATTR                       8: extra
+                184     LOAD_GLOBAL                     10: MerlinState
+                196     LOAD_ATTR                       9: set_extra
+                206     LOAD_CONST                      6: '100%'
+                208     LOAD_CONST                      2: '2'
+                210     KW_NAMES                        7: ('value', 'on_change', 'width', 'size')
+                212     PRECALL                         4
+                216     CALL                            4
+                226     LOAD_CONST                      6: '100%'
+                228     KW_NAMES                        8: ('width',)
+                230     PRECALL                         3
+                234     CALL                            3
+                244     LOAD_GLOBAL                     7: NULL + wz
+                256     LOAD_ATTR                       10: nav_buttons
+                266     LOAD_GLOBAL                     10: MerlinState
+                278     LOAD_ATTR                       11: prev_step
+                288     LOAD_GLOBAL                     10: MerlinState
+                300     LOAD_ATTR                       12: next_step
+                310     LOAD_CONST                      9: 'Review & run'
+                312     KW_NAMES                        10: ('next_label',)
+                314     PRECALL                         3
+                318     CALL                            3
+                328     LOAD_CONST                      11: '6'
+                330     LOAD_CONST                      6: '100%'
+                332     LOAD_CONST                      12: 'start'
+                334     KW_NAMES                        13: ('spacing', 'width', 'align')
+                336     PRECALL                         7
+                340     CALL                            7
+                350     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/merlin.py
+            Object Name: _step_run
+            Qualified Name: _step_run
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 13
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                'card'
+                'hstack'
+                'text'
+                'foreach'
+                'MerlinState'
+                'picked_ids'
+                'n_selected'
+                'profile'
+                'heading'
+                'code_block'
+                'preview'
+                'wz'
+                'run_panel'
+                'merged_panel'
+                'nav_buttons'
+                'prev_step'
+                'next_step'
+            [Locals+Names]
+            [Constants]
+                None
+                'Workflows'
+                '1'
+                'var(--gray-10)'
+                (
+                    'size'
+                    'color'
+                )
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/merlin.py
+                    Object Name: <lambda>
+                    Qualified Name: _step_run.<locals>.<lambda>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 4
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'rx'
+                        'badge'
+                    [Locals+Names]
+                        't'
+                    [Constants]
+                        None
+                        'teal'
+                        (
+                            'color_scheme'
+                        )
+                    [Disassembly]
+                        0       RESUME                          0
+                        2       LOAD_GLOBAL                     1: NULL + rx
+                        14      LOAD_ATTR                       1: badge
+                        24      LOAD_FAST                       0: t
+                        26      LOAD_CONST                      1: 'teal'
+                        28      KW_NAMES                        2: ('color_scheme',)
+                        30      PRECALL                         2
+                        34      CALL                            2
+                        44      RETURN_VALUE                    
+                    [Exception Table]
+                'wrap'
+                '2'
+                'center'
+                (
+                    'wrap'
+                    'spacing'
+                    'align'
+                )
+                ' samples · profile '
+                'var(--gray-11)'
+                '6px'
+                (
+                    'size'
+                    'color'
+                    'margin_top'
+                )
+                '100%'
+                'var(--teal-2)'
+                'var(--teal-6)'
+                (
+                    'background'
+                    'borderColor'
+                )
+                (
+                    'width'
+                    'style'
+                )
+                'Command preview'
+                '3'
+                (
+                    'size'
+                )
+                'bash'
+                True
+                (
+                    'language'
+                    'width'
+                    'wrap_long_lines'
+                )
+                'Back'
+                (
+                    'next_label'
+                    'next_handler'
+                )
+                '6'
+                'start'
+                (
+                    'spacing'
+                    'width'
+                    'align'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: vstack
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: card
+                46      LOAD_GLOBAL                     1: NULL + rx
+                58      LOAD_ATTR                       3: hstack
+                68      LOAD_GLOBAL                     1: NULL + rx
+                80      LOAD_ATTR                       4: text
+                90      LOAD_CONST                      1: 'Workflows'
+                92      LOAD_CONST                      2: '1'
+                94      LOAD_CONST                      3: 'var(--gray-10)'
+                96      KW_NAMES                        4: ('size', 'color')
+                98      PRECALL                         3
+                102     CALL                            3
+                112     LOAD_GLOBAL                     1: NULL + rx
+                124     LOAD_ATTR                       5: foreach
+                134     LOAD_GLOBAL                     12: MerlinState
+                146     LOAD_ATTR                       7: picked_ids
+                156     LOAD_CONST                      5: <CODE> <lambda>
+                158     MAKE_FUNCTION                   0
+                160     PRECALL                         2
+                164     CALL                            2
+                174     LOAD_CONST                      6: 'wrap'
+                176     LOAD_CONST                      7: '2'
+                178     LOAD_CONST                      8: 'center'
+                180     KW_NAMES                        9: ('wrap', 'spacing', 'align')
+                182     PRECALL                         5
+                186     CALL                            5
+                196     LOAD_GLOBAL                     1: NULL + rx
+                208     LOAD_ATTR                       4: text
+                218     LOAD_GLOBAL                     12: MerlinState
+                230     LOAD_ATTR                       8: n_selected
+                240     FORMAT_VALUE                    0 (FVC_NONE)
+                242     LOAD_CONST                      10: ' samples · profile '
+                244     LOAD_GLOBAL                     12: MerlinState
+                256     LOAD_ATTR                       9: profile
+                266     FORMAT_VALUE                    0 (FVC_NONE)
+                268     BUILD_STRING                    3
+                270     LOAD_CONST                      7: '2'
+                272     LOAD_CONST                      11: 'var(--gray-11)'
+                274     LOAD_CONST                      12: '6px'
+                276     KW_NAMES                        13: ('size', 'color', 'margin_top')
+                278     PRECALL                         4
+                282     CALL                            4
+                292     LOAD_CONST                      14: '100%'
+                294     LOAD_CONST                      15: 'var(--teal-2)'
+                296     LOAD_CONST                      16: 'var(--teal-6)'
+                298     LOAD_CONST                      17: ('background', 'borderColor')
+                300     BUILD_CONST_KEY_MAP             2
+                302     KW_NAMES                        18: ('width', 'style')
+                304     PRECALL                         4
+                308     CALL                            4
+                318     LOAD_GLOBAL                     1: NULL + rx
+                330     LOAD_ATTR                       10: heading
+                340     LOAD_CONST                      19: 'Command preview'
+                342     LOAD_CONST                      20: '3'
+                344     KW_NAMES                        21: ('size',)
+                346     PRECALL                         2
+                350     CALL                            2
+                360     LOAD_GLOBAL                     1: NULL + rx
+                372     LOAD_ATTR                       11: code_block
+                382     LOAD_GLOBAL                     12: MerlinState
+                394     LOAD_ATTR                       12: preview
+                404     LOAD_CONST                      22: 'bash'
+                406     LOAD_CONST                      14: '100%'
+                408     LOAD_CONST                      23: True
+                410     KW_NAMES                        24: ('language', 'width', 'wrap_long_lines')
+                412     PRECALL                         4
+                416     CALL                            4
+                426     LOAD_GLOBAL                     27: NULL + wz
+                438     LOAD_ATTR                       14: run_panel
+                448     LOAD_GLOBAL                     12: MerlinState
+                460     PRECALL                         1
+                464     CALL                            1
+                474     LOAD_GLOBAL                     27: NULL + wz
+                486     LOAD_ATTR                       15: merged_panel
+                496     LOAD_GLOBAL                     12: MerlinState
+                508     PRECALL                         1
+                512     CALL                            1
+                522     LOAD_GLOBAL                     27: NULL + wz
+                534     LOAD_ATTR                       16: nav_buttons
+                544     LOAD_GLOBAL                     12: MerlinState
+                556     LOAD_ATTR                       17: prev_step
+                566     LOAD_GLOBAL                     12: MerlinState
+                578     LOAD_ATTR                       18: next_step
+                588     LOAD_CONST                      25: 'Back'
+                590     LOAD_GLOBAL                     12: MerlinState
+                602     LOAD_ATTR                       17: prev_step
+                612     KW_NAMES                        26: ('next_label', 'next_handler')
+                614     PRECALL                         4
+                618     CALL                            4
+                628     LOAD_CONST                      27: '6'
+                630     LOAD_CONST                      14: '100%'
+                632     LOAD_CONST                      28: 'start'
+                634     KW_NAMES                        29: ('spacing', 'width', 'align')
+                636     PRECALL                         9
+                640     CALL                            9
+                650     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/merlin.py
+            Object Name: merlin_page
+            Qualified Name: merlin_page
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 14
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'shell'
+                'wz'
+                'hero'
+                'step_indicator'
+                'STEPS'
+                'MerlinState'
+                'step'
+                'goto'
+                'rx'
+                'divider'
+                'match'
+                '_step_data'
+                '_step_tools'
+                '_step_params'
+                '_step_run'
+            [Locals+Names]
+            [Constants]
+                None
+                'wand-sparkles'
+                'MERLIN'
+                'Species-specific typing workflows for completed samples.'
+                0
+                1
+                2
+                3
+                '/merlin'
+                (
+                    'active'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + shell
+                14      LOAD_GLOBAL                     3: NULL + wz
+                26      LOAD_ATTR                       2: hero
+                36      LOAD_CONST                      1: 'wand-sparkles'
+                38      LOAD_CONST                      2: 'MERLIN'
+                40      LOAD_CONST                      3: 'Species-specific typing workflows for completed samples.'
+                42      PRECALL                         3
+                46      CALL                            3
+                56      LOAD_GLOBAL                     3: NULL + wz
+                68      LOAD_ATTR                       3: step_indicator
+                78      LOAD_GLOBAL                     8: STEPS
+                90      LOAD_GLOBAL                     10: MerlinState
+                102     LOAD_ATTR                       6: step
+                112     LOAD_GLOBAL                     10: MerlinState
+                124     LOAD_ATTR                       7: goto
+                134     PRECALL                         3
+                138     CALL                            3
+                148     LOAD_GLOBAL                     17: NULL + rx
+                160     LOAD_ATTR                       9: divider
+                170     PRECALL                         0
+                174     CALL                            0
+                184     LOAD_GLOBAL                     17: NULL + rx
+                196     LOAD_ATTR                       10: match
+                206     LOAD_GLOBAL                     10: MerlinState
+                218     LOAD_ATTR                       6: step
+                228     LOAD_CONST                      4: 0
+                230     LOAD_GLOBAL                     23: NULL + _step_data
+                242     PRECALL                         0
+                246     CALL                            0
+                256     BUILD_TUPLE                     2
+                258     LOAD_CONST                      5: 1
+                260     LOAD_GLOBAL                     25: NULL + _step_tools
+                272     PRECALL                         0
+                276     CALL                            0
+                286     BUILD_TUPLE                     2
+                288     LOAD_CONST                      6: 2
+                290     LOAD_GLOBAL                     27: NULL + _step_params
+                302     PRECALL                         0
+                306     CALL                            0
+                316     BUILD_TUPLE                     2
+                318     LOAD_CONST                      7: 3
+                320     LOAD_GLOBAL                     29: NULL + _step_run
+                332     PRECALL                         0
+                336     CALL                            0
+                346     BUILD_TUPLE                     2
+                348     LOAD_GLOBAL                     23: NULL + _step_data
+                360     PRECALL                         0
+                364     CALL                            0
+                374     PRECALL                         6
+                378     CALL                            6
+                388     LOAD_CONST                      8: '/merlin'
+                390     KW_NAMES                        9: ('active',)
+                392     PRECALL                         5
+                396     CALL                            5
+                406     RETURN_VALUE                    
+            [Exception Table]
+        (
+            'label'
+            'str'
+            'wf'
+            'str'
+            'return'
+            'rx.Component'
+        )
+        (
+            'genus'
+            'str'
+            'tools'
+            'list'
+            'return'
+            'rx.Component'
+        )
+        (
+            'return'
+            'rx.Component'
+        )
+    [Disassembly]
+        0       RESUME                          0
+        2       LOAD_CONST                      0: 'MERLIN — species-specific typing workflows (guided wizard).'
+        4       STORE_NAME                      0: __doc__
+        6       LOAD_CONST                      1: 0
+        8       LOAD_CONST                      2: ('annotations',)
+        10      IMPORT_NAME                     1: __future__
+        12      IMPORT_FROM                     2: annotations
+        14      STORE_NAME                      2: annotations
+        16      POP_TOP                         
+        18      LOAD_CONST                      1: 0
+        20      LOAD_CONST                      3: None
+        22      IMPORT_NAME                     3: reflex
+        24      STORE_NAME                      4: rx
+        26      LOAD_CONST                      1: 0
+        28      LOAD_CONST                      4: ('shell',)
+        30      IMPORT_NAME                     5: bearhub.components.shell
+        32      IMPORT_FROM                     6: shell
+        34      STORE_NAME                      6: shell
+        36      POP_TOP                         
+        38      LOAD_CONST                      1: 0
+        40      LOAD_CONST                      5: ('wizard',)
+        42      IMPORT_NAME                     7: bearhub.components
+        44      IMPORT_FROM                     8: wizard
+        46      STORE_NAME                      9: wz
+        48      POP_TOP                         
+        50      LOAD_CONST                      1: 0
+        52      LOAD_CONST                      6: ('help',)
+        54      IMPORT_NAME                     7: bearhub.components
+        56      IMPORT_FROM                     10: help
+        58      STORE_NAME                      11: helpmod
+        60      POP_TOP                         
+        62      LOAD_CONST                      1: 0
+        64      LOAD_CONST                      7: ('MERLIN_SPECIES',)
+        66      IMPORT_NAME                     12: bearhub.data.catalog
+        68      IMPORT_FROM                     13: MERLIN_SPECIES
+        70      STORE_NAME                      13: MERLIN_SPECIES
+        72      POP_TOP                         
+        74      LOAD_CONST                      1: 0
+        76      LOAD_CONST                      8: ('MerlinState',)
+        78      IMPORT_NAME                     14: bearhub.state
+        80      IMPORT_FROM                     15: MerlinState
+        82      STORE_NAME                      15: MerlinState
+        84      POP_TOP                         
+        86      BUILD_LIST                      0
+        88      LOAD_CONST                      9: ('Data', 'Species tools', 'Parameters', 'Run')
+        90      LIST_EXTEND                     1
+        92      STORE_NAME                      16: STEPS
+        94      LOAD_CONST                      25: ('label', 'str', 'wf', 'str', 'return', 'rx.Component')
+        96      LOAD_CONST                      15: <CODE> _species_chip
+        98      MAKE_FUNCTION                   4
+        100     STORE_NAME                      17: _species_chip
+        102     LOAD_CONST                      26: ('genus', 'str', 'tools', 'list', 'return', 'rx.Component')
+        104     LOAD_CONST                      19: <CODE> _genus_block
+        106     MAKE_FUNCTION                   4
+        108     STORE_NAME                      18: _genus_block
+        110     LOAD_CONST                      27: ('return', 'rx.Component')
+        112     LOAD_CONST                      20: <CODE> _step_data
+        114     MAKE_FUNCTION                   4
+        116     STORE_NAME                      19: _step_data
+        118     LOAD_CONST                      27: ('return', 'rx.Component')
+        120     LOAD_CONST                      21: <CODE> _step_tools
+        122     MAKE_FUNCTION                   4
+        124     STORE_NAME                      20: _step_tools
+        126     LOAD_CONST                      27: ('return', 'rx.Component')
+        128     LOAD_CONST                      22: <CODE> _step_params
+        130     MAKE_FUNCTION                   4
+        132     STORE_NAME                      21: _step_params
+        134     LOAD_CONST                      27: ('return', 'rx.Component')
+        136     LOAD_CONST                      23: <CODE> _step_run
+        138     MAKE_FUNCTION                   4
+        140     STORE_NAME                      22: _step_run
+        142     LOAD_CONST                      27: ('return', 'rx.Component')
+        144     LOAD_CONST                      24: <CODE> merlin_page
+        146     MAKE_FUNCTION                   4
+        148     STORE_NAME                      23: merlin_page
+        150     LOAD_CONST                      3: None
+        152     RETURN_VALUE                    
+    [Exception Table]

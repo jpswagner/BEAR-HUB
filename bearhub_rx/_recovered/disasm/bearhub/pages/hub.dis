@@ -1,0 +1,495 @@
+hub.cpython-311.pyc (Python 3.11)
+[Code]
+    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/hub.py
+    Object Name: <module>
+    Qualified Name: <module>
+    Arg Count: 0
+    Pos Only Arg Count: 0
+    KW Only Arg Count: 0
+    Stack Size: 8
+    Flags: 0x01000000 (CO_FUTURE_ANNOTATIONS)
+    [Names]
+        '__doc__'
+        '__future__'
+        'annotations'
+        'reflex'
+        'rx'
+        'bearhub.components.shell'
+        'shell'
+        'bearhub.data.catalog'
+        'BACTOPIA_VERSION'
+        'TOOLS'
+        'len'
+        'CARDS'
+        '_card'
+        'hub_page'
+    [Locals+Names]
+    [Constants]
+        'Hub landing page — entry cards for each tool.'
+        0
+        (
+            'annotations'
+        )
+        None
+        (
+            'shell'
+        )
+        (
+            'BACTOPIA_VERSION'
+            'TOOLS'
+        )
+        (
+            'Bactopia'
+            '/bactopia'
+            'dna'
+            'Run the main pipeline: QC, assembly, annotation and typing from raw reads.'
+        )
+        'Bactopia Tools'
+        '/tools'
+        'wrench'
+        'Run any of '
+        ' official --wf tools over already-processed samples.'
+        (
+            'MERLIN'
+            '/merlin'
+            'wand-sparkles'
+            'Species-specific typing workflows, selected automatically per genus.'
+        )
+        (
+            'Status'
+            '/status'
+            'activity'
+            'Check Bactopia, Nextflow, Java and Docker versions.'
+        )
+        'title'
+        'str'
+        'href'
+        'icon'
+        'desc'
+        'return'
+        'rx.Component'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/hub.py
+            Object Name: _card
+            Qualified Name: _card
+            Arg Count: 4
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 15
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'link'
+                'card'
+                'hstack'
+                'box'
+                'icon'
+                'vstack'
+                'heading'
+                'text'
+            [Locals+Names]
+                'title'
+                'href'
+                'icon'
+                'desc'
+            [Constants]
+                None
+                26
+                'white'
+                (
+                    'size'
+                    'color'
+                )
+                '12px'
+                'linear-gradient(135deg,#0f766e,#134e4a)'
+                (
+                    'padding'
+                    'border_radius'
+                    'background'
+                )
+                '4'
+                (
+                    'size'
+                )
+                '2'
+                'var(--gray-10)'
+                '1'
+                'start'
+                (
+                    'spacing'
+                    'align'
+                )
+                'center'
+                '100%'
+                (
+                    'spacing'
+                    'align'
+                    'width'
+                )
+                'border_color'
+                'var(--teal-8)'
+                (
+                    'width'
+                    '_hover'
+                )
+                'none'
+                (
+                    'href'
+                    'underline'
+                    'width'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: link
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: card
+                46      LOAD_GLOBAL                     1: NULL + rx
+                58      LOAD_ATTR                       3: hstack
+                68      LOAD_GLOBAL                     1: NULL + rx
+                80      LOAD_ATTR                       4: box
+                90      LOAD_GLOBAL                     1: NULL + rx
+                102     LOAD_ATTR                       5: icon
+                112     LOAD_FAST                       2: icon
+                114     LOAD_CONST                      1: 26
+                116     LOAD_CONST                      2: 'white'
+                118     KW_NAMES                        3: ('size', 'color')
+                120     PRECALL                         3
+                124     CALL                            3
+                134     LOAD_CONST                      4: '12px'
+                136     LOAD_CONST                      4: '12px'
+                138     LOAD_CONST                      5: 'linear-gradient(135deg,#0f766e,#134e4a)'
+                140     KW_NAMES                        6: ('padding', 'border_radius', 'background')
+                142     PRECALL                         4
+                146     CALL                            4
+                156     LOAD_GLOBAL                     1: NULL + rx
+                168     LOAD_ATTR                       6: vstack
+                178     LOAD_GLOBAL                     1: NULL + rx
+                190     LOAD_ATTR                       7: heading
+                200     LOAD_FAST                       0: title
+                202     LOAD_CONST                      7: '4'
+                204     KW_NAMES                        8: ('size',)
+                206     PRECALL                         2
+                210     CALL                            2
+                220     LOAD_GLOBAL                     1: NULL + rx
+                232     LOAD_ATTR                       8: text
+                242     LOAD_FAST                       3: desc
+                244     LOAD_CONST                      9: '2'
+                246     LOAD_CONST                      10: 'var(--gray-10)'
+                248     KW_NAMES                        3: ('size', 'color')
+                250     PRECALL                         3
+                254     CALL                            3
+                264     LOAD_CONST                      11: '1'
+                266     LOAD_CONST                      12: 'start'
+                268     KW_NAMES                        13: ('spacing', 'align')
+                270     PRECALL                         4
+                274     CALL                            4
+                284     LOAD_CONST                      7: '4'
+                286     LOAD_CONST                      14: 'center'
+                288     LOAD_CONST                      15: '100%'
+                290     KW_NAMES                        16: ('spacing', 'align', 'width')
+                292     PRECALL                         5
+                296     CALL                            5
+                306     LOAD_CONST                      15: '100%'
+                308     LOAD_CONST                      17: 'border_color'
+                310     LOAD_CONST                      18: 'var(--teal-8)'
+                312     BUILD_MAP                       1
+                314     KW_NAMES                        19: ('width', '_hover')
+                316     PRECALL                         3
+                320     CALL                            3
+                330     LOAD_FAST                       1: href
+                332     LOAD_CONST                      20: 'none'
+                334     LOAD_CONST                      15: '100%'
+                336     KW_NAMES                        21: ('href', 'underline', 'width')
+                338     PRECALL                         4
+                342     CALL                            4
+                352     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/hub.py
+            Object Name: hub_page
+            Qualified Name: hub_page
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 16
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'shell'
+                'rx'
+                'box'
+                'hstack'
+                'text'
+                'vstack'
+                'heading'
+                'spacer'
+                'badge'
+                'BACTOPIA_VERSION'
+                'grid'
+                'CARDS'
+            [Locals+Names]
+            [Constants]
+                None
+                '🧬'
+                '34px'
+                (
+                    'font_size'
+                )
+                'BEAR-HUB'
+                '7'
+                'white'
+                (
+                    'size'
+                    'color'
+                )
+                'A friendly interface to orchestrate Bactopia analyses.'
+                '3'
+                '0.9'
+                (
+                    'size'
+                    'color'
+                    'opacity'
+                )
+                '0'
+                'start'
+                (
+                    'spacing'
+                    'align'
+                )
+                'Bactopia v'
+                'teal'
+                'surface'
+                '2'
+                (
+                    'color_scheme'
+                    'variant'
+                    'size'
+                )
+                '4'
+                'center'
+                '100%'
+                (
+                    'spacing'
+                    'align'
+                    'width'
+                )
+                '28px'
+                '18px'
+                'linear-gradient(135deg,#0f766e 0%,#115e59 55%,#134e4a 100%)'
+                '0 10px 30px rgba(15,118,110,.3)'
+                (
+                    'padding'
+                    'border_radius'
+                    'width'
+                    'background'
+                    'box_shadow'
+                )
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/hub.py
+                    Object Name: <listcomp>
+                    Qualified Name: hub_page.<locals>.<listcomp>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 5
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        '_card'
+                    [Locals+Names]
+                        '.0'
+                        'c'
+                    [Constants]
+                    [Disassembly]
+                        0       RESUME                          0
+                        2       BUILD_LIST                      0
+                        4       LOAD_FAST                       0: .0
+                        6       FOR_ITER                        11 (to 30)
+                        8       STORE_FAST                      1: c
+                        10      LOAD_GLOBAL                     1: NULL + _card
+                        22      LOAD_FAST                       1: c
+                        24      CALL_FUNCTION_EX                0
+                        26      LIST_APPEND                     2
+                        28      JUMP_BACKWARD                   12 (to 6)
+                        30      RETURN_VALUE                    
+                    [Exception Table]
+                (
+                    'columns'
+                    'spacing'
+                    'width'
+                )
+                'BEAR-HUB only provides a UI to orchestrate analyses with Bactopia, third-party software maintained independently by its authors.'
+                '1'
+                'var(--gray-9)'
+                '/'
+                (
+                    'active'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + shell
+                14      LOAD_GLOBAL                     3: NULL + rx
+                26      LOAD_ATTR                       2: box
+                36      LOAD_GLOBAL                     3: NULL + rx
+                48      LOAD_ATTR                       3: hstack
+                58      LOAD_GLOBAL                     3: NULL + rx
+                70      LOAD_ATTR                       4: text
+                80      LOAD_CONST                      1: '🧬'
+                82      LOAD_CONST                      2: '34px'
+                84      KW_NAMES                        3: ('font_size',)
+                86      PRECALL                         2
+                90      CALL                            2
+                100     LOAD_GLOBAL                     3: NULL + rx
+                112     LOAD_ATTR                       5: vstack
+                122     LOAD_GLOBAL                     3: NULL + rx
+                134     LOAD_ATTR                       6: heading
+                144     LOAD_CONST                      4: 'BEAR-HUB'
+                146     LOAD_CONST                      5: '7'
+                148     LOAD_CONST                      6: 'white'
+                150     KW_NAMES                        7: ('size', 'color')
+                152     PRECALL                         3
+                156     CALL                            3
+                166     LOAD_GLOBAL                     3: NULL + rx
+                178     LOAD_ATTR                       4: text
+                188     LOAD_CONST                      8: 'A friendly interface to orchestrate Bactopia analyses.'
+                190     LOAD_CONST                      9: '3'
+                192     LOAD_CONST                      6: 'white'
+                194     LOAD_CONST                      10: '0.9'
+                196     KW_NAMES                        11: ('size', 'color', 'opacity')
+                198     PRECALL                         4
+                202     CALL                            4
+                212     LOAD_CONST                      12: '0'
+                214     LOAD_CONST                      13: 'start'
+                216     KW_NAMES                        14: ('spacing', 'align')
+                218     PRECALL                         4
+                222     CALL                            4
+                232     LOAD_GLOBAL                     3: NULL + rx
+                244     LOAD_ATTR                       7: spacer
+                254     PRECALL                         0
+                258     CALL                            0
+                268     LOAD_GLOBAL                     3: NULL + rx
+                280     LOAD_ATTR                       8: badge
+                290     LOAD_CONST                      15: 'Bactopia v'
+                292     LOAD_GLOBAL                     18: BACTOPIA_VERSION
+                304     FORMAT_VALUE                    0 (FVC_NONE)
+                306     BUILD_STRING                    2
+                308     LOAD_CONST                      16: 'teal'
+                310     LOAD_CONST                      17: 'surface'
+                312     LOAD_CONST                      18: '2'
+                314     KW_NAMES                        19: ('color_scheme', 'variant', 'size')
+                316     PRECALL                         4
+                320     CALL                            4
+                330     LOAD_CONST                      20: '4'
+                332     LOAD_CONST                      21: 'center'
+                334     LOAD_CONST                      22: '100%'
+                336     KW_NAMES                        23: ('spacing', 'align', 'width')
+                338     PRECALL                         7
+                342     CALL                            7
+                352     LOAD_CONST                      24: '28px'
+                354     LOAD_CONST                      25: '18px'
+                356     LOAD_CONST                      22: '100%'
+                358     LOAD_CONST                      26: 'linear-gradient(135deg,#0f766e 0%,#115e59 55%,#134e4a 100%)'
+                360     LOAD_CONST                      27: '0 10px 30px rgba(15,118,110,.3)'
+                362     KW_NAMES                        28: ('padding', 'border_radius', 'width', 'background', 'box_shadow')
+                364     PRECALL                         6
+                368     CALL                            6
+                378     LOAD_GLOBAL                     3: NULL + rx
+                390     LOAD_ATTR                       10: grid
+                400     LOAD_CONST                      29: <CODE> <listcomp>
+                402     MAKE_FUNCTION                   0
+                404     LOAD_GLOBAL                     22: CARDS
+                416     GET_ITER                        
+                418     PRECALL                         0
+                422     CALL                            0
+                432     LOAD_CONST                      18: '2'
+                434     LOAD_CONST                      20: '4'
+                436     LOAD_CONST                      22: '100%'
+                438     LOAD_CONST                      30: ('columns', 'spacing', 'width')
+                440     BUILD_CONST_KEY_MAP             3
+                442     CALL_FUNCTION_EX                1
+                444     LOAD_GLOBAL                     3: NULL + rx
+                456     LOAD_ATTR                       4: text
+                466     LOAD_CONST                      31: 'BEAR-HUB only provides a UI to orchestrate analyses with Bactopia, third-party software maintained independently by its authors.'
+                468     LOAD_CONST                      32: '1'
+                470     LOAD_CONST                      33: 'var(--gray-9)'
+                472     KW_NAMES                        7: ('size', 'color')
+                474     PRECALL                         3
+                478     CALL                            3
+                488     LOAD_CONST                      34: '/'
+                490     KW_NAMES                        35: ('active',)
+                492     PRECALL                         4
+                496     CALL                            4
+                506     RETURN_VALUE                    
+            [Exception Table]
+        (
+            'title'
+            'str'
+            'href'
+            'str'
+            'icon'
+            'str'
+            'desc'
+            'str'
+            'return'
+            'rx.Component'
+        )
+        (
+            'return'
+            'rx.Component'
+        )
+    [Disassembly]
+        0       RESUME                          0
+        2       LOAD_CONST                      0: 'Hub landing page — entry cards for each tool.'
+        4       STORE_NAME                      0: __doc__
+        6       LOAD_CONST                      1: 0
+        8       LOAD_CONST                      2: ('annotations',)
+        10      IMPORT_NAME                     1: __future__
+        12      IMPORT_FROM                     2: annotations
+        14      STORE_NAME                      2: annotations
+        16      POP_TOP                         
+        18      LOAD_CONST                      1: 0
+        20      LOAD_CONST                      3: None
+        22      IMPORT_NAME                     3: reflex
+        24      STORE_NAME                      4: rx
+        26      LOAD_CONST                      1: 0
+        28      LOAD_CONST                      4: ('shell',)
+        30      IMPORT_NAME                     5: bearhub.components.shell
+        32      IMPORT_FROM                     6: shell
+        34      STORE_NAME                      6: shell
+        36      POP_TOP                         
+        38      LOAD_CONST                      1: 0
+        40      LOAD_CONST                      5: ('BACTOPIA_VERSION', 'TOOLS')
+        42      IMPORT_NAME                     7: bearhub.data.catalog
+        44      IMPORT_FROM                     8: BACTOPIA_VERSION
+        46      STORE_NAME                      8: BACTOPIA_VERSION
+        48      IMPORT_FROM                     9: TOOLS
+        50      STORE_NAME                      9: TOOLS
+        52      POP_TOP                         
+        54      LOAD_CONST                      6: ('Bactopia', '/bactopia', 'dna', 'Run the main pipeline: QC, assembly, annotation and typing from raw reads.')
+        56      LOAD_CONST                      7: 'Bactopia Tools'
+        58      LOAD_CONST                      8: '/tools'
+        60      LOAD_CONST                      9: 'wrench'
+        62      LOAD_CONST                      10: 'Run any of '
+        64      PUSH_NULL                       
+        66      LOAD_NAME                       10: len
+        68      LOAD_NAME                       9: TOOLS
+        70      PRECALL                         1
+        74      CALL                            1
+        84      FORMAT_VALUE                    0 (FVC_NONE)
+        86      LOAD_CONST                      11: ' official --wf tools over already-processed samples.'
+        88      BUILD_STRING                    3
+        90      BUILD_TUPLE                     4
+        92      LOAD_CONST                      12: ('MERLIN', '/merlin', 'wand-sparkles', 'Species-specific typing workflows, selected automatically per genus.')
+        94      LOAD_CONST                      13: ('Status', '/status', 'activity', 'Check Bactopia, Nextflow, Java and Docker versions.')
+        96      BUILD_LIST                      4
+        98      STORE_NAME                      11: CARDS
+        100     LOAD_CONST                      23: ('title', 'str', 'href', 'str', 'icon', 'str', 'desc', 'str', 'return', 'rx.Component')
+        102     LOAD_CONST                      21: <CODE> _card
+        104     MAKE_FUNCTION                   4
+        106     STORE_NAME                      12: _card
+        108     LOAD_CONST                      24: ('return', 'rx.Component')
+        110     LOAD_CONST                      22: <CODE> hub_page
+        112     MAKE_FUNCTION                   4
+        114     STORE_NAME                      13: hub_page
+        116     LOAD_CONST                      3: None
+        118     RETURN_VALUE                    
+    [Exception Table]

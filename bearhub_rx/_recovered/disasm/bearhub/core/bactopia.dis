@@ -1,0 +1,616 @@
+bactopia.cpython-311.pyc (Python 3.11)
+[Code]
+    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/bactopia.py
+    Object Name: <module>
+    Qualified Name: <module>
+    Arg Count: 0
+    Pos Only Arg Count: 0
+    KW Only Arg Count: 0
+    Stack Size: 2
+    Flags: 0x01000000 (CO_FUTURE_ANNOTATIONS)
+    [Names]
+        '__doc__'
+        '__future__'
+        'annotations'
+        'os'
+        'pathlib'
+        'bearhub.core.system'
+        'get_default_outdir'
+        'discover_samples'
+        'guess_root_default'
+        'list_subdirs'
+        'safe_dir'
+    [Locals+Names]
+    [Constants]
+        'Bactopia filesystem helpers: sample discovery + directory listing.'
+        0
+        (
+            'annotations'
+        )
+        None
+        (
+            'get_default_outdir'
+        )
+        'outdir'
+        'str'
+        'return'
+        'list[str]'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/bactopia.py
+            Object Name: discover_samples
+            Qualified Name: discover_samples
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 4
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'pathlib'
+                'Path'
+                'is_dir'
+                'sorted'
+                'iterdir'
+                'name'
+                'startswith'
+                'append'
+                'exists'
+            [Locals+Names]
+                'outdir'
+                'p'
+                'strict'
+                'loose'
+                'child'
+            [Constants]
+                'List sample folders in a Bactopia output directory.'
+                ''
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/bactopia.py
+                    Object Name: <lambda>
+                    Qualified Name: discover_samples.<locals>.<lambda>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 1
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'name'
+                    [Locals+Names]
+                        'x'
+                    [Constants]
+                        None
+                    [Disassembly]
+                        0       RESUME                          0
+                        2       LOAD_FAST                       0: x
+                        4       LOAD_ATTR                       0: name
+                        14      RETURN_VALUE                    
+                    [Exception Table]
+                (
+                    'key'
+                )
+                'bactopia-'
+                frozenset({
+                    '.nextflow'
+                    'bactopia-runs'
+                    'work'
+                })
+                'main'
+                'tools'
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + pathlib
+                14      LOAD_ATTR                       1: Path
+                24      LOAD_FAST                       0: outdir
+                26      JUMP_IF_TRUE_OR_POP             1 (to 2)
+                28      LOAD_CONST                      1: ''
+                30      PRECALL                         1
+                34      CALL                            1
+                44      STORE_FAST                      1: p
+                46      LOAD_FAST                       1: p
+                48      LOAD_METHOD                     2: is_dir
+                70      PRECALL                         0
+                74      CALL                            0
+                84      POP_JUMP_FORWARD_IF_TRUE        2 (to 90)
+                86      BUILD_LIST                      0
+                88      RETURN_VALUE                    
+                90      BUILD_LIST                      0
+                92      BUILD_LIST                      0
+                94      STORE_FAST                      3: loose
+                96      STORE_FAST                      2: strict
+                98      LOAD_GLOBAL                     7: NULL + sorted
+                110     LOAD_FAST                       1: p
+                112     LOAD_METHOD                     4: iterdir
+                134     PRECALL                         0
+                138     CALL                            0
+                148     LOAD_CONST                      2: <CODE> <lambda>
+                150     MAKE_FUNCTION                   0
+                152     KW_NAMES                        3: ('key',)
+                154     PRECALL                         2
+                158     CALL                            2
+                168     GET_ITER                        
+                170     FOR_ITER                        157 (to 486)
+                172     STORE_FAST                      4: child
+                174     LOAD_FAST                       4: child
+                176     LOAD_METHOD                     2: is_dir
+                198     PRECALL                         0
+                202     CALL                            0
+                212     POP_JUMP_FORWARD_IF_TRUE        1 (to 216)
+                214     JUMP_BACKWARD                   23 (to 170)
+                216     LOAD_FAST                       4: child
+                218     LOAD_ATTR                       5: name
+                228     LOAD_METHOD                     6: startswith
+                250     LOAD_CONST                      4: 'bactopia-'
+                252     PRECALL                         1
+                256     CALL                            1
+                266     POP_JUMP_FORWARD_IF_TRUE        9 (to 286)
+                268     LOAD_FAST                       4: child
+                270     LOAD_ATTR                       5: name
+                280     LOAD_CONST                      5: frozenset({'.nextflow', 'bactopia-runs', 'work'})
+                282     CONTAINS_OP                     0 (in)
+                284     POP_JUMP_FORWARD_IF_FALSE       1 (to 288)
+                286     JUMP_BACKWARD                   59 (to 170)
+                288     LOAD_FAST                       3: loose
+                290     LOAD_METHOD                     7: append
+                312     LOAD_FAST                       4: child
+                314     LOAD_ATTR                       5: name
+                324     PRECALL                         1
+                328     CALL                            1
+                338     POP_TOP                         
+                340     LOAD_FAST                       4: child
+                342     LOAD_CONST                      6: 'main'
+                344     BINARY_OP                       11 (/)
+                348     LOAD_METHOD                     8: exists
+                370     PRECALL                         0
+                374     CALL                            0
+                384     POP_JUMP_FORWARD_IF_TRUE        23 (to 432)
+                386     LOAD_FAST                       4: child
+                388     LOAD_CONST                      7: 'tools'
+                390     BINARY_OP                       11 (/)
+                394     LOAD_METHOD                     8: exists
+                416     PRECALL                         0
+                420     CALL                            0
+                430     POP_JUMP_FORWARD_IF_FALSE       26 (to 484)
+                432     LOAD_FAST                       2: strict
+                434     LOAD_METHOD                     7: append
+                456     LOAD_FAST                       4: child
+                458     LOAD_ATTR                       5: name
+                468     PRECALL                         1
+                472     CALL                            1
+                482     POP_TOP                         
+                484     JUMP_BACKWARD                   158 (to 170)
+                486     LOAD_FAST                       2: strict
+                488     POP_JUMP_FORWARD_IF_FALSE       2 (to 494)
+                490     LOAD_FAST                       2: strict
+                492     JUMP_FORWARD                    1 (to 496)
+                494     LOAD_FAST                       3: loose
+                496     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/bactopia.py
+            Object Name: guess_root_default
+            Qualified Name: guess_root_default
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 6
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'os'
+                'getenv'
+                'append'
+                'pathlib'
+                'Path'
+                'expanduser'
+                'getcwd'
+                'home'
+                'resolve'
+                'is_dir'
+                'discover_samples'
+                'str'
+                'OSError'
+                'get_default_outdir'
+            [Locals+Names]
+                'candidates'
+                'env_out'
+                'base'
+                'cand'
+            [Constants]
+                'First existing Bactopia outdir with samples, else the default.'
+                'BEAR_HUB_OUTDIR'
+                'BEAR_HUB_BASEDIR'
+                'bactopia_out'
+                'BEAR_DATA'
+            [Disassembly]
+                0       RESUME                          0
+                2       BUILD_LIST                      0
+                4       STORE_FAST                      0: candidates
+                6       LOAD_GLOBAL                     1: NULL + os
+                18      LOAD_ATTR                       1: getenv
+                28      LOAD_CONST                      1: 'BEAR_HUB_OUTDIR'
+                30      PRECALL                         1
+                34      CALL                            1
+                44      STORE_FAST                      1: env_out
+                46      LOAD_FAST                       1: env_out
+                48      POP_JUMP_FORWARD_IF_FALSE       57 (to 164)
+                50      LOAD_FAST                       0: candidates
+                52      LOAD_METHOD                     2: append
+                74      LOAD_GLOBAL                     7: NULL + pathlib
+                86      LOAD_ATTR                       4: Path
+                96      LOAD_FAST                       1: env_out
+                98      PRECALL                         1
+                102     CALL                            1
+                112     LOAD_METHOD                     5: expanduser
+                134     PRECALL                         0
+                138     CALL                            0
+                148     PRECALL                         1
+                152     CALL                            1
+                162     POP_TOP                         
+                164     LOAD_GLOBAL                     1: NULL + os
+                176     LOAD_ATTR                       1: getenv
+                186     LOAD_CONST                      2: 'BEAR_HUB_BASEDIR'
+                188     LOAD_GLOBAL                     1: NULL + os
+                200     LOAD_ATTR                       6: getcwd
+                210     PRECALL                         0
+                214     CALL                            0
+                224     PRECALL                         2
+                228     CALL                            2
+                238     STORE_FAST                      2: base
+                240     LOAD_FAST                       0: candidates
+                242     LOAD_METHOD                     2: append
+                264     LOAD_GLOBAL                     7: NULL + pathlib
+                276     LOAD_ATTR                       4: Path
+                286     LOAD_FAST                       2: base
+                288     PRECALL                         1
+                292     CALL                            1
+                302     LOAD_METHOD                     5: expanduser
+                324     PRECALL                         0
+                328     CALL                            0
+                338     LOAD_CONST                      3: 'bactopia_out'
+                340     BINARY_OP                       11 (/)
+                344     PRECALL                         1
+                348     CALL                            1
+                358     POP_TOP                         
+                360     LOAD_FAST                       0: candidates
+                362     LOAD_METHOD                     2: append
+                384     LOAD_GLOBAL                     6: pathlib
+                396     LOAD_ATTR                       4: Path
+                406     LOAD_METHOD                     7: home
+                428     PRECALL                         0
+                432     CALL                            0
+                442     LOAD_CONST                      4: 'BEAR_DATA'
+                444     BINARY_OP                       11 (/)
+                448     LOAD_CONST                      3: 'bactopia_out'
+                450     BINARY_OP                       11 (/)
+                454     PRECALL                         1
+                458     CALL                            1
+                468     POP_TOP                         
+                470     LOAD_FAST                       0: candidates
+                472     GET_ITER                        
+                474     FOR_ITER                        104 (to 684)
+                476     STORE_FAST                      3: cand
+                478     NOP                             
+                480     LOAD_FAST                       3: cand
+                482     LOAD_METHOD                     8: resolve
+                504     PRECALL                         0
+                508     CALL                            0
+                518     STORE_FAST                      3: cand
+                520     LOAD_FAST                       3: cand
+                522     LOAD_METHOD                     9: is_dir
+                544     PRECALL                         0
+                548     CALL                            0
+                558     POP_JUMP_FORWARD_IF_FALSE       45 (to 650)
+                560     LOAD_GLOBAL                     21: NULL + discover_samples
+                572     LOAD_GLOBAL                     23: NULL + str
+                584     LOAD_FAST                       3: cand
+                586     PRECALL                         1
+                590     CALL                            1
+                600     PRECALL                         1
+                604     CALL                            1
+                614     POP_JUMP_FORWARD_IF_FALSE       17 (to 650)
+                616     LOAD_GLOBAL                     23: NULL + str
+                628     LOAD_FAST                       3: cand
+                630     PRECALL                         1
+                634     CALL                            1
+                644     SWAP                            2
+                646     POP_TOP                         
+                648     RETURN_VALUE                    
+                650     JUMP_BACKWARD                   89 (to 474)
+                652     PUSH_EXC_INFO                   
+                654     LOAD_GLOBAL                     24: OSError
+                666     CHECK_EXC_MATCH                 
+                668     POP_JUMP_FORWARD_IF_FALSE       3 (to 676)
+                670     POP_TOP                         
+                672     POP_EXCEPT                      
+                674     JUMP_BACKWARD                   101 (to 474)
+                676     RERAISE                         0
+                678     COPY                            3
+                680     POP_EXCEPT                      
+                682     RERAISE                         1
+                684     LOAD_GLOBAL                     27: NULL + get_default_outdir
+                696     PRECALL                         0
+                700     CALL                            0
+                710     RETURN_VALUE                    
+            [Exception Table]
+                480 to 644 -> 652 [1] 
+                652 to 672 -> 678 [2] lasti
+                676 to 678 -> 678 [2] lasti
+        'path'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/bactopia.py
+            Object Name: list_subdirs
+            Qualified Name: list_subdirs
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 5
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'pathlib'
+                'Path'
+                'expanduser'
+                'resolve'
+                'sorted'
+                'iterdir'
+                'str'
+                'lower'
+                'PermissionError'
+                'OSError'
+            [Locals+Names]
+                'path'
+                'p'
+            [Constants]
+                'Visible subdirectory names (for the directory picker).'
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/bactopia.py
+                    Object Name: <genexpr>
+                    Qualified Name: list_subdirs.<locals>.<genexpr>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 4
+                    Flags: 0x01000033 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_GENERATOR | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        'is_dir'
+                        'name'
+                        'startswith'
+                    [Locals+Names]
+                        '.0'
+                        'c'
+                    [Constants]
+                        '.'
+                        None
+                    [Disassembly]
+                        0       RETURN_GENERATOR                
+                        2       POP_TOP                         
+                        4       RESUME                          0
+                        6       LOAD_FAST                       0: .0
+                        8       FOR_ITER                        57 (to 124)
+                        10      STORE_FAST                      1: c
+                        12      LOAD_FAST                       1: c
+                        14      LOAD_METHOD                     0: is_dir
+                        36      PRECALL                         0
+                        40      CALL                            0
+                        50      POP_JUMP_BACKWARD_IF_FALSE      22 (to 8)
+                        52      LOAD_FAST                       1: c
+                        54      LOAD_ATTR                       1: name
+                        64      LOAD_METHOD                     2: startswith
+                        86      LOAD_CONST                      0: '.'
+                        88      PRECALL                         1
+                        92      CALL                            1
+                        102     POP_JUMP_BACKWARD_IF_TRUE       48 (to 8)
+                        104     LOAD_FAST                       1: c
+                        106     LOAD_ATTR                       1: name
+                        116     YIELD_VALUE                     
+                        118     RESUME                          1
+                        120     POP_TOP                         
+                        122     JUMP_BACKWARD                   58 (to 8)
+                        124     LOAD_CONST                      1: None
+                        126     RETURN_VALUE                    
+                    [Exception Table]
+                (
+                    'key'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       NOP                             
+                4       LOAD_GLOBAL                     1: NULL + pathlib
+                16      LOAD_ATTR                       1: Path
+                26      LOAD_FAST                       0: path
+                28      PRECALL                         1
+                32      CALL                            1
+                42      LOAD_METHOD                     2: expanduser
+                64      PRECALL                         0
+                68      CALL                            0
+                78      LOAD_METHOD                     3: resolve
+                100     PRECALL                         0
+                104     CALL                            0
+                114     STORE_FAST                      1: p
+                116     LOAD_GLOBAL                     9: NULL + sorted
+                128     LOAD_CONST                      1: <CODE> <genexpr>
+                130     MAKE_FUNCTION                   0
+                132     LOAD_FAST                       1: p
+                134     LOAD_METHOD                     5: iterdir
+                156     PRECALL                         0
+                160     CALL                            0
+                170     GET_ITER                        
+                172     PRECALL                         0
+                176     CALL                            0
+                186     LOAD_GLOBAL                     12: str
+                198     LOAD_ATTR                       7: lower
+                208     KW_NAMES                        2: ('key',)
+                210     PRECALL                         2
+                214     CALL                            2
+                224     RETURN_VALUE                    
+                226     PUSH_EXC_INFO                   
+                228     LOAD_GLOBAL                     16: PermissionError
+                240     LOAD_GLOBAL                     18: OSError
+                252     BUILD_TUPLE                     2
+                254     CHECK_EXC_MATCH                 
+                256     POP_JUMP_FORWARD_IF_FALSE       5 (to 268)
+                258     POP_TOP                         
+                260     BUILD_LIST                      0
+                262     SWAP                            2
+                264     POP_EXCEPT                      
+                266     RETURN_VALUE                    
+                268     RERAISE                         0
+                270     COPY                            3
+                272     POP_EXCEPT                      
+                274     RERAISE                         1
+            [Exception Table]
+                4 to 224 -> 226 [0] 
+                226 to 264 -> 270 [1] lasti
+                268 to 270 -> 270 [1] lasti
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/core/bactopia.py
+            Object Name: safe_dir
+            Qualified Name: safe_dir
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 4
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'pathlib'
+                'Path'
+                'expanduser'
+                'resolve'
+                'is_dir'
+                'str'
+                'parent'
+                'OSError'
+                'home'
+            [Locals+Names]
+                'path'
+                'p'
+            [Constants]
+                'Resolve to an existing directory, falling back to $HOME.'
+                ''
+            [Disassembly]
+                0       RESUME                          0
+                2       NOP                             
+                4       LOAD_GLOBAL                     1: NULL + pathlib
+                16      LOAD_ATTR                       1: Path
+                26      LOAD_FAST                       0: path
+                28      JUMP_IF_TRUE_OR_POP             1 (to 2)
+                30      LOAD_CONST                      1: ''
+                32      PRECALL                         1
+                36      CALL                            1
+                46      LOAD_METHOD                     2: expanduser
+                68      PRECALL                         0
+                72      CALL                            0
+                82      LOAD_METHOD                     3: resolve
+                104     PRECALL                         0
+                108     CALL                            0
+                118     STORE_FAST                      1: p
+                120     LOAD_FAST                       1: p
+                122     LOAD_METHOD                     4: is_dir
+                144     PRECALL                         0
+                148     CALL                            0
+                158     POP_JUMP_FORWARD_IF_FALSE       15 (to 190)
+                160     LOAD_GLOBAL                     11: NULL + str
+                172     LOAD_FAST                       1: p
+                174     PRECALL                         1
+                178     CALL                            1
+                188     RETURN_VALUE                    
+                190     LOAD_FAST                       1: p
+                192     LOAD_ATTR                       6: parent
+                202     LOAD_METHOD                     4: is_dir
+                224     PRECALL                         0
+                228     CALL                            0
+                238     POP_JUMP_FORWARD_IF_FALSE       20 (to 280)
+                240     LOAD_GLOBAL                     11: NULL + str
+                252     LOAD_FAST                       1: p
+                254     LOAD_ATTR                       6: parent
+                264     PRECALL                         1
+                268     CALL                            1
+                278     RETURN_VALUE                    
+                280     JUMP_FORWARD                    16 (to 314)
+                282     PUSH_EXC_INFO                   
+                284     LOAD_GLOBAL                     14: OSError
+                296     CHECK_EXC_MATCH                 
+                298     POP_JUMP_FORWARD_IF_FALSE       3 (to 306)
+                300     POP_TOP                         
+                302     POP_EXCEPT                      
+                304     JUMP_FORWARD                    4 (to 314)
+                306     RERAISE                         0
+                308     COPY                            3
+                310     POP_EXCEPT                      
+                312     RERAISE                         1
+                314     LOAD_GLOBAL                     11: NULL + str
+                326     LOAD_GLOBAL                     0: pathlib
+                338     LOAD_ATTR                       1: Path
+                348     LOAD_METHOD                     8: home
+                370     PRECALL                         0
+                374     CALL                            0
+                384     PRECALL                         1
+                388     CALL                            1
+                398     RETURN_VALUE                    
+            [Exception Table]
+                4 to 188 -> 282 [0] 
+                190 to 278 -> 282 [0] 
+                282 to 302 -> 308 [1] lasti
+                306 to 308 -> 308 [1] lasti
+        (
+            'outdir'
+            'str'
+            'return'
+            'list[str]'
+        )
+        (
+            'return'
+            'str'
+        )
+        (
+            'path'
+            'str'
+            'return'
+            'list[str]'
+        )
+        (
+            'path'
+            'str'
+            'return'
+            'str'
+        )
+    [Disassembly]
+        0       RESUME                          0
+        2       LOAD_CONST                      0: 'Bactopia filesystem helpers: sample discovery + directory listing.'
+        4       STORE_NAME                      0: __doc__
+        6       LOAD_CONST                      1: 0
+        8       LOAD_CONST                      2: ('annotations',)
+        10      IMPORT_NAME                     1: __future__
+        12      IMPORT_FROM                     2: annotations
+        14      STORE_NAME                      2: annotations
+        16      POP_TOP                         
+        18      LOAD_CONST                      1: 0
+        20      LOAD_CONST                      3: None
+        22      IMPORT_NAME                     3: os
+        24      STORE_NAME                      3: os
+        26      LOAD_CONST                      1: 0
+        28      LOAD_CONST                      3: None
+        30      IMPORT_NAME                     4: pathlib
+        32      STORE_NAME                      4: pathlib
+        34      LOAD_CONST                      1: 0
+        36      LOAD_CONST                      4: ('get_default_outdir',)
+        38      IMPORT_NAME                     5: bearhub.core.system
+        40      IMPORT_FROM                     6: get_default_outdir
+        42      STORE_NAME                      6: get_default_outdir
+        44      POP_TOP                         
+        46      LOAD_CONST                      14: ('outdir', 'str', 'return', 'list[str]')
+        48      LOAD_CONST                      9: <CODE> discover_samples
+        50      MAKE_FUNCTION                   4
+        52      STORE_NAME                      7: discover_samples
+        54      LOAD_CONST                      15: ('return', 'str')
+        56      LOAD_CONST                      10: <CODE> guess_root_default
+        58      MAKE_FUNCTION                   4
+        60      STORE_NAME                      8: guess_root_default
+        62      LOAD_CONST                      16: ('path', 'str', 'return', 'list[str]')
+        64      LOAD_CONST                      12: <CODE> list_subdirs
+        66      MAKE_FUNCTION                   4
+        68      STORE_NAME                      9: list_subdirs
+        70      LOAD_CONST                      17: ('path', 'str', 'return', 'str')
+        72      LOAD_CONST                      13: <CODE> safe_dir
+        74      MAKE_FUNCTION                   4
+        76      STORE_NAME                      10: safe_dir
+        78      LOAD_CONST                      3: None
+        80      RETURN_VALUE                    
+    [Exception Table]

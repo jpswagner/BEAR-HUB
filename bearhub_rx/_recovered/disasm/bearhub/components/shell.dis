@@ -1,0 +1,636 @@
+shell.cpython-311.pyc (Python 3.11)
+[Code]
+    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/shell.py
+    Object Name: <module>
+    Qualified Name: <module>
+    Arg Count: 0
+    Pos Only Arg Count: 0
+    KW Only Arg Count: 0
+    Stack Size: 3
+    Flags: 0x01000000 (CO_FUTURE_ANNOTATIONS)
+    [Names]
+        '__doc__'
+        '__future__'
+        'annotations'
+        'reflex'
+        'rx'
+        'bearhub.data.catalog'
+        'BACTOPIA_VERSION'
+        'NAV'
+        '_nav_item'
+        '_sidebar'
+        '_topbar'
+        'shell'
+    [Locals+Names]
+    [Constants]
+        'App shell: fixed top bar + persistent left sidebar navigation.'
+        0
+        (
+            'annotations'
+        )
+        None
+        (
+            'BACTOPIA_VERSION'
+        )
+        (
+            (
+                'Hub'
+                '/'
+                'house'
+            )
+            (
+                'Bactopia'
+                '/bactopia'
+                'dna'
+            )
+            (
+                'Bactopia Tools'
+                '/tools'
+                'wrench'
+            )
+            (
+                'MERLIN'
+                '/merlin'
+                'wand-sparkles'
+            )
+            (
+                'Status'
+                '/status'
+                'activity'
+            )
+        )
+        'label'
+        'str'
+        'href'
+        'icon'
+        'active'
+        'return'
+        'rx.Component'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/shell.py
+            Object Name: _nav_item
+            Qualified Name: _nav_item
+            Arg Count: 4
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 15
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'link'
+                'hstack'
+                'icon'
+                'text'
+            [Locals+Names]
+                'label'
+                'href'
+                'icon'
+                'active'
+                'is_active'
+            [Constants]
+                None
+                18
+                (
+                    'size'
+                )
+                '2'
+                'bold'
+                'regular'
+                (
+                    'size'
+                    'weight'
+                )
+                '3'
+                'center'
+                '100%'
+                '9px 12px'
+                '8px'
+                'var(--teal-4)'
+                'transparent'
+                'var(--teal-11)'
+                'var(--gray-11)'
+                'background'
+                'var(--teal-3)'
+                'var(--gray-3)'
+                (
+                    'spacing'
+                    'align'
+                    'width'
+                    'padding'
+                    'border_radius'
+                    'background'
+                    'color'
+                    '_hover'
+                )
+                'none'
+                (
+                    'href'
+                    'underline'
+                    'width'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_FAST                       1: href
+                4       LOAD_FAST                       3: active
+                6       COMPARE_OP                      2 (==)
+                12      STORE_FAST                      4: is_active
+                14      LOAD_GLOBAL                     1: NULL + rx
+                26      LOAD_ATTR                       1: link
+                36      LOAD_GLOBAL                     1: NULL + rx
+                48      LOAD_ATTR                       2: hstack
+                58      LOAD_GLOBAL                     1: NULL + rx
+                70      LOAD_ATTR                       3: icon
+                80      LOAD_FAST                       2: icon
+                82      LOAD_CONST                      1: 18
+                84      KW_NAMES                        2: ('size',)
+                86      PRECALL                         2
+                90      CALL                            2
+                100     LOAD_GLOBAL                     1: NULL + rx
+                112     LOAD_ATTR                       4: text
+                122     LOAD_FAST                       0: label
+                124     LOAD_CONST                      3: '2'
+                126     LOAD_FAST                       4: is_active
+                128     POP_JUMP_FORWARD_IF_FALSE       2 (to 134)
+                130     LOAD_CONST                      4: 'bold'
+                132     JUMP_FORWARD                    1 (to 136)
+                134     LOAD_CONST                      5: 'regular'
+                136     KW_NAMES                        6: ('size', 'weight')
+                138     PRECALL                         3
+                142     CALL                            3
+                152     LOAD_CONST                      7: '3'
+                154     LOAD_CONST                      8: 'center'
+                156     LOAD_CONST                      9: '100%'
+                158     LOAD_CONST                      10: '9px 12px'
+                160     LOAD_CONST                      11: '8px'
+                162     LOAD_FAST                       4: is_active
+                164     POP_JUMP_FORWARD_IF_FALSE       2 (to 170)
+                166     LOAD_CONST                      12: 'var(--teal-4)'
+                168     JUMP_FORWARD                    1 (to 172)
+                170     LOAD_CONST                      13: 'transparent'
+                172     LOAD_FAST                       4: is_active
+                174     POP_JUMP_FORWARD_IF_FALSE       2 (to 180)
+                176     LOAD_CONST                      14: 'var(--teal-11)'
+                178     JUMP_FORWARD                    1 (to 182)
+                180     LOAD_CONST                      15: 'var(--gray-11)'
+                182     LOAD_CONST                      16: 'background'
+                184     LOAD_FAST                       4: is_active
+                186     POP_JUMP_FORWARD_IF_FALSE       2 (to 192)
+                188     LOAD_CONST                      17: 'var(--teal-3)'
+                190     JUMP_FORWARD                    1 (to 194)
+                192     LOAD_CONST                      18: 'var(--gray-3)'
+                194     BUILD_MAP                       1
+                196     KW_NAMES                        19: ('spacing', 'align', 'width', 'padding', 'border_radius', 'background', 'color', '_hover')
+                198     PRECALL                         10
+                202     CALL                            10
+                212     LOAD_FAST                       1: href
+                214     LOAD_CONST                      20: 'none'
+                216     LOAD_CONST                      9: '100%'
+                218     KW_NAMES                        21: ('href', 'underline', 'width')
+                220     PRECALL                         4
+                224     CALL                            4
+                234     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/shell.py
+            Object Name: _sidebar
+            Qualified Name: _sidebar
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 12
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'vstack'
+                'NAV'
+                'spacer'
+                'text'
+                'badge'
+                'BACTOPIA_VERSION'
+            [Locals+Names]
+                'active'
+            [Constants]
+                None
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/shell.py
+                    Object Name: <listcomp>
+                    Qualified Name: _sidebar.<locals>.<listcomp>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 8
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        '_nav_item'
+                    [Locals+Names]
+                        '.0'
+                        'label'
+                        'href'
+                        'icon'
+                        'active'
+                    [Constants]
+                    [Disassembly]
+                        0       COPY_FREE_VARS                  1
+                        2       RESUME                          0
+                        4       BUILD_LIST                      0
+                        6       LOAD_FAST                       0: .0
+                        8       FOR_ITER                        24 (to 58)
+                        10      UNPACK_SEQUENCE                 3
+                        14      STORE_FAST                      1: label
+                        16      STORE_FAST                      2: href
+                        18      STORE_FAST                      3: icon
+                        20      LOAD_GLOBAL                     1: NULL + _nav_item
+                        32      LOAD_FAST                       1: label
+                        34      LOAD_FAST                       2: href
+                        36      LOAD_FAST                       3: icon
+                        38      LOAD_DEREF                      4: active
+                        40      PRECALL                         4
+                        44      CALL                            4
+                        54      LIST_APPEND                     2
+                        56      JUMP_BACKWARD                   25 (to 8)
+                        58      RETURN_VALUE                    
+                    [Exception Table]
+                'Bactopia'
+                '1'
+                'var(--gray-9)'
+                (
+                    'size'
+                    'color'
+                )
+                'v'
+                'teal'
+                'soft'
+                (
+                    'color_scheme'
+                    'variant'
+                )
+                '16px 12px'
+                '230px'
+                'calc(100vh - 56px)'
+                '1px solid var(--gray-4)'
+                'start'
+                'sticky'
+                '56px'
+                (
+                    'spacing'
+                    'padding'
+                    'width'
+                    'height'
+                    'border_right'
+                    'align'
+                    'position'
+                    'top'
+                )
+            [Disassembly]
+                0       MAKE_CELL                       0: active
+                2       RESUME                          0
+                4       LOAD_GLOBAL                     1: NULL + rx
+                16      LOAD_ATTR                       1: vstack
+                26      BUILD_LIST                      0
+                28      LOAD_CLOSURE                    0: active
+                30      BUILD_TUPLE                     1
+                32      LOAD_CONST                      1: <CODE> <listcomp>
+                34      MAKE_FUNCTION                   8
+                36      LOAD_GLOBAL                     4: NAV
+                48      GET_ITER                        
+                50      PRECALL                         0
+                54      CALL                            0
+                64      LIST_EXTEND                     1
+                66      LOAD_GLOBAL                     1: NULL + rx
+                78      LOAD_ATTR                       3: spacer
+                88      PRECALL                         0
+                92      CALL                            0
+                102     LIST_APPEND                     1
+                104     LOAD_GLOBAL                     1: NULL + rx
+                116     LOAD_ATTR                       4: text
+                126     LOAD_CONST                      2: 'Bactopia'
+                128     LOAD_CONST                      3: '1'
+                130     LOAD_CONST                      4: 'var(--gray-9)'
+                132     KW_NAMES                        5: ('size', 'color')
+                134     PRECALL                         3
+                138     CALL                            3
+                148     LIST_APPEND                     1
+                150     LOAD_GLOBAL                     1: NULL + rx
+                162     LOAD_ATTR                       5: badge
+                172     LOAD_CONST                      6: 'v'
+                174     LOAD_GLOBAL                     12: BACTOPIA_VERSION
+                186     FORMAT_VALUE                    0 (FVC_NONE)
+                188     BUILD_STRING                    2
+                190     LOAD_CONST                      7: 'teal'
+                192     LOAD_CONST                      8: 'soft'
+                194     KW_NAMES                        9: ('color_scheme', 'variant')
+                196     PRECALL                         3
+                200     CALL                            3
+                210     LIST_APPEND                     1
+                212     LIST_TO_TUPLE                   
+                214     LOAD_CONST                      3: '1'
+                216     LOAD_CONST                      10: '16px 12px'
+                218     LOAD_CONST                      11: '230px'
+                220     LOAD_CONST                      12: 'calc(100vh - 56px)'
+                222     LOAD_CONST                      13: '1px solid var(--gray-4)'
+                224     LOAD_CONST                      14: 'start'
+                226     LOAD_CONST                      15: 'sticky'
+                228     LOAD_CONST                      16: '56px'
+                230     LOAD_CONST                      17: ('spacing', 'padding', 'width', 'height', 'border_right', 'align', 'position', 'top')
+                232     BUILD_CONST_KEY_MAP             8
+                234     CALL_FUNCTION_EX                1
+                236     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/shell.py
+            Object Name: _topbar
+            Qualified Name: _topbar
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 14
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'hstack'
+                'text'
+                'heading'
+                'badge'
+                'spacer'
+                'color_mode'
+                'button'
+            [Locals+Names]
+            [Constants]
+                None
+                '🐻'
+                '22px'
+                (
+                    'font_size'
+                )
+                'BEAR-HUB'
+                '4'
+                (
+                    'size'
+                )
+                'Reflex'
+                'teal'
+                'surface'
+                '1'
+                (
+                    'color_scheme'
+                    'variant'
+                    'size'
+                )
+                '2'
+                'center'
+                (
+                    'spacing'
+                    'align'
+                )
+                '100%'
+                '56px'
+                '0 20px'
+                '1px solid var(--gray-4)'
+                'sticky'
+                '0'
+                'var(--color-background)'
+                '20'
+                (
+                    'align'
+                    'width'
+                    'height'
+                    'padding'
+                    'border_bottom'
+                    'position'
+                    'top'
+                    'background'
+                    'z_index'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: hstack
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       1: hstack
+                46      LOAD_GLOBAL                     1: NULL + rx
+                58      LOAD_ATTR                       2: text
+                68      LOAD_CONST                      1: '🐻'
+                70      LOAD_CONST                      2: '22px'
+                72      KW_NAMES                        3: ('font_size',)
+                74      PRECALL                         2
+                78      CALL                            2
+                88      LOAD_GLOBAL                     1: NULL + rx
+                100     LOAD_ATTR                       3: heading
+                110     LOAD_CONST                      4: 'BEAR-HUB'
+                112     LOAD_CONST                      5: '4'
+                114     KW_NAMES                        6: ('size',)
+                116     PRECALL                         2
+                120     CALL                            2
+                130     LOAD_GLOBAL                     1: NULL + rx
+                142     LOAD_ATTR                       4: badge
+                152     LOAD_CONST                      7: 'Reflex'
+                154     LOAD_CONST                      8: 'teal'
+                156     LOAD_CONST                      9: 'surface'
+                158     LOAD_CONST                      10: '1'
+                160     KW_NAMES                        11: ('color_scheme', 'variant', 'size')
+                162     PRECALL                         4
+                166     CALL                            4
+                176     LOAD_CONST                      12: '2'
+                178     LOAD_CONST                      13: 'center'
+                180     KW_NAMES                        14: ('spacing', 'align')
+                182     PRECALL                         5
+                186     CALL                            5
+                196     LOAD_GLOBAL                     1: NULL + rx
+                208     LOAD_ATTR                       5: spacer
+                218     PRECALL                         0
+                222     CALL                            0
+                232     LOAD_GLOBAL                     0: rx
+                244     LOAD_ATTR                       6: color_mode
+                254     LOAD_METHOD                     7: button
+                276     PRECALL                         0
+                280     CALL                            0
+                290     LOAD_CONST                      13: 'center'
+                292     LOAD_CONST                      15: '100%'
+                294     LOAD_CONST                      16: '56px'
+                296     LOAD_CONST                      17: '0 20px'
+                298     LOAD_CONST                      18: '1px solid var(--gray-4)'
+                300     LOAD_CONST                      19: 'sticky'
+                302     LOAD_CONST                      20: '0'
+                304     LOAD_CONST                      21: 'var(--color-background)'
+                306     LOAD_CONST                      22: '20'
+                308     KW_NAMES                        23: ('align', 'width', 'height', 'padding', 'border_bottom', 'position', 'top', 'background', 'z_index')
+                310     PRECALL                         12
+                314     CALL                            12
+                324     RETURN_VALUE                    
+            [Exception Table]
+        '/'
+        (
+            'active'
+        )
+        'content'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/components/shell.py
+            Object Name: shell
+            Qualified Name: shell
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 1
+            Stack Size: 17
+            Flags: 0x01000007 (CO_OPTIMIZED | CO_NEWLOCALS | CO_VARARGS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'box'
+                '_topbar'
+                'hstack'
+                '_sidebar'
+                'vstack'
+            [Locals+Names]
+                'active'
+                'content'
+            [Constants]
+                None
+                '7'
+                '100%'
+                '1080px'
+                '0 auto'
+                '28px'
+                (
+                    'spacing'
+                    'width'
+                    'max_width'
+                    'margin'
+                    'padding'
+                )
+                '1'
+                'calc(100vh - 56px)'
+                'auto'
+                (
+                    'flex'
+                    'height'
+                    'overflow'
+                )
+                '0'
+                'start'
+                (
+                    'spacing'
+                    'align'
+                    'width'
+                )
+                (
+                    'width'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: box
+                24      LOAD_GLOBAL                     5: NULL + _topbar
+                36      PRECALL                         0
+                40      CALL                            0
+                50      LOAD_GLOBAL                     1: NULL + rx
+                62      LOAD_ATTR                       3: hstack
+                72      LOAD_GLOBAL                     9: NULL + _sidebar
+                84      LOAD_FAST                       0: active
+                86      PRECALL                         1
+                90      CALL                            1
+                100     LOAD_GLOBAL                     1: NULL + rx
+                112     LOAD_ATTR                       1: box
+                122     LOAD_GLOBAL                     1: NULL + rx
+                134     LOAD_ATTR                       5: vstack
+                144     LOAD_FAST                       1: content
+                146     LOAD_CONST                      1: '7'
+                148     LOAD_CONST                      2: '100%'
+                150     LOAD_CONST                      3: '1080px'
+                152     LOAD_CONST                      4: '0 auto'
+                154     LOAD_CONST                      5: '28px'
+                156     LOAD_CONST                      6: ('spacing', 'width', 'max_width', 'margin', 'padding')
+                158     BUILD_CONST_KEY_MAP             5
+                160     CALL_FUNCTION_EX                1
+                162     LOAD_CONST                      7: '1'
+                164     LOAD_CONST                      8: 'calc(100vh - 56px)'
+                166     LOAD_CONST                      9: 'auto'
+                168     KW_NAMES                        10: ('flex', 'height', 'overflow')
+                170     PRECALL                         4
+                174     CALL                            4
+                184     LOAD_CONST                      11: '0'
+                186     LOAD_CONST                      12: 'start'
+                188     LOAD_CONST                      2: '100%'
+                190     KW_NAMES                        13: ('spacing', 'align', 'width')
+                192     PRECALL                         5
+                196     CALL                            5
+                206     LOAD_CONST                      2: '100%'
+                208     KW_NAMES                        14: ('width',)
+                210     PRECALL                         3
+                214     CALL                            3
+                224     RETURN_VALUE                    
+            [Exception Table]
+        (
+            'label'
+            'str'
+            'href'
+            'str'
+            'icon'
+            'str'
+            'active'
+            'str'
+            'return'
+            'rx.Component'
+        )
+        (
+            'active'
+            'str'
+            'return'
+            'rx.Component'
+        )
+        (
+            'return'
+            'rx.Component'
+        )
+        (
+            'content'
+            'rx.Component'
+            'active'
+            'str'
+            'return'
+            'rx.Component'
+        )
+    [Disassembly]
+        0       RESUME                          0
+        2       LOAD_CONST                      0: 'App shell: fixed top bar + persistent left sidebar navigation.'
+        4       STORE_NAME                      0: __doc__
+        6       LOAD_CONST                      1: 0
+        8       LOAD_CONST                      2: ('annotations',)
+        10      IMPORT_NAME                     1: __future__
+        12      IMPORT_FROM                     2: annotations
+        14      STORE_NAME                      2: annotations
+        16      POP_TOP                         
+        18      LOAD_CONST                      1: 0
+        20      LOAD_CONST                      3: None
+        22      IMPORT_NAME                     3: reflex
+        24      STORE_NAME                      4: rx
+        26      LOAD_CONST                      1: 0
+        28      LOAD_CONST                      4: ('BACTOPIA_VERSION',)
+        30      IMPORT_NAME                     5: bearhub.data.catalog
+        32      IMPORT_FROM                     6: BACTOPIA_VERSION
+        34      STORE_NAME                      6: BACTOPIA_VERSION
+        36      POP_TOP                         
+        38      BUILD_LIST                      0
+        40      LOAD_CONST                      5: (('Hub', '/', 'house'), ('Bactopia', '/bactopia', 'dna'), ('Bactopia Tools', '/tools', 'wrench'), ('MERLIN', '/merlin', 'wand-sparkles'), ('Status', '/status', 'activity'))
+        42      LIST_EXTEND                     1
+        44      STORE_NAME                      7: NAV
+        46      LOAD_CONST                      20: ('label', 'str', 'href', 'str', 'icon', 'str', 'active', 'str', 'return', 'rx.Component')
+        48      LOAD_CONST                      13: <CODE> _nav_item
+        50      MAKE_FUNCTION                   4
+        52      STORE_NAME                      8: _nav_item
+        54      LOAD_CONST                      21: ('active', 'str', 'return', 'rx.Component')
+        56      LOAD_CONST                      14: <CODE> _sidebar
+        58      MAKE_FUNCTION                   4
+        60      STORE_NAME                      9: _sidebar
+        62      LOAD_CONST                      22: ('return', 'rx.Component')
+        64      LOAD_CONST                      15: <CODE> _topbar
+        66      MAKE_FUNCTION                   4
+        68      STORE_NAME                      10: _topbar
+        70      LOAD_CONST                      16: '/'
+        72      LOAD_CONST                      17: ('active',)
+        74      BUILD_CONST_KEY_MAP             1
+        76      LOAD_CONST                      23: ('content', 'rx.Component', 'active', 'str', 'return', 'rx.Component')
+        78      LOAD_CONST                      19: <CODE> shell
+        80      MAKE_FUNCTION                   6
+        82      STORE_NAME                      11: shell
+        84      LOAD_CONST                      3: None
+        86      RETURN_VALUE                    
+    [Exception Table]

@@ -1,0 +1,3566 @@
+{
+"fastqs": {
+"group": "Required Parameters",
+"default": null,
+"type": "string",
+"desc": "A FOFN with sample names and paths to FASTQ/FASTAs to process\n"
+},
+"r1": {
+"group": "Required Parameters",
+"default": null,
+"type": "string",
+"desc": "First set of compressed (gzip) paired-end FASTQ reads (requires --r2 a"
+},
+"r2": {
+"group": "Required Parameters",
+"default": null,
+"type": "string",
+"desc": "Second set of compressed (gzip) paired-end FASTQ reads (requires --r1 "
+},
+"se": {
+"group": "Required Parameters",
+"default": null,
+"type": "string",
+"desc": "Compressed (gzip) single-end FASTQ reads  (requires --sample)"
+},
+"ont": {
+"group": "Required Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Treat `--se` as long reads for analysis. (requires --sample)"
+},
+"hybrid": {
+"group": "Required Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Treat `--se` as long reads for hybrid assembly.  (requires --r1, --r2,"
+},
+"sample": {
+"group": "Required Parameters",
+"default": null,
+"type": "string",
+"desc": "Sample name to use for the input sequences\n"
+},
+"accessions": {
+"group": "Required Parameters",
+"default": "null",
+"type": "string",
+"desc": "A file containing ENA/SRA Experiment accessions or NCBI Assembly acces"
+},
+"accession": {
+"group": "Required Parameters",
+"default": "null",
+"type": "string",
+"desc": "Sample name to use for the input sequences\n"
+},
+"assembly": {
+"group": "Required Parameters",
+"default": null,
+"type": "string",
+"desc": "A assembled genome in compressed FASTA format. (requires --sample)"
+},
+"datasets": {
+"group": "Dataset Parameters",
+"default": null,
+"type": "string",
+"desc": "The path to datasets that have already been set up"
+},
+"species": {
+"group": "Dataset Parameters",
+"default": "null",
+"type": "string",
+"desc": "Name of species for species-specific dataset to use"
+},
+"coverage": {
+"group": "Dataset Parameters",
+"default": 100,
+"type": "integer",
+"desc": "Reduce samples to a given coverage"
+},
+"genome_size": {
+"group": "Dataset Parameters",
+"default": "0",
+"type": "string",
+"desc": "Expected genome size (bp) for all samples, a value of '0' will disable"
+},
+"available_datasets": {
+"group": "Dataset Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Print a list of available datasets found based on location given by `-"
+},
+"skip_fastq_check": {
+"group": "Gather Samples Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "Skip minimum requirement checks for input FASTQs"
+},
+"min_basepairs": {
+"group": "Gather Samples Parameters",
+"default": 2241820,
+"type": "integer",
+"desc": "The minimum amount of basepairs required to continue downstream analys"
+},
+"min_reads": {
+"group": "Gather Samples Parameters",
+"default": 7472,
+"type": "integer",
+"desc": "The minimum amount of reads required to continue downstream analyses."
+},
+"min_coverage": {
+"group": "Gather Samples Parameters",
+"default": 10,
+"type": "integer",
+"desc": "The minimum amount of coverage required to continue downstream analyse"
+},
+"min_proportion": {
+"group": "Gather Samples Parameters",
+"default": 0.5,
+"type": "number",
+"desc": "The minimum proportion of basepairs for paired-end reads to continue d"
+},
+"min_genome_size": {
+"group": "Gather Samples Parameters",
+"default": 100000,
+"type": "integer",
+"desc": "The minimum estimated genome size allowed for the input sequence to co"
+},
+"max_genome_size": {
+"group": "Gather Samples Parameters",
+"default": 18040666,
+"type": "integer",
+"desc": "The maximum estimated genome size allowed for the input sequence to co"
+},
+"attempts": {
+"group": "Gather Samples Parameters",
+"default": 3,
+"type": "integer",
+"desc": "Maximum times to attempt downloads"
+},
+"use_ena": {
+"group": "Gather Samples Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "Download FASTQs from ENA"
+},
+"no_cache": {
+"group": "Gather Samples Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "Skip caching the assembly summary file from ncbi-genome-download"
+},
+"skip_qc": {
+"group": "QC Reads Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "The QC step will be skipped and it will be assumed the inputs sequence"
+},
+"skip_qc_plots": {
+"group": "QC Reads Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "QC Plot creation by FastQC or Nanoplot will be skipped"
+},
+"skip_error_correction": {
+"group": "QC Reads Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "FLASH error correction of reads will be skipped."
+},
+"adapters": {
+"group": "QC Reads Parameters",
+"default": "\"${baseDir}/data/EMPTY_ADAPTERS\"",
+"type": "string",
+"desc": "A FASTA file containing adapters to remove"
+},
+"adapter_k": {
+"group": "QC Reads Parameters",
+"default": 23,
+"type": "integer",
+"desc": "Kmer length used for finding adapters."
+},
+"phix": {
+"group": "QC Reads Parameters",
+"default": "\"${baseDir}/data/EMPTY_PHIX\"",
+"type": "string",
+"desc": "phiX174 reference genome to remove"
+},
+"phix_k": {
+"group": "QC Reads Parameters",
+"default": 31,
+"type": "integer",
+"desc": "Kmer length used for finding phiX174."
+},
+"ktrim": {
+"group": "QC Reads Parameters",
+"default": "r",
+"type": "string",
+"desc": "Trim reads to remove bases matching reference kmers"
+},
+"mink": {
+"group": "QC Reads Parameters",
+"default": 11,
+"type": "integer",
+"desc": "Look for shorter kmers at read tips down to this length, when k-trimmi"
+},
+"hdist": {
+"group": "QC Reads Parameters",
+"default": 1,
+"type": "integer",
+"desc": "Maximum Hamming distance for ref kmers (subs only)"
+},
+"tpe": {
+"group": "QC Reads Parameters",
+"default": "t",
+"type": "string",
+"desc": "When kmer right-trimming, trim both reads to the minimum length of eit"
+},
+"tbo": {
+"group": "QC Reads Parameters",
+"default": "t",
+"type": "string",
+"desc": "Trim adapters based on where paired reads overlap"
+},
+"qtrim": {
+"group": "QC Reads Parameters",
+"default": "rl",
+"type": "string",
+"desc": "Trim read ends to remove bases with quality below trimq."
+},
+"trimq": {
+"group": "QC Reads Parameters",
+"default": 6,
+"type": "integer",
+"desc": "Regions with average quality BELOW this will be trimmed if qtrim is se"
+},
+"maq": {
+"group": "QC Reads Parameters",
+"default": 10,
+"type": "integer",
+"desc": "Reads with average quality (after trimming) below this will be discard"
+},
+"minlength": {
+"group": "QC Reads Parameters",
+"default": 35,
+"type": "integer",
+"desc": "Reads shorter than this after trimming will be discarded"
+},
+"ftm": {
+"group": "QC Reads Parameters",
+"default": 5,
+"type": "integer",
+"desc": "If positive, right-trim length to be equal to zero, modulo this number"
+},
+"tossjunk": {
+"group": "QC Reads Parameters",
+"default": "t",
+"type": "string",
+"desc": "Discard reads with invalid characters as bases"
+},
+"qout": {
+"group": "QC Reads Parameters",
+"default": "33",
+"type": "string",
+"desc": "PHRED offset to use for output FASTQs"
+},
+"maxcor": {
+"group": "QC Reads Parameters",
+"default": 1,
+"type": "integer",
+"desc": "Max number of corrections within a 20bp window"
+},
+"sampleseed": {
+"group": "QC Reads Parameters",
+"default": 42,
+"type": "integer",
+"desc": "Set to a positive number to use as the random number generator seed fo"
+},
+"ont_minlength": {
+"group": "QC Reads Parameters",
+"default": 1000,
+"type": "integer",
+"desc": "ONT Reads shorter than this will be discarded"
+},
+"ont_minqual": {
+"group": "QC Reads Parameters",
+"default": 0,
+"type": "integer",
+"desc": "Minimum average read quality filter of ONT reads"
+},
+"porechop_opts": {
+"group": "QC Reads Parameters",
+"default": "\"\"",
+"type": "integer",
+"desc": "Extra Porechop options in quotes"
+},
+"nanoplot_opts": {
+"group": "QC Reads Parameters",
+"default": "\"\"",
+"type": "integer",
+"desc": "Extra NanoPlot options in quotes"
+},
+"shovill_assembler": {
+"group": "Assemble Genome Parameters",
+"default": "skesa",
+"type": "string",
+"desc": "Assembler to be used by Shovill"
+},
+"dragonflye_assembler": {
+"group": "Assemble Genome Parameters",
+"default": "flye",
+"type": "string",
+"desc": "Assembler to be used by Dragonflye"
+},
+"use_unicycler": {
+"group": "Assemble Genome Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "Use unicycler for paired end assembly"
+},
+"min_contig_len": {
+"group": "Assemble Genome Parameters",
+"default": 500,
+"type": "integer",
+"desc": "Minimum contig length <0=AUTO>"
+},
+"min_contig_cov": {
+"group": "Assemble Genome Parameters",
+"default": 2,
+"type": "integer",
+"desc": "Minimum contig coverage <0=AUTO>"
+},
+"contig_namefmt": {
+"group": "Assemble Genome Parameters",
+"default": "null",
+"type": "string",
+"desc": "Format of contig FASTA IDs in 'printf' style"
+},
+"shovill_opts": {
+"group": "Assemble Genome Parameters",
+"default": "null",
+"type": "string",
+"desc": "Extra assembler options in quotes"
+},
+"shovill_kmers": {
+"group": "Assemble Genome Parameters",
+"default": "null",
+"type": "string",
+"desc": "K-mers to use <blank=AUTO>"
+},
+"trim": {
+"group": "Assemble Genome Parameters",
+"default": "null",
+"type": "boolean",
+"desc": "Enable adaptor trimming"
+},
+"no_stitch": {
+"group": "Assemble Genome Parameters",
+"default": "null",
+"type": "boolean",
+"desc": "Disable read stitching for paired-end reads"
+},
+"no_corr": {
+"group": "Assemble Genome Parameters",
+"default": "null",
+"type": "boolean",
+"desc": "Disable post-assembly correction"
+},
+"unicycler_mode": {
+"group": "Assemble Genome Parameters",
+"default": "normal",
+"type": "string",
+"desc": "Bridging mode used by Unicycler"
+},
+"min_polish_size": {
+"group": "Assemble Genome Parameters",
+"default": 10000,
+"type": "integer",
+"desc": "Contigs shorter than this value (bp) will not be polished using Pilon"
+},
+"min_component_size": {
+"group": "Assemble Genome Parameters",
+"default": 1000,
+"type": "integer",
+"desc": "Graph dead ends smaller than this size (bp) will be removed from the f"
+},
+"min_dead_end_size": {
+"group": "Assemble Genome Parameters",
+"default": 1000,
+"type": "integer",
+"desc": "Graph dead ends smaller than this size (bp) will be removed from the f"
+},
+"medaka_model": {
+"group": "Assemble Genome Parameters",
+"default": "''",
+"type": "string",
+"desc": "The model to use for Medaka polishing"
+},
+"medaka_steps": {
+"group": "Assemble Genome Parameters",
+"default": 0,
+"type": "integer",
+"desc": "The number of Medaka polishing steps to conduct"
+},
+"racon_steps": {
+"group": "Assemble Genome Parameters",
+"default": 1,
+"type": "integer",
+"desc": "The number of Racon polishing steps to conduct"
+},
+"no_polish": {
+"group": "Assemble Genome Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "Skip the assembly polishing step"
+},
+"no_miniasm": {
+"group": "Assemble Genome Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "Skip miniasm+Racon bridging"
+},
+"no_rotate": {
+"group": "Assemble Genome Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "Do not rotate completed replicons to start at a standard gene"
+},
+"reassemble": {
+"group": "Assemble Genome Parameters",
+"default": null,
+"type": "boolean",
+"desc": "If reads were simulated, they will be used to create a new assembly."
+},
+"run_checkm": {
+"group": "Assembly QC Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Run CheckM in the assembly QC step"
+},
+"checkm_unique": {
+"group": "Assembly QC Parameters",
+"default": 10,
+"type": "integer",
+"desc": "Minimum number of unique phylogenetic markers required to use lineage-"
+},
+"checkm_multi": {
+"group": "Assembly QC Parameters",
+"default": 10,
+"type": "integer",
+"desc": "Maximum number of multi-copy phylogenetic markers before defaulting to"
+},
+"aai_strain": {
+"group": "Assembly QC Parameters",
+"default": 0.9,
+"type": "number",
+"desc": "AAI threshold used to identify strain heterogeneity"
+},
+"checkm_length": {
+"group": "Assembly QC Parameters",
+"default": 0.7,
+"type": "number",
+"desc": "Percent overlap between target and query"
+},
+"full_tree": {
+"group": "Assembly QC Parameters",
+"default": "null",
+"type": "boolean",
+"desc": "Use the full tree (requires ~40GB of memory) for determining lineage o"
+},
+"skip_pseudogene_correction": {
+"group": "Assembly QC Parameters",
+"default": "null",
+"type": "boolean",
+"desc": "Skip identification and filtering of pseudogene"
+},
+"ignore_thresholds": {
+"group": "Assembly QC Parameters",
+"default": "null",
+"type": "boolean",
+"desc": "Ignore model-specific score thresholds"
+},
+"checkm_ali": {
+"group": "Assembly QC Parameters",
+"default": "null",
+"type": "boolean",
+"desc": "Generate HMMER alignment file for each bin"
+},
+"checkm_nt": {
+"group": "Assembly QC Parameters",
+"default": "null",
+"type": "boolean",
+"desc": "Generate nucleotide gene sequences for each bin"
+},
+"force_domain": {
+"group": "Assembly QC Parameters",
+"default": "null",
+"type": "boolean",
+"desc": "Use domain-level sets for all bins"
+},
+"no_refinement": {
+"group": "Assembly QC Parameters",
+"default": "null",
+"type": "boolean",
+"desc": "Do not perform lineage-specific marker set refinement"
+},
+"individual_markers": {
+"group": "Assembly QC Parameters",
+"default": "null",
+"type": "boolean",
+"desc": "Treat marker as independent"
+},
+"skip_adj_correction": {
+"group": "Assembly QC Parameters",
+"default": "null",
+"type": "boolean",
+"desc": "Do not exclude adjacent marker genes when estimating contamination"
+},
+"contig_thresholds": {
+"group": "Assembly QC Parameters",
+"default": "0,1000,10000,100000,250000,1000000",
+"type": "string",
+"desc": "Comma-separated list of contig length thresholds"
+},
+"plots_format": {
+"group": "Assembly QC Parameters",
+"default": "pdf",
+"type": "string",
+"desc": "Save plots in specified format"
+},
+"compliant": {
+"group": "Annotate Genome Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "Force Genbank/ENA/DDJB compliance"
+},
+"centre": {
+"group": "Annotate Genome Parameters",
+"default": "Bactopia",
+"type": "string",
+"desc": "Sequencing centre ID"
+},
+"addmrna": {
+"group": "Annotate Genome Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Add 'mRNA' features for each 'CDS' feature"
+},
+"rawproduct": {
+"group": "Annotate Genome Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Do not clean up /product annotation"
+},
+"cdsrnaolap": {
+"group": "Annotate Genome Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Allow [tr]RNA to overlap CDS"
+},
+"prokka_evalue": {
+"group": "Annotate Genome Parameters",
+"default": "1e-09",
+"type": "string",
+"desc": "Similarity e-value cut-off"
+},
+"prokka_coverage": {
+"group": "Annotate Genome Parameters",
+"default": 80,
+"type": "integer",
+"desc": "Minimum coverage on query protein"
+},
+"nogenes": {
+"group": "Annotate Genome Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Do not add 'gene' features for each 'CDS' feature"
+},
+"norrna": {
+"group": "Annotate Genome Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Don't run rRNA search"
+},
+"notrna": {
+"group": "Annotate Genome Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Don't run tRNA search"
+},
+"rnammer": {
+"group": "Annotate Genome Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Prefer RNAmmer over Barrnap for rRNA prediction"
+},
+"rfam": {
+"group": "Annotate Genome Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Enable searching for ncRNAs with Infernal+Rfam"
+},
+"skip_prodigal_tf": {
+"group": "Annotate Genome Parameters",
+"default": null,
+"type": "boolean",
+"desc": "If a Prodigal training file was found, it will not be used"
+},
+"mapqual": {
+"group": "Call Variants Parameters",
+"default": 60,
+"type": "integer",
+"desc": "Minimum read mapping quality to consider"
+},
+"basequal": {
+"group": "Call Variants Parameters",
+"default": 13,
+"type": "integer",
+"desc": "Minimum base quality to consider"
+},
+"mincov": {
+"group": "Call Variants Parameters",
+"default": 10,
+"type": "integer",
+"desc": "Minimum site depth to for calling alleles"
+},
+"minfrac": {
+"group": "Call Variants Parameters",
+"default": 0,
+"type": "integer",
+"desc": "Minimum proportion for variant evidence (0=AUTO)"
+},
+"minqual": {
+"group": "Call Variants Parameters",
+"default": 100,
+"type": "integer",
+"desc": "Minimum QUALITY in VCF column 6"
+},
+"maxsoft": {
+"group": "Call Variants Parameters",
+"default": 10,
+"type": "integer",
+"desc": "Maximum soft clipping to allow"
+},
+"bwaopt": {
+"group": "Call Variants Parameters",
+"default": "null",
+"type": "string",
+"desc": "Extra BWA MEM options, eg. -x pacbio"
+},
+"fbopt": {
+"group": "Call Variants Parameters",
+"default": "null",
+"type": "string",
+"desc": "Extra Freebayes options, eg. --theta 1E-6 --read-snp-limit 2"
+},
+"random_tie_break": {
+"group": "Call Variants Parameters",
+"default": null,
+"type": "boolean",
+"desc": "On references with matching distances, randomly select one."
+},
+"disable_auto_variants": {
+"group": "Call Variants Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Disable automatic selection of reference genome based on Mash distance"
+},
+"count_31mers": {
+"group": "Minmer Sketch Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Enable 31-mer counting with McCortex"
+},
+"keep_singletons": {
+"group": "Minmer Sketch Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Keep all counted 31-mers"
+},
+"mash_sketch": {
+"group": "Minmer Sketch Parameters",
+"default": 10000,
+"type": "integer",
+"desc": "Sketch size. Each sketch will have at most this many non-redundant min"
+},
+"sourmash_scale": {
+"group": "Minmer Sketch Parameters",
+"default": 10000,
+"type": "integer",
+"desc": "Choose number of hashes as 1 in FRACTION of input k-mers"
+},
+"no_winner_take_all": {
+"group": "Minmer Query Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "Disable winner-takes-all strategy for identity estimates"
+},
+"screen_i": {
+"group": "Minmer Query Parameters",
+"default": 0.8,
+"type": "number",
+"desc": "Minimum identity to report."
+},
+"keep_unmapped_reads": {
+"group": "Mapping Query Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Keep unmapped reads, this does not affect variant calling."
+},
+"bwa_mem_opts": {
+"group": "Mapping Query Parameters",
+"default": null,
+"type": "string",
+"desc": "Extra BWA MEM options"
+},
+"bwa_aln_opts": {
+"group": "Mapping Query Parameters",
+"default": null,
+"type": "string",
+"desc": "Extra BWA ALN options"
+},
+"bwa_samse_opts": {
+"group": "Mapping Query Parameters",
+"default": null,
+"type": "string",
+"desc": "Extra BWA SAMSE options"
+},
+"bwa_sampe_opts": {
+"group": "Mapping Query Parameters",
+"default": null,
+"type": "string",
+"desc": "Extra BWA SAMPE options"
+},
+"bwa_n": {
+"group": "Mapping Query Parameters",
+"default": 9999,
+"type": "integer",
+"desc": "Maximum number of alignments to output in the XA tag for reads paired "
+},
+"skip_amr": {
+"group": "Antimicrobial Resistance Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Skip running AMRFinder+."
+},
+"amr_plus": {
+"group": "Antimicrobial Resistance Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Add the plus genes to the report"
+},
+"amr_report_common": {
+"group": "Antimicrobial Resistance Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Suppress proteins common to a taxonomy group"
+},
+"amr_organism": {
+"group": "Antimicrobial Resistance Parameters",
+"default": null,
+"type": "string",
+"desc": "Taxonomy group: Campylobacter, Escherichia, Klebsiella Salmonella, Sta"
+},
+"amr_ident_min": {
+"group": "Antimicrobial Resistance Parameters",
+"default": -1,
+"type": "integer",
+"desc": "Minimum identity for nucleotide hit (0..1). -1 means use a curated thr"
+},
+"amr_coverage_min": {
+"group": "Antimicrobial Resistance Parameters",
+"default": 0.5,
+"type": "number",
+"desc": "Minimum coverage of the reference protein"
+},
+"amr_translation_table": {
+"group": "Antimicrobial Resistance Parameters",
+"default": 11,
+"type": "integer",
+"desc": "NCBI genetic code for translated BLAST"
+},
+"mlst_nucmer_min_id": {
+"group": "Sequence Type Parameters",
+"default": 90,
+"type": "integer",
+"desc": "Minimum alignment identity (delta-filter -i)"
+},
+"mlst_nucmer_min_len": {
+"group": "Sequence Type Parameters",
+"default": 20,
+"type": "integer",
+"desc": "Minimum alignment identity (delta-filter -i)"
+},
+"mlst_nucmer_breaklen": {
+"group": "Sequence Type Parameters",
+"default": 200,
+"type": "integer",
+"desc": "Value to use for -breaklen when running nucmer"
+},
+"mlst_assembly_cov": {
+"group": "Sequence Type Parameters",
+"default": 50,
+"type": "integer",
+"desc": "Target read coverage when sampling reads for assembly"
+},
+"mlst_min_scaff_depth": {
+"group": "Sequence Type Parameters",
+"default": 10,
+"type": "integer",
+"desc": "Minimum number of read pairs needed as evidence for scaffold link betw"
+},
+"mlst_spades_options": {
+"group": "Sequence Type Parameters",
+"default": null,
+"type": "string",
+"desc": "Extra options to pass to Spades assembler"
+},
+"mlst_assembled_threshold": {
+"group": "Sequence Type Parameters",
+"default": 0.95,
+"type": "number",
+"desc": "If proportion of gene assembled (regardless of into how many contigs) "
+},
+"mlst_gene_nt_extend": {
+"group": "Sequence Type Parameters",
+"default": 30,
+"type": "integer",
+"desc": "Max number of nucleotides to extend ends of gene matches to look for s"
+},
+"mlst_unique_threshold": {
+"group": "Sequence Type Parameters",
+"default": 0.03,
+"type": "number",
+"desc": "If proportion of bases in gene assembled more than once is <= this val"
+},
+"mlst_ariba_no_clean": {
+"group": "Sequence Type Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Do not clean up intermediate files created by Ariba."
+},
+"perc_identity": {
+"group": "Blast Parameters",
+"default": 50,
+"type": "integer",
+"desc": "Percent identity"
+},
+"qcov_hsp_perc": {
+"group": "Blast Parameters",
+"default": 50,
+"type": "integer",
+"desc": "Percent query coverage per hsp"
+},
+"max_target_seqs": {
+"group": "Blast Parameters",
+"default": 2000,
+"type": "integer",
+"desc": "Maximum number of aligned sequences to keep"
+},
+"nucmer_min_id": {
+"group": "Ariba Analysis Parameters",
+"default": 90,
+"type": "integer",
+"desc": "Minimum alignment identity (delta-filter -i)"
+},
+"nucmer_min_len": {
+"group": "Ariba Analysis Parameters",
+"default": 20,
+"type": "integer",
+"desc": "Minimum alignment identity (delta-filter -i)"
+},
+"nucmer_breaklen": {
+"group": "Ariba Analysis Parameters",
+"default": 200,
+"type": "integer",
+"desc": "Value to use for -breaklen when running nucmer"
+},
+"assembly_cov": {
+"group": "Ariba Analysis Parameters",
+"default": 50,
+"type": "integer",
+"desc": "Target read coverage when sampling reads for assembly"
+},
+"min_scaff_depth": {
+"group": "Ariba Analysis Parameters",
+"default": 10,
+"type": "integer",
+"desc": "Minimum number of read pairs needed as evidence for scaffold link betw"
+},
+"spades_options": {
+"group": "Ariba Analysis Parameters",
+"default": "null",
+"type": "string",
+"desc": "Extra options to pass to Spades assembler"
+},
+"assembled_threshold": {
+"group": "Ariba Analysis Parameters",
+"default": 0.95,
+"type": "number",
+"desc": "If proportion of gene assembled (regardless of into how many contigs) "
+},
+"gene_nt_extend": {
+"group": "Ariba Analysis Parameters",
+"default": 30,
+"type": "integer",
+"desc": "Max number of nucleotides to extend ends of gene matches to look for s"
+},
+"unique_threshold": {
+"group": "Ariba Analysis Parameters",
+"default": 0.03,
+"type": "number",
+"desc": "If proportion of bases in gene assembled more than once is <= this val"
+},
+"ariba_no_clean": {
+"group": "Ariba Analysis Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "Do not clean up intermediate files created by Ariba."
+},
+"outdir": {
+"group": "Optional Parameters",
+"default": "./",
+"type": "string",
+"desc": "Base directory to write results to"
+},
+"run_name": {
+"group": "Optional Parameters",
+"default": "bactopia",
+"type": "string",
+"desc": "Name of the directory to hold results"
+},
+"skip_compression": {
+"group": "Optional Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "Ouput files will not be compressed"
+},
+"keep_all_files": {
+"group": "Optional Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "Keeps all analysis files created"
+},
+"max_retry": {
+"group": "Max Job Request Parameters",
+"default": 3,
+"type": "integer",
+"desc": "Maximum times to retry a process before allowing it to fail."
+},
+"max_cpus": {
+"group": "Max Job Request Parameters",
+"default": 4,
+"type": "integer",
+"desc": "Maximum number of CPUs that can be requested for any single job."
+},
+"max_memory": {
+"group": "Max Job Request Parameters",
+"default": 32,
+"type": "integer",
+"desc": "Maximum amount of memory (in GB) that can be requested for any single "
+},
+"max_time": {
+"group": "Max Job Request Parameters",
+"default": 120,
+"type": "integer",
+"desc": "Maximum amount of time (in minutes) that can be requested for any sing"
+},
+"max_downloads": {
+"group": "Max Job Request Parameters",
+"default": 3,
+"type": "integer",
+"desc": "Maximum number of samples to download at a time"
+},
+"nfconfig": {
+"group": "Nextflow Configuration Parameters",
+"default": "null",
+"type": "string",
+"desc": "A Nextflow compatible config file for custom profiles, loaded last and"
+},
+"publish_dir_mode": {
+"group": "Nextflow Configuration Parameters",
+"default": "copy",
+"type": "string",
+"desc": "Method used to save pipeline results to output directory."
+},
+"infodir": {
+"group": "Nextflow Configuration Parameters",
+"default": "${params.outdir}/pipeline_info",
+"type": "string",
+"desc": "Directory to keep pipeline Nextflow logs and reports."
+},
+"force": {
+"group": "Nextflow Configuration Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "Nextflow will overwrite existing output files."
+},
+"cleanup_workdir": {
+"group": "Nextflow Configuration Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "After Bactopia is successfully executed, the `work` directory will be "
+},
+"condadir": {
+"group": "Nextflow Profile Parameters",
+"default": "\"${bactopia_cache}/conda\"",
+"type": "string",
+"desc": "Directory to Nextflow should use for Conda environments"
+},
+"registry": {
+"group": "Nextflow Profile Parameters",
+"default": "dockerhub",
+"type": "string",
+"desc": "Docker registry to pull containers from."
+},
+"singularity_cache": {
+"group": "Nextflow Profile Parameters",
+"default": "\"${bactopia_cache}/singularity\"",
+"type": "string",
+"desc": "Directory where remote Singularity images are stored."
+},
+"singularity_pull_docker_container": {
+"group": "Nextflow Profile Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "Instead of directly downloading Singularity images for use with Singul"
+},
+"queue": {
+"group": "Nextflow Profile Parameters",
+"default": "general,high-memory",
+"type": "string",
+"desc": "Comma-separated name of the queue(s) to be used by a job scheduler (e."
+},
+"disable_scratch": {
+"group": "Nextflow Profile Parameters",
+"default": null,
+"type": "boolean",
+"desc": "All intermediate files created on worker nodes of will be transferred "
+},
+"aws_region": {
+"group": "AWS Batch Profile (-profile awsbatch) Parameters",
+"default": "us-east-1",
+"type": "string",
+"desc": "AWS Region to be used by Nextflow"
+},
+"aws_volumes": {
+"group": "AWS Batch Profile (-profile awsbatch) Parameters",
+"default": "/opt/conda:/mnt/conda",
+"type": "string",
+"desc": "Volumes to be mounted from the EC2 instance to the Docker container"
+},
+"aws_cli_path": {
+"group": "AWS Batch Profile (-profile awsbatch) Parameters",
+"default": "/home/ec2-user/conda/bin/aws",
+"type": "string",
+"desc": "Path to the AWS CLI for Nextflow to use."
+},
+"aws_upload_storage_class": {
+"group": "AWS Batch Profile (-profile awsbatch) Parameters",
+"default": "STANDARD",
+"type": "string",
+"desc": "The S3 storage slass to use for storing files on S3"
+},
+"aws_max_parallel_transfers": {
+"group": "AWS Batch Profile (-profile awsbatch) Parameters",
+"default": 8,
+"type": "integer",
+"desc": "The number of parallele transfers between EC2 and S3"
+},
+"aws_delay_between_attempts": {
+"group": "AWS Batch Profile (-profile awsbatch) Parameters",
+"default": 15,
+"type": "integer",
+"desc": "The duration of sleep (in seconds) between each transfer between EC2 a"
+},
+"aws_max_transfer_attempts": {
+"group": "AWS Batch Profile (-profile awsbatch) Parameters",
+"default": 3,
+"type": "integer",
+"desc": "The maximum number of times to retry transferring a file between EC2 a"
+},
+"aws_max_retry": {
+"group": "AWS Batch Profile (-profile awsbatch) Parameters",
+"default": 4,
+"type": "integer",
+"desc": "The maximum number of times to retry a process on AWS Batch"
+},
+"aws_ecr_registry": {
+"group": "AWS Batch Profile (-profile awsbatch) Parameters",
+"default": null,
+"type": "string",
+"desc": "The ECR registry containing Bactopia related containers."
+},
+"monochrome_logs": {
+"group": "Helpful Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "Do not use coloured log outputs."
+},
+"nfdir": {
+"group": "Helpful Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Print directory Nextflow has pulled Bactopia to"
+},
+"sleep_time": {
+"group": "Helpful Parameters",
+"default": 5,
+"type": "integer",
+"desc": "The amount of time (seconds) Nextflow will wait after setting up datas"
+},
+"validate_params": {
+"group": "Helpful Parameters",
+"default": true,
+"type": "boolean",
+"desc": "Boolean whether to validate parameters against the schema at runtime"
+},
+"help": {
+"group": "Helpful Parameters",
+"default": "null",
+"type": "boolean",
+"desc": "Display help text."
+},
+"wf": {
+"group": "Helpful Parameters",
+"default": "bactopia",
+"type": "string",
+"desc": "Specify which workflow or Bactopia Tool to execute"
+},
+"list_wfs": {
+"group": "Helpful Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "List the available workflows and Bactopia Tools to use with '--wf'"
+},
+"show_hidden_params": {
+"group": "Helpful Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "Show all params when using `--help`"
+},
+"help_all": {
+"group": "Helpful Parameters",
+"default": "false",
+"type": "boolean",
+"desc": "An alias for --help --show_hidden_params"
+},
+"version": {
+"group": "Helpful Parameters",
+"default": null,
+"type": "boolean",
+"desc": "Display version text."
+},
+"fastp_opts": {
+"group": "(module)",
+"default": "''",
+"type": null,
+"desc": ""
+},
+"use_bbmap": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"ain": {
+"group": "(module)",
+"default": "'f'",
+"type": null,
+"desc": ""
+},
+"bbduk_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"use_porechop": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"sketch_size": {
+"group": "(module)",
+"default": "10000",
+"type": null,
+"desc": ""
+},
+"dragonflye_opts": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"racon_rounds": {
+"group": "(module)",
+"default": "1",
+"type": null,
+"desc": ""
+},
+"medaka_rounds": {
+"group": "(module)",
+"default": "0",
+"type": null,
+"desc": ""
+},
+"polypolish_rounds": {
+"group": "(module)",
+"default": "1",
+"type": null,
+"desc": ""
+},
+"pilon_rounds": {
+"group": "(module)",
+"default": "0",
+"type": null,
+"desc": ""
+},
+"nanohq": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"use_prank": {
+"group": "(module)",
+"default": "false // Use PRANK instead of MAFFT fr core-genome alignment",
+"type": null,
+"desc": ""
+},
+"i": {
+"group": "(module)",
+"default": "95 // minimum percentage identity for blastp [95]",
+"type": null,
+"desc": ""
+},
+"cd": {
+"group": "(module)",
+"default": "99 // percentage of isolates a gene must be in to be core [99]",
+"type": null,
+"desc": ""
+},
+"g": {
+"group": "(module)",
+"default": "50000 // maximum number of clusters [50000]",
+"type": null,
+"desc": ""
+},
+"s": {
+"group": "(module)",
+"default": "false // dont split paralogs",
+"type": null,
+"desc": ""
+},
+"ap": {
+"group": "(module)",
+"default": "false // allow paralogs in core alignment",
+"type": null,
+"desc": ""
+},
+"iv": {
+"group": "(module)",
+"default": "1.5",
+"type": null,
+"desc": ""
+},
+"use_roary": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"typing_only": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"gamma_db": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"percent_identity": {
+"group": "(module)",
+"default": "90",
+"type": null,
+"desc": ""
+},
+"all_matches": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"extended": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"write_fasta": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"write_gff": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"mykrobe_species": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"kmer": {
+"group": "(module)",
+"default": "21",
+"type": null,
+"desc": ""
+},
+"min_depth": {
+"group": "(module)",
+"default": "1",
+"type": null,
+"desc": ""
+},
+"model": {
+"group": "(module)",
+"default": "\"kmer_count\"",
+"type": null,
+"desc": ""
+},
+"report_all_calls": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"mykrobe_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"sccmec_min_targets_pident": {
+"group": "(module)",
+"default": "90",
+"type": null,
+"desc": ""
+},
+"sccmec_min_targets_coverage": {
+"group": "(module)",
+"default": "80",
+"type": null,
+"desc": ""
+},
+"sccmec_min_regions_pident": {
+"group": "(module)",
+"default": "85",
+"type": null,
+"desc": ""
+},
+"sccmec_min_regions_coverage": {
+"group": "(module)",
+"default": "93",
+"type": null,
+"desc": ""
+},
+"stecfinder_use_reads": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"stecfinder_hits": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"stecfinder_cutoff": {
+"group": "(module)",
+"default": "10.0",
+"type": null,
+"desc": ""
+},
+"stecfinder_length": {
+"group": "(module)",
+"default": "50.0",
+"type": null,
+"desc": ""
+},
+"stecfinder_ipah_length": {
+"group": "(module)",
+"default": "10.0",
+"type": null,
+"desc": ""
+},
+"stecfinder_ipah_depth": {
+"group": "(module)",
+"default": "1.0",
+"type": null,
+"desc": ""
+},
+"stecfinder_stx_length": {
+"group": "(module)",
+"default": "10.0",
+"type": null,
+"desc": ""
+},
+"stecfinder_stx_depth": {
+"group": "(module)",
+"default": "1.0",
+"type": null,
+"desc": ""
+},
+"stecfinder_o_length": {
+"group": "(module)",
+"default": "60.0",
+"type": null,
+"desc": ""
+},
+"stecfinder_o_depth": {
+"group": "(module)",
+"default": "1.0",
+"type": null,
+"desc": ""
+},
+"stecfinder_h_length": {
+"group": "(module)",
+"default": "60.0",
+"type": null,
+"desc": ""
+},
+"stecfinder_h_depth": {
+"group": "(module)",
+"default": "1.0",
+"type": null,
+"desc": ""
+},
+"mb_max_contig_size": {
+"group": "(module)",
+"default": "310000",
+"type": null,
+"desc": ""
+},
+"mb_min_contig_size": {
+"group": "(module)",
+"default": "1000",
+"type": null,
+"desc": ""
+},
+"mb_max_plasmid_size": {
+"group": "(module)",
+"default": "350000",
+"type": null,
+"desc": ""
+},
+"mobsuite_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"pasty_min_pident": {
+"group": "(module)",
+"default": "95",
+"type": null,
+"desc": ""
+},
+"pasty_min_coverage": {
+"group": "(module)",
+"default": "95",
+"type": null,
+"desc": ""
+},
+"ident_min": {
+"group": "(module)",
+"default": "-1",
+"type": null,
+"desc": ""
+},
+"coverage_min": {
+"group": "(module)",
+"default": "0.5",
+"type": null,
+"desc": ""
+},
+"organism": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"amrfinder_noplus": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"translation_table": {
+"group": "(module)",
+"default": "11",
+"type": null,
+"desc": ""
+},
+"report_common": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"report_all_equal": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"amrfinder_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"amrfinder_db": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"reference": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"snippy_remove_bam": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"snippy_opts": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"format": {
+"group": "(module)",
+"default": "\"genbank\"",
+"type": null,
+"desc": ""
+},
+"mix_downloads": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"maxhap": {
+"group": "(module)",
+"default": "100",
+"type": null,
+"desc": ""
+},
+"mask": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"mask_char": {
+"group": "(module)",
+"default": "\"X\"",
+"type": null,
+"desc": ""
+},
+"snippy_core_opts": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"itol": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"full": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"all_variants": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"mark_missing": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"call_whole_genome": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"mapper": {
+"group": "(module)",
+"default": "\"bwa\"",
+"type": null,
+"desc": ""
+},
+"caller": {
+"group": "(module)",
+"default": "\"freebayes\"",
+"type": null,
+"desc": ""
+},
+"calling_params": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"suspect": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"no_flagstat": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"no_delly": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"tbprofiler_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"pbptyper_min_pident": {
+"group": "(module)",
+"default": "95",
+"type": null,
+"desc": ""
+},
+"pbptyper_min_coverage": {
+"group": "(module)",
+"default": "95",
+"type": null,
+"desc": ""
+},
+"busco_lineage": {
+"group": "(module)",
+"default": "\"bacteria_odb10\"",
+"type": null,
+"desc": ""
+},
+"busco_evalue": {
+"group": "(module)",
+"default": "\"1e-03\"",
+"type": null,
+"desc": ""
+},
+"busco_limit": {
+"group": "(module)",
+"default": "3",
+"type": null,
+"desc": ""
+},
+"metaeuk_parameters": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"metaeuk_rerun_parameters": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"use_augustus": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"augustus_parameters": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"augustus_species": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"augustus_long": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"limit": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"section": {
+"group": "(module)",
+"default": "\"refseq\"",
+"type": null,
+"desc": ""
+},
+"assembly_level": {
+"group": "(module)",
+"default": "\"complete\"",
+"type": null,
+"desc": ""
+},
+"kingdom": {
+"group": "(module)",
+"default": "\"bacteria\"",
+"type": null,
+"desc": ""
+},
+"keep_downloads": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"phispy_number": {
+"group": "(module)",
+"default": "5",
+"type": null,
+"desc": ""
+},
+"phispy_mincontigsize": {
+"group": "(module)",
+"default": "5000",
+"type": null,
+"desc": ""
+},
+"phispy_windowsize": {
+"group": "(module)",
+"default": "30",
+"type": null,
+"desc": ""
+},
+"phispy_nonprophage_genegaps": {
+"group": "(module)",
+"default": "10",
+"type": null,
+"desc": ""
+},
+"phispy_phage_genes": {
+"group": "(module)",
+"default": "1",
+"type": null,
+"desc": ""
+},
+"phispy_randomforest_trees": {
+"group": "(module)",
+"default": "500",
+"type": null,
+"desc": ""
+},
+"phispy_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"repeats": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"repeat_order": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"do_enrich": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"eggnog_db": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"eggnog_save_as_tarball": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"download_eggnog": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"skip_diamond": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"install_hmm": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"install_mmseq": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"install_pfam": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"hmmer_taxid": {
+"group": "(module)",
+"default": "2",
+"type": null,
+"desc": ""
+},
+"genepred": {
+"group": "(module)",
+"default": "\"search\"",
+"type": null,
+"desc": ""
+},
+"mode": {
+"group": "(module)",
+"default": "\"diamond\"",
+"type": null,
+"desc": ""
+},
+"eggnog_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"panaroo_mode": {
+"group": "(module)",
+"default": "'strict'",
+"type": null,
+"desc": ""
+},
+"panaroo_alignment": {
+"group": "(module)",
+"default": "'core'",
+"type": null,
+"desc": ""
+},
+"panaroo_aligner": {
+"group": "(module)",
+"default": "'mafft'",
+"type": null,
+"desc": ""
+},
+"panaroo_core_threshold": {
+"group": "(module)",
+"default": "0.95",
+"type": null,
+"desc": ""
+},
+"panaroo_threshold": {
+"group": "(module)",
+"default": "0.98",
+"type": null,
+"desc": ""
+},
+"panaroo_family_threshold": {
+"group": "(module)",
+"default": "0.7",
+"type": null,
+"desc": ""
+},
+"len_dif_percent": {
+"group": "(module)",
+"default": "0.98",
+"type": null,
+"desc": ""
+},
+"merge_paralogs": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"panaroo_opts": {
+"group": "(module)",
+"default": "''",
+"type": null,
+"desc": ""
+},
+"midas_db": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"midas_word_size": {
+"group": "(module)",
+"default": "28",
+"type": null,
+"desc": ""
+},
+"midas_aln_cov": {
+"group": "(module)",
+"default": "0.75",
+"type": null,
+"desc": ""
+},
+"midas_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"midas_debug": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"full_cgmlst": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"clermon_threshold": {
+"group": "(module)",
+"default": "0",
+"type": null,
+"desc": ""
+},
+"use_mamba": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"insertions": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"min_clip": {
+"group": "(module)",
+"default": "10",
+"type": null,
+"desc": ""
+},
+"max_clip": {
+"group": "(module)",
+"default": "30",
+"type": null,
+"desc": ""
+},
+"cutoff": {
+"group": "(module)",
+"default": "6",
+"type": null,
+"desc": ""
+},
+"novel_gap_size": {
+"group": "(module)",
+"default": "15",
+"type": null,
+"desc": ""
+},
+"min_range": {
+"group": "(module)",
+"default": "0.9",
+"type": null,
+"desc": ""
+},
+"max_range": {
+"group": "(module)",
+"default": "1.1",
+"type": null,
+"desc": ""
+},
+"merging": {
+"group": "(module)",
+"default": "100",
+"type": null,
+"desc": ""
+},
+"ismap_all": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"ismap_minqual": {
+"group": "(module)",
+"default": "30",
+"type": null,
+"desc": ""
+},
+"use_k2scrubber": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"kraken2_db": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"quick_mode": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"confidence": {
+"group": "(module)",
+"default": "0.0",
+"type": null,
+"desc": ""
+},
+"minimum_base_quality": {
+"group": "(module)",
+"default": "0",
+"type": null,
+"desc": ""
+},
+"use_mpa_style": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"report_zero_counts": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"report_minimizer_data": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"use_names": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"memory_mapping": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"minimum_hit_groups": {
+"group": "(module)",
+"default": "2",
+"type": null,
+"desc": ""
+},
+"keep_filtered_reads": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"skip_recombination": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"emsim": {
+"group": "(module)",
+"default": "100",
+"type": null,
+"desc": ""
+},
+"clonal_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"scheme": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"minid": {
+"group": "(module)",
+"default": "95",
+"type": null,
+"desc": ""
+},
+"minscore": {
+"group": "(module)",
+"default": "50",
+"type": null,
+"desc": ""
+},
+"nopath": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"mlst_db": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"abricate_db": {
+"group": "(module)",
+"default": "\"ncbi\"",
+"type": null,
+"desc": ""
+},
+"blastp_query": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"blastp_outfmt": {
+"group": "(module)",
+"default": "\"sseqid qseqid pident qlen slen length nident positive mismatch gapopen gaps qstart qend sstart send evalue bitscore\"",
+"type": null,
+"desc": ""
+},
+"blastp_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"blastp_qcov_hsp_perc": {
+"group": "(module)",
+"default": "50",
+"type": null,
+"desc": ""
+},
+"blastp_max_target_seqs": {
+"group": "(module)",
+"default": "2000",
+"type": null,
+"desc": ""
+},
+"tblastx_query": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"tblastx_outfmt": {
+"group": "(module)",
+"default": "\"sseqid qseqid pident qlen slen length nident positive mismatch gapopen gaps qstart qend sstart send evalue bitscore\"",
+"type": null,
+"desc": ""
+},
+"tblastx_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"tblastx_qcov_hsp_perc": {
+"group": "(module)",
+"default": "50",
+"type": null,
+"desc": ""
+},
+"tblastx_max_target_seqs": {
+"group": "(module)",
+"default": "2000",
+"type": null,
+"desc": ""
+},
+"tblastx_use_genes": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"blastx_query": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"blastx_outfmt": {
+"group": "(module)",
+"default": "\"sseqid qseqid pident qlen slen length nident positive mismatch gapopen gaps qstart qend sstart send evalue bitscore\"",
+"type": null,
+"desc": ""
+},
+"blastx_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"blastx_qcov_hsp_perc": {
+"group": "(module)",
+"default": "50",
+"type": null,
+"desc": ""
+},
+"blastx_max_target_seqs": {
+"group": "(module)",
+"default": "2000",
+"type": null,
+"desc": ""
+},
+"blastn_query": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"blastn_outfmt": {
+"group": "(module)",
+"default": "\"sseqid qseqid pident qlen slen length nident positive mismatch gapopen gaps qstart qend sstart send evalue bitscore\"",
+"type": null,
+"desc": ""
+},
+"blastn_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"blastn_perc_identity": {
+"group": "(module)",
+"default": "50",
+"type": null,
+"desc": ""
+},
+"blastn_qcov_hsp_perc": {
+"group": "(module)",
+"default": "50",
+"type": null,
+"desc": ""
+},
+"blastn_max_target_seqs": {
+"group": "(module)",
+"default": "2000",
+"type": null,
+"desc": ""
+},
+"blastn_use_genes": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"tblastn_query": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"tblastn_outfmt": {
+"group": "(module)",
+"default": "\"sseqid qseqid pident qlen slen length nident positive mismatch gapopen gaps qstart qend sstart send evalue bitscore\"",
+"type": null,
+"desc": ""
+},
+"tblastn_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"tblastn_qcov_hsp_perc": {
+"group": "(module)",
+"default": "50",
+"type": null,
+"desc": ""
+},
+"tblastn_max_target_seqs": {
+"group": "(module)",
+"default": "2000",
+"type": null,
+"desc": ""
+},
+"tblastn_use_genes": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"prodigal_tf": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"proteins": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"replicons": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"min_contig_length": {
+"group": "(module)",
+"default": "1",
+"type": null,
+"desc": ""
+},
+"keep_contig_headers": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"skip_trna": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"skip_tmrna": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"skip_rrna": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"skip_ncrna": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"skip_ncrna_region": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"skip_crispr": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"skip_cds": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"skip_sorf": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"skip_gap": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"skip_ori": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"bakta_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"download_bakta": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"bakta_db": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"bakta_db_type": {
+"group": "(module)",
+"default": "\"full\"",
+"type": null,
+"desc": ""
+},
+"bakta_save_as_tarball": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"a": {
+"group": "(module)",
+"default": "false // Count all differences not just [AGTC]",
+"type": null,
+"desc": ""
+},
+"b": {
+"group": "(module)",
+"default": "false // Keep top left corner cell",
+"type": null,
+"desc": ""
+},
+"csv": {
+"group": "(module)",
+"default": "false // Output CSV instead of TSV",
+"type": null,
+"desc": ""
+},
+"k": {
+"group": "(module)",
+"default": "false // Keep case, don't uppercase all letters",
+"type": null,
+"desc": ""
+},
+"frag_len": {
+"group": "(module)",
+"default": "3000",
+"type": null,
+"desc": ""
+},
+"min_fraction": {
+"group": "(module)",
+"default": "0.2",
+"type": null,
+"desc": ""
+},
+"skip_pairwise": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"use_diamond": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"include_loose": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"exclude_nudge": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"rgi_category": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"rgi_frequency": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"rgi_cluster": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"rgi_display": {
+"group": "(module)",
+"default": "\"plain\"",
+"type": null,
+"desc": ""
+},
+"use_srascrubber": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"iterations": {
+"group": "(module)",
+"default": "5",
+"type": null,
+"desc": ""
+},
+"min_snps": {
+"group": "(module)",
+"default": "3",
+"type": null,
+"desc": ""
+},
+"min_window_size": {
+"group": "(module)",
+"default": "100",
+"type": null,
+"desc": ""
+},
+"max_window_size": {
+"group": "(module)",
+"default": "10000",
+"type": null,
+"desc": ""
+},
+"filter_percentage": {
+"group": "(module)",
+"default": "25.0",
+"type": null,
+"desc": ""
+},
+"remove_identical_sequences": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"gubbin_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"database_dir": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"model_fp": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"full_sequence": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"gene_coverage": {
+"group": "(module)",
+"default": "0.8",
+"type": null,
+"desc": ""
+},
+"gene_identity": {
+"group": "(module)",
+"default": "0.7",
+"type": null,
+"desc": ""
+},
+"broken_gene_length": {
+"group": "(module)",
+"default": "60",
+"type": null,
+"desc": ""
+},
+"broken_gene_identity": {
+"group": "(module)",
+"default": "0.8",
+"type": null,
+"desc": ""
+},
+"hicap_debug": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"bt_virulence_identity": {
+"group": "(module)",
+"default": "70",
+"type": null,
+"desc": ""
+},
+"bt_virulence_coverage": {
+"group": "(module)",
+"default": "80",
+"type": null,
+"desc": ""
+},
+"bt_identity": {
+"group": "(module)",
+"default": "50",
+"type": null,
+"desc": ""
+},
+"bt_coverage": {
+"group": "(module)",
+"default": "70",
+"type": null,
+"desc": ""
+},
+"bt_overlap": {
+"group": "(module)",
+"default": "70",
+"type": null,
+"desc": ""
+},
+"bt_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"traits": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"p_value_cutoff": {
+"group": "(module)",
+"default": "0.05",
+"type": null,
+"desc": ""
+},
+"correction": {
+"group": "(module)",
+"default": "\"I\"",
+"type": null,
+"desc": ""
+},
+"permute": {
+"group": "(module)",
+"default": "0",
+"type": null,
+"desc": ""
+},
+"start_col": {
+"group": "(module)",
+"default": "15",
+"type": null,
+"desc": ""
+},
+"ariba_db": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"gtdb": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"gtdb_save_as_tarball": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"download_gtdb": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"skip_check": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"min_af": {
+"group": "(module)",
+"default": "0.65",
+"type": null,
+"desc": ""
+},
+"min_perc_aa": {
+"group": "(module)",
+"default": "10",
+"type": null,
+"desc": ""
+},
+"gtdb_tmp": {
+"group": "(module)",
+"default": "'/tmp'",
+"type": null,
+"desc": ""
+},
+"gtdb_use_scratch": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"gtdb_debug": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"gtdb_keep_msa": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"force_gtdb": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"prokka_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"prokka_debug": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"mash_seed": {
+"group": "(module)",
+"default": "42",
+"type": null,
+"desc": ""
+},
+"mash_table": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"mash_m": {
+"group": "(module)",
+"default": "1",
+"type": null,
+"desc": ""
+},
+"mash_w": {
+"group": "(module)",
+"default": "0.01",
+"type": null,
+"desc": ""
+},
+"max_p": {
+"group": "(module)",
+"default": "1.0",
+"type": null,
+"desc": ""
+},
+"max_dist": {
+"group": "(module)",
+"default": "1.0 // report all",
+"type": null,
+"desc": ""
+},
+"merlin_dist": {
+"group": "(module)",
+"default": "0.10 // report only close matches",
+"type": null,
+"desc": ""
+},
+"full_merlin": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"checkm2_lowmem": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"checkm2_general": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"checkm2_specific": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"checkm2_allmodels": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"checkm2_genes": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"checkm2_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"download_checkm2": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"checkm2_db": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"df_preserveraw": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"df_nocutga": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"df_coverage": {
+"group": "(module)",
+"default": "0.4",
+"type": null,
+"desc": ""
+},
+"df_dbtype": {
+"group": "(module)",
+"default": "\"ordered_replicon\"",
+"type": null,
+"desc": ""
+},
+"hamming": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"finetype": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"porB": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"bast": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"mlst": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"all": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"run_mode": {
+"group": "(module)",
+"default": "'k'",
+"type": null,
+"desc": ""
+},
+"input_type": {
+"group": "(module)",
+"default": "'assembly'",
+"type": null,
+"desc": ""
+},
+"bwa_mode": {
+"group": "(module)",
+"default": "'mem'",
+"type": null,
+"desc": ""
+},
+"min_id": {
+"group": "(module)",
+"default": "95.0",
+"type": null,
+"desc": ""
+},
+"min_cov": {
+"group": "(module)",
+"default": "95.0",
+"type": null,
+"desc": ""
+},
+"kraken2_quick_mode": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"kraken2_confidence": {
+"group": "(module)",
+"default": "0.0",
+"type": null,
+"desc": ""
+},
+"kraken2_minimum_base_quality": {
+"group": "(module)",
+"default": "0",
+"type": null,
+"desc": ""
+},
+"kraken2_use_mpa_style": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"kraken2_report_zero_counts": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"kraken2_report_minimizer_data": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"kraken2_use_names": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"kraken2_memory_mapping": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"kraken2_minimum_hit_groups": {
+"group": "(module)",
+"default": "2",
+"type": null,
+"desc": ""
+},
+"kraken2_keep_filtered_reads": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"kraken2_keep_raw_output": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"bracken_read_length": {
+"group": "(module)",
+"default": "0",
+"type": null,
+"desc": ""
+},
+"bracken_level": {
+"group": "(module)",
+"default": "\"S\"",
+"type": null,
+"desc": ""
+},
+"bracken_threshold": {
+"group": "(module)",
+"default": "0",
+"type": null,
+"desc": ""
+},
+"bracken_max_secondary_percent": {
+"group": "(module)",
+"default": "0.01",
+"type": null,
+"desc": ""
+},
+"skip_krona": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"abritamr_identity": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"abritamr_species": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"sylph_db": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"sylph_k": {
+"group": "(module)",
+"default": "31",
+"type": null,
+"desc": ""
+},
+"sylph_min_spacing": {
+"group": "(module)",
+"default": "30",
+"type": null,
+"desc": ""
+},
+"sylph_subsample_rate": {
+"group": "(module)",
+"default": "200",
+"type": null,
+"desc": ""
+},
+"sylph_min_ani": {
+"group": "(module)",
+"default": "95",
+"type": null,
+"desc": ""
+},
+"sylph_min_kmers": {
+"group": "(module)",
+"default": "50",
+"type": null,
+"desc": ""
+},
+"sylph_min_correct": {
+"group": "(module)",
+"default": "3",
+"type": null,
+"desc": ""
+},
+"sylph_estimate_unknown": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"sylph_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"seroba_noclean": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"seroba_coverage": {
+"group": "(module)",
+"default": "20",
+"type": null,
+"desc": ""
+},
+"trunclength": {
+"group": "(module)",
+"default": "250",
+"type": null,
+"desc": ""
+},
+"sortorder": {
+"group": "(module)",
+"default": "'ABC'",
+"type": null,
+"desc": ""
+},
+"genomesize": {
+"group": "(module)",
+"default": "5000000",
+"type": null,
+"desc": ""
+},
+"mindepth": {
+"group": "(module)",
+"default": "5",
+"type": null,
+"desc": ""
+},
+"kmerlength": {
+"group": "(module)",
+"default": "21",
+"type": null,
+"desc": ""
+},
+"sketchsize": {
+"group": "(module)",
+"default": "10000",
+"type": null,
+"desc": ""
+},
+"save_sketches": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"iqtree_model": {
+"group": "(module)",
+"default": "\"HKY\"",
+"type": null,
+"desc": ""
+},
+"bb": {
+"group": "(module)",
+"default": "1000 // Ultrafast bootstrap replicates",
+"type": null,
+"desc": ""
+},
+"alrt": {
+"group": "(module)",
+"default": "1000 // SH-like approximate likelihood ratio test (SH-aLRT) replicates",
+"type": null,
+"desc": ""
+},
+"asr": {
+"group": "(module)",
+"default": "false // Ancestral state reconstruction by empirical Bayes",
+"type": null,
+"desc": ""
+},
+"iqtree_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"skip_phylogeny": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"emmtyper_wf": {
+"group": "(module)",
+"default": "\"blast\"",
+"type": null,
+"desc": ""
+},
+"emmtyper_blastdb": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"cluster_distance": {
+"group": "(module)",
+"default": "500",
+"type": null,
+"desc": ""
+},
+"percid": {
+"group": "(module)",
+"default": "95",
+"type": null,
+"desc": ""
+},
+"culling_limit": {
+"group": "(module)",
+"default": "5",
+"type": null,
+"desc": ""
+},
+"mismatch": {
+"group": "(module)",
+"default": "5",
+"type": null,
+"desc": ""
+},
+"align_diff": {
+"group": "(module)",
+"default": "5",
+"type": null,
+"desc": ""
+},
+"gap": {
+"group": "(module)",
+"default": "2",
+"type": null,
+"desc": ""
+},
+"min_perfect": {
+"group": "(module)",
+"default": "15",
+"type": null,
+"desc": ""
+},
+"min_good": {
+"group": "(module)",
+"default": "15",
+"type": null,
+"desc": ""
+},
+"max_size": {
+"group": "(module)",
+"default": "2000",
+"type": null,
+"desc": ""
+},
+"opid": {
+"group": "(module)",
+"default": "90",
+"type": null,
+"desc": ""
+},
+"hpid": {
+"group": "(module)",
+"default": "95",
+"type": null,
+"desc": ""
+},
+"opcov": {
+"group": "(module)",
+"default": "90",
+"type": null,
+"desc": ""
+},
+"hpcov": {
+"group": "(module)",
+"default": "50",
+"type": null,
+"desc": ""
+},
+"verify": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"print_alleles": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"pf_mincov": {
+"group": "(module)",
+"default": "0.60",
+"type": null,
+"desc": ""
+},
+"pf_threshold": {
+"group": "(module)",
+"default": "0.90",
+"type": null,
+"desc": ""
+},
+"use_pirate": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"steps": {
+"group": "(module)",
+"default": "'50,60,70,80,90,95,98'\t// % identity thresholds to use for pangenome construction",
+"type": null,
+"desc": ""
+},
+"features": {
+"group": "(module)",
+"default": "'CDS' //\tchoose features to use for pangenome construction. Multiple may be entered, separated by a comma",
+"type": null,
+"desc": ""
+},
+"para_off": {
+"group": "(module)",
+"default": "false // switch off paralog identification [default: off]",
+"type": null,
+"desc": ""
+},
+"z": {
+"group": "(module)",
+"default": "false // retain all intermediate files",
+"type": null,
+"desc": ""
+},
+"pan_opt": {
+"group": "(module)",
+"default": "'' // Allows the params below to be given as a string",
+"type": null,
+"desc": ""
+},
+"kleborate_opts": {
+"group": "(module)",
+"default": "''",
+"type": null,
+"desc": ""
+},
+"kleborate_preset": {
+"group": "(module)",
+"default": "'kpsc'",
+"type": null,
+"desc": ""
+},
+"noheader": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"bactopia": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"rundir": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"merge_folder": {
+"group": "(module)",
+"default": "\"merged-results\"",
+"type": null,
+"desc": ""
+},
+"resources": {
+"group": "(module)",
+"default": "resources",
+"type": null,
+"desc": ""
+},
+"schema_ignore_params": {
+"group": "(module)",
+"default": "'rundir,mix_downloads,resources,no_check_certificate,run_name,prokka_debug,is_ci,sourmash_url,mash_url,mlst_url,amrfinder_url,merge_folder,wf_has_subdir,build_all,use_mamba,empty_proteins,empty_tf,empty_adapters,empty_phix,help_all,include_tools,publish_dir,silent,test_data,test_data_dir,verbose,schema_inputs,empty_extra,empty_r2,empty_r1,workflows,available_workflows,is_subworkflow,enable_conda,force_rebuild,config_profile_url,config_profile_contact,config_profile_description,config_profile_name'",
+"type": null,
+"desc": ""
+},
+"schema_inputs": {
+"group": "(module)",
+"default": "['fastqs', 'r1,r2,se,sample,hybrid', 'r1,r2,sample', 'se,sample', 'assembly,sample', 'accessions', 'accession']",
+"type": null,
+"desc": ""
+},
+"force_rebuild": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"container_opts": {
+"group": "(module)",
+"default": "\"\"",
+"type": null,
+"desc": ""
+},
+"enable_conda": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"build_all": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"include_tools": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"verbose": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"silent": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"no_check_certificate": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"datasets_cache": {
+"group": "(module)",
+"default": "\"${bactopia_cache}/datasets\"",
+"type": null,
+"desc": ""
+},
+"amrfinder_url": {
+"group": "(module)",
+"default": "\"https://datasets.bactopia.com/datasets/v${manifest.version}/amrfinderplus.tar.gz\"",
+"type": null,
+"desc": ""
+},
+"mlst_url": {
+"group": "(module)",
+"default": "\"https://datasets.bactopia.com/datasets/v${manifest.version}/mlst.tar.gz\"",
+"type": null,
+"desc": ""
+},
+"mash_url": {
+"group": "(module)",
+"default": "\"https://datasets.bactopia.com/datasets/mash-refseq88.k21.msh.xz\"",
+"type": null,
+"desc": ""
+},
+"sourmash_url": {
+"group": "(module)",
+"default": "\"https://datasets.bactopia.com/datasets/gtdb-rs207.genomic-reps.dna.k31.lca.json.gz\"",
+"type": null,
+"desc": ""
+},
+"test_data_dir": {
+"group": "(module)",
+"default": "'https://raw.githubusercontent.com/bactopia/bactopia-tests/main/data'",
+"type": null,
+"desc": ""
+},
+"is_ci": {
+"group": "(module)",
+"default": "false",
+"type": null,
+"desc": ""
+},
+"config_profile_name": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"config_profile_description": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"custom_config_version": {
+"group": "(module)",
+"default": "'master'",
+"type": null,
+"desc": ""
+},
+"custom_config_base": {
+"group": "(module)",
+"default": "\"https://raw.githubusercontent.com/nf-core/configs/${params.custom_config_version}\"",
+"type": null,
+"desc": ""
+},
+"config_profile_contact": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+},
+"config_profile_url": {
+"group": "(module)",
+"default": "null",
+"type": null,
+"desc": ""
+}
+}

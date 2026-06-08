@@ -1,0 +1,439 @@
+status.cpython-311.pyc (Python 3.11)
+[Code]
+    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/status.py
+    Object Name: <module>
+    Qualified Name: <module>
+    Arg Count: 0
+    Pos Only Arg Count: 0
+    KW Only Arg Count: 0
+    Stack Size: 2
+    Flags: 0x01000000 (CO_FUTURE_ANNOTATIONS)
+    [Names]
+        '__doc__'
+        '__future__'
+        'annotations'
+        'reflex'
+        'rx'
+        'bearhub.components.shell'
+        'shell'
+        'bearhub.components.wizard'
+        'hero'
+        'bearhub.data.catalog'
+        'BACTOPIA_VERSION'
+        'bearhub.state'
+        'StatusState'
+        '_ROWS'
+        '_version_row'
+        'status_page'
+    [Locals+Names]
+    [Constants]
+        'Status page — installed versions.'
+        0
+        (
+            'annotations'
+        )
+        None
+        (
+            'shell'
+        )
+        (
+            'hero'
+        )
+        (
+            'BACTOPIA_VERSION'
+        )
+        (
+            'StatusState'
+        )
+        (
+            (
+                'Bactopia'
+                'bactopia'
+            )
+            (
+                'Nextflow'
+                'nextflow'
+            )
+            (
+                'Java'
+                'java'
+            )
+            (
+                'Docker'
+                'docker'
+            )
+        )
+        'label'
+        'str'
+        'key'
+        'return'
+        'rx.Component'
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/status.py
+            Object Name: _version_row
+            Qualified Name: _version_row
+            Arg Count: 2
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 9
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'rx'
+                'hstack'
+                'text'
+                'code'
+                'StatusState'
+                'versions'
+                'get'
+            [Locals+Names]
+                'label'
+                'key'
+            [Constants]
+                None
+                'bold'
+                '2'
+                '120px'
+                (
+                    'weight'
+                    'size'
+                    'width'
+                )
+                'Unknown'
+                '3'
+                'center'
+                '100%'
+                (
+                    'spacing'
+                    'align'
+                    'width'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + rx
+                14      LOAD_ATTR                       1: hstack
+                24      LOAD_GLOBAL                     1: NULL + rx
+                36      LOAD_ATTR                       2: text
+                46      LOAD_FAST                       0: label
+                48      LOAD_CONST                      1: 'bold'
+                50      LOAD_CONST                      2: '2'
+                52      LOAD_CONST                      3: '120px'
+                54      KW_NAMES                        4: ('weight', 'size', 'width')
+                56      PRECALL                         4
+                60      CALL                            4
+                70      LOAD_GLOBAL                     1: NULL + rx
+                82      LOAD_ATTR                       3: code
+                92      LOAD_GLOBAL                     8: StatusState
+                104     LOAD_ATTR                       5: versions
+                114     LOAD_METHOD                     6: get
+                136     LOAD_FAST                       1: key
+                138     LOAD_CONST                      5: 'Unknown'
+                140     PRECALL                         2
+                144     CALL                            2
+                154     PRECALL                         1
+                158     CALL                            1
+                168     LOAD_CONST                      6: '3'
+                170     LOAD_CONST                      7: 'center'
+                172     LOAD_CONST                      8: '100%'
+                174     KW_NAMES                        9: ('spacing', 'align', 'width')
+                176     PRECALL                         5
+                180     CALL                            5
+                190     RETURN_VALUE                    
+            [Exception Table]
+        [Code]
+            File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/status.py
+            Object Name: status_page
+            Qualified Name: status_page
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 17
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'shell'
+                'hero'
+                'rx'
+                'card'
+                'hstack'
+                'heading'
+                'spacer'
+                'cond'
+                'StatusState'
+                'loading'
+                'spinner'
+                'button'
+                'icon'
+                'load'
+                'divider'
+                'vstack'
+                '_ROWS'
+                'text'
+                'BACTOPIA_VERSION'
+            [Locals+Names]
+            [Constants]
+                None
+                'activity'
+                'System Status'
+                'Versions of Bactopia and its dependencies.'
+                'External tools'
+                '4'
+                (
+                    'size'
+                )
+                '2'
+                'refresh-cw'
+                16
+                'Refresh'
+                'soft'
+                (
+                    'on_click'
+                    'variant'
+                    'size'
+                )
+                '100%'
+                'center'
+                (
+                    'width'
+                    'align'
+                )
+                '3'
+                (
+                    'margin_y'
+                )
+                [Code]
+                    File Name: /home/cdctserver/BEAR-HUB/BEAR-HUB/bearhub_rx/bearhub/pages/status.py
+                    Object Name: <listcomp>
+                    Qualified Name: status_page.<locals>.<listcomp>
+                    Arg Count: 1
+                    Pos Only Arg Count: 0
+                    KW Only Arg Count: 0
+                    Stack Size: 6
+                    Flags: 0x01000013 (CO_OPTIMIZED | CO_NEWLOCALS | CO_NESTED | CO_FUTURE_ANNOTATIONS)
+                    [Names]
+                        '_version_row'
+                    [Locals+Names]
+                        '.0'
+                        'l'
+                        'k'
+                    [Constants]
+                    [Disassembly]
+                        0       RESUME                          0
+                        2       BUILD_LIST                      0
+                        4       LOAD_FAST                       0: .0
+                        6       FOR_ITER                        21 (to 50)
+                        8       UNPACK_SEQUENCE                 2
+                        12      STORE_FAST                      1: l
+                        14      STORE_FAST                      2: k
+                        16      LOAD_GLOBAL                     1: NULL + _version_row
+                        28      LOAD_FAST                       1: l
+                        30      LOAD_FAST                       2: k
+                        32      PRECALL                         2
+                        36      CALL                            2
+                        46      LIST_APPEND                     2
+                        48      JUMP_BACKWARD                   22 (to 6)
+                        50      RETURN_VALUE                    
+                    [Exception Table]
+                (
+                    'spacing'
+                    'width'
+                )
+                (
+                    'width'
+                )
+                'BEAR-HUB'
+                'Pinned Bactopia version: v'
+                'var(--gray-10)'
+                (
+                    'size'
+                    'color'
+                )
+                'Updates are installed manually via install_bear.sh.'
+                '1'
+                'var(--gray-9)'
+                '/status'
+                (
+                    'active'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     1: NULL + shell
+                14      LOAD_GLOBAL                     3: NULL + hero
+                26      LOAD_CONST                      1: 'activity'
+                28      LOAD_CONST                      2: 'System Status'
+                30      LOAD_CONST                      3: 'Versions of Bactopia and its dependencies.'
+                32      PRECALL                         3
+                36      CALL                            3
+                46      LOAD_GLOBAL                     5: NULL + rx
+                58      LOAD_ATTR                       3: card
+                68      LOAD_GLOBAL                     5: NULL + rx
+                80      LOAD_ATTR                       4: hstack
+                90      LOAD_GLOBAL                     5: NULL + rx
+                102     LOAD_ATTR                       5: heading
+                112     LOAD_CONST                      4: 'External tools'
+                114     LOAD_CONST                      5: '4'
+                116     KW_NAMES                        6: ('size',)
+                118     PRECALL                         2
+                122     CALL                            2
+                132     LOAD_GLOBAL                     5: NULL + rx
+                144     LOAD_ATTR                       6: spacer
+                154     PRECALL                         0
+                158     CALL                            0
+                168     LOAD_GLOBAL                     5: NULL + rx
+                180     LOAD_ATTR                       7: cond
+                190     LOAD_GLOBAL                     16: StatusState
+                202     LOAD_ATTR                       9: loading
+                212     LOAD_GLOBAL                     5: NULL + rx
+                224     LOAD_ATTR                       10: spinner
+                234     LOAD_CONST                      7: '2'
+                236     KW_NAMES                        6: ('size',)
+                238     PRECALL                         1
+                242     CALL                            1
+                252     PRECALL                         2
+                256     CALL                            2
+                266     LOAD_GLOBAL                     5: NULL + rx
+                278     LOAD_ATTR                       11: button
+                288     LOAD_GLOBAL                     5: NULL + rx
+                300     LOAD_ATTR                       12: icon
+                310     LOAD_CONST                      8: 'refresh-cw'
+                312     LOAD_CONST                      9: 16
+                314     KW_NAMES                        6: ('size',)
+                316     PRECALL                         2
+                320     CALL                            2
+                330     LOAD_CONST                      10: 'Refresh'
+                332     LOAD_GLOBAL                     16: StatusState
+                344     LOAD_ATTR                       13: load
+                354     LOAD_CONST                      11: 'soft'
+                356     LOAD_CONST                      7: '2'
+                358     KW_NAMES                        12: ('on_click', 'variant', 'size')
+                360     PRECALL                         5
+                364     CALL                            5
+                374     LOAD_CONST                      13: '100%'
+                376     LOAD_CONST                      14: 'center'
+                378     KW_NAMES                        15: ('width', 'align')
+                380     PRECALL                         6
+                384     CALL                            6
+                394     LOAD_GLOBAL                     5: NULL + rx
+                406     LOAD_ATTR                       14: divider
+                416     LOAD_CONST                      16: '3'
+                418     KW_NAMES                        17: ('margin_y',)
+                420     PRECALL                         1
+                424     CALL                            1
+                434     LOAD_GLOBAL                     5: NULL + rx
+                446     LOAD_ATTR                       15: vstack
+                456     LOAD_CONST                      18: <CODE> <listcomp>
+                458     MAKE_FUNCTION                   0
+                460     LOAD_GLOBAL                     32: _ROWS
+                472     GET_ITER                        
+                474     PRECALL                         0
+                478     CALL                            0
+                488     LOAD_CONST                      16: '3'
+                490     LOAD_CONST                      13: '100%'
+                492     LOAD_CONST                      19: ('spacing', 'width')
+                494     BUILD_CONST_KEY_MAP             2
+                496     CALL_FUNCTION_EX                1
+                498     LOAD_CONST                      13: '100%'
+                500     KW_NAMES                        20: ('width',)
+                502     PRECALL                         4
+                506     CALL                            4
+                516     LOAD_GLOBAL                     5: NULL + rx
+                528     LOAD_ATTR                       3: card
+                538     LOAD_GLOBAL                     5: NULL + rx
+                550     LOAD_ATTR                       5: heading
+                560     LOAD_CONST                      21: 'BEAR-HUB'
+                562     LOAD_CONST                      5: '4'
+                564     KW_NAMES                        6: ('size',)
+                566     PRECALL                         2
+                570     CALL                            2
+                580     LOAD_GLOBAL                     5: NULL + rx
+                592     LOAD_ATTR                       17: text
+                602     LOAD_CONST                      22: 'Pinned Bactopia version: v'
+                604     LOAD_GLOBAL                     36: BACTOPIA_VERSION
+                616     FORMAT_VALUE                    0 (FVC_NONE)
+                618     BUILD_STRING                    2
+                620     LOAD_CONST                      7: '2'
+                622     LOAD_CONST                      23: 'var(--gray-10)'
+                624     KW_NAMES                        24: ('size', 'color')
+                626     PRECALL                         3
+                630     CALL                            3
+                640     LOAD_GLOBAL                     5: NULL + rx
+                652     LOAD_ATTR                       17: text
+                662     LOAD_CONST                      25: 'Updates are installed manually via install_bear.sh.'
+                664     LOAD_CONST                      26: '1'
+                666     LOAD_CONST                      27: 'var(--gray-9)'
+                668     KW_NAMES                        24: ('size', 'color')
+                670     PRECALL                         3
+                674     CALL                            3
+                684     LOAD_CONST                      13: '100%'
+                686     KW_NAMES                        20: ('width',)
+                688     PRECALL                         4
+                692     CALL                            4
+                702     LOAD_CONST                      28: '/status'
+                704     KW_NAMES                        29: ('active',)
+                706     PRECALL                         4
+                710     CALL                            4
+                720     RETURN_VALUE                    
+            [Exception Table]
+        (
+            'label'
+            'str'
+            'key'
+            'str'
+            'return'
+            'rx.Component'
+        )
+        (
+            'return'
+            'rx.Component'
+        )
+    [Disassembly]
+        0       RESUME                          0
+        2       LOAD_CONST                      0: 'Status page — installed versions.'
+        4       STORE_NAME                      0: __doc__
+        6       LOAD_CONST                      1: 0
+        8       LOAD_CONST                      2: ('annotations',)
+        10      IMPORT_NAME                     1: __future__
+        12      IMPORT_FROM                     2: annotations
+        14      STORE_NAME                      2: annotations
+        16      POP_TOP                         
+        18      LOAD_CONST                      1: 0
+        20      LOAD_CONST                      3: None
+        22      IMPORT_NAME                     3: reflex
+        24      STORE_NAME                      4: rx
+        26      LOAD_CONST                      1: 0
+        28      LOAD_CONST                      4: ('shell',)
+        30      IMPORT_NAME                     5: bearhub.components.shell
+        32      IMPORT_FROM                     6: shell
+        34      STORE_NAME                      6: shell
+        36      POP_TOP                         
+        38      LOAD_CONST                      1: 0
+        40      LOAD_CONST                      5: ('hero',)
+        42      IMPORT_NAME                     7: bearhub.components.wizard
+        44      IMPORT_FROM                     8: hero
+        46      STORE_NAME                      8: hero
+        48      POP_TOP                         
+        50      LOAD_CONST                      1: 0
+        52      LOAD_CONST                      6: ('BACTOPIA_VERSION',)
+        54      IMPORT_NAME                     9: bearhub.data.catalog
+        56      IMPORT_FROM                     10: BACTOPIA_VERSION
+        58      STORE_NAME                      10: BACTOPIA_VERSION
+        60      POP_TOP                         
+        62      LOAD_CONST                      1: 0
+        64      LOAD_CONST                      7: ('StatusState',)
+        66      IMPORT_NAME                     11: bearhub.state
+        68      IMPORT_FROM                     12: StatusState
+        70      STORE_NAME                      12: StatusState
+        72      POP_TOP                         
+        74      BUILD_LIST                      0
+        76      LOAD_CONST                      8: (('Bactopia', 'bactopia'), ('Nextflow', 'nextflow'), ('Java', 'java'), ('Docker', 'docker'))
+        78      LIST_EXTEND                     1
+        80      STORE_NAME                      13: _ROWS
+        82      LOAD_CONST                      16: ('label', 'str', 'key', 'str', 'return', 'rx.Component')
+        84      LOAD_CONST                      14: <CODE> _version_row
+        86      MAKE_FUNCTION                   4
+        88      STORE_NAME                      14: _version_row
+        90      LOAD_CONST                      17: ('return', 'rx.Component')
+        92      LOAD_CONST                      15: <CODE> status_page
+        94      MAKE_FUNCTION                   4
+        96      STORE_NAME                      15: status_page
+        98      LOAD_CONST                      3: None
+        100     RETURN_VALUE                    
+    [Exception Table]
