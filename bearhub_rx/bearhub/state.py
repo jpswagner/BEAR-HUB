@@ -620,9 +620,14 @@ def _main_cmd(outdir: str, fofn_path: str, o: dict, f: dict,
         base += ["-with-timeline", str(_pathlib.Path(outdir) / "nf-timeline.html")]
     if f.get("with_trace"):
         base += ["-with-trace", str(_pathlib.Path(outdir) / "nf-trace.txt")]
-    fp = _fastp_opts(o, f).strip()
-    if fp:
-        base += ["--fastp_opts", fp]
+    # --fastp_opts only applies to Illumina reads. Omit it for pure ONT runs
+    # (Dragonflye long-read QC uses nanoq/filtlong, not fastp). Hybrid modes keep
+    # it because they include Illumina R1/R2.
+    mode = o.get("assembly_mode", "")
+    if mode != "ONT (Dragonflye)":
+        fp = _fastp_opts(o, f).strip()
+        if fp:
+            base += ["--fastp_opts", fp]
     # Assembler-specific flags (unicycler_mode, skip_qc_plots, etc.)
     base += _assembler_flags(o, f)
     if threads > 0:

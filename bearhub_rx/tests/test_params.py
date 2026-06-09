@@ -155,6 +155,17 @@ check("profile=singularity → NOT forced to docker", "-profile docker" not in c
 c = _main_cmd("/out", "/out/samples.txt", DEFAULT_BOPTS, DEFAULT_BFLAGS, 0, 0, True, preview=False, profile="standard")
 check("profile=standard (real build)", "-profile standard" in c)
 
+
+# ── 11. fastp omitted for pure ONT (applies only to Illumina) ──────────────
+section("11. fastp omission for pure ONT mode")
+def _has_fastp(mode):
+    o = {**DEFAULT_BOPTS, "assembly_mode": mode}
+    return "--fastp_opts" in _main_cmd("/o","/o/s.txt",o,DEFAULT_BFLAGS,0,0,True,preview=True)
+check("PE Unicycler keeps --fastp_opts", _has_fastp("Illumina PE (Unicycler)"))
+check("ONT (Dragonflye) OMITS --fastp_opts", not _has_fastp("ONT (Dragonflye)"))
+check("Hybrid Unicycler keeps --fastp_opts (has Illumina)", _has_fastp("Hybrid (Unicycler --hybrid)"))
+check("Hybrid Dragonflye keeps --fastp_opts (has Illumina)", _has_fastp("Hybrid (Dragonflye --short_polish)"))
+
 # ── Summary ────────────────────────────────────────────────────────────────
 section("SUMMARY")
 p = sum(results); t = len(results)
