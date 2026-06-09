@@ -34,6 +34,28 @@ So the global `--hybrid` flag is redundant and `--short_polish` is invalid.
   `runtype = "short_polish"` for the Dragonflye strategy, `runtype = "hybrid"` for Unicycler.
 - `pages/BACTOPIA.py:309-313` already writes `runtype="hybrid"` for PE+ONT; that branch is the hook point.
 
+## 🔧 BEAR-HUB intentional overrides (differ from Bactopia defaults)
+
+These values are set in `state.py` (`DEFAULT_BOPTS` / `DEFAULT_BFLAGS`) and emitted
+unconditionally so they always reach Bactopia regardless of its own defaults.
+Change here **and** in `state.py` if a different value is wanted.
+
+| Param | Flag | BEAR-HUB default | Bactopia default | Reason |
+|---|---|---|---|---|
+| `min_contig_len` | `--min_contig_len` | **1000** (always emitted) | 500 | More conservative contig filter; also drives Unicycler `--min_fasta_length` |
+| `min_contig_cov` | `--min_contig_cov` | **10** | 2 | Realistic minimum coverage for Illumina data |
+| `amr_ident_min` | `--ident_min` | **0.9** | -1 (auto) | Explicit threshold instead of the tool's auto-calibration |
+| `amr_coverage_min` | `--coverage_min` | **0.5** | 0.5 | Matches Bactopia — no override |
+| `fastp_M` | `-M` in `--fastp_opts` | **20** | 15 | Stricter sliding-window quality threshold |
+| `fastp_W` | `-W` in `--fastp_opts` | **5** | 4 | Slightly wider sliding window |
+| `skip_qc_plot` (UI key) | `--skip_qc_plots` | **True** | false | Skip QC plot generation (speeds up runs; uncheck to re-enable) |
+| `with_report` | `-with-report` | **True** | false | Nextflow HTML report enabled by default |
+| `with_timeline` | `-with-timeline` | **True** | false | Nextflow timeline enabled by default |
+| `with_trace` | `-with-trace` | **True** | false | Nextflow trace enabled by default |
+
+> `fastp_dash3` (`-3` cut-tail) is also **True** by default — it is not a Bactopia
+> param directly but is embedded in the `--fastp_opts` string built by `_fastp_opts()`.
+
 ## ⭐ High-value params to add (currently unexposed, sensible to surface)
 
 - **QC gates** (Gather/QC): `min_coverage` (10), `min_basepairs` (2241820), `min_reads` (7472),
