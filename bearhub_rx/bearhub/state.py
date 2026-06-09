@@ -62,6 +62,9 @@ class WizardMixin(rx.State, mixin=True):
         self.step = i
 
     def init_outdir(self):
+        # on_load handler: always start the wizard at step 1 so reloading or
+        # re-entering the page from the sidebar gives a clean, predictable start.
+        self.step = 0
         if not self.outdir:
             self.outdir = bactopia.guess_root_default()
         self.scan()
@@ -354,11 +357,12 @@ _ASSEMBLY_MODES = [
 ]
 _MODE_IMPLIED = {
     "Illumina PE (Shovill)":              (False, None),
-    "Illumina PE (Unicycler)":            (True, None),
+    "Illumina PE (Unicycler)":            (True,  None),
     "Illumina SE (Shovill-SE)":           (False, None),
     "ONT (Dragonflye)":                   (False, None),
-    "Hybrid (Unicycler --hybrid)":        (False, "--hybrid"),
-    "Hybrid (Dragonflye --short_polish)": (False, "--short_polish"),
+    # Hybrid Unicycler: use_unicycler=True so Bactopia picks Unicycler as assembler
+    "Hybrid (Unicycler --hybrid)":        (True,  None),
+    "Hybrid (Dragonflye --short_polish)": (False, None),
 }
 
 DEFAULT_BOPTS: dict[str, str] = {
@@ -642,7 +646,8 @@ def _main_cmd(outdir: str, fofn_path: str, o: dict, f: dict,
     if threads > 0:
         base += ["--max_cpus", str(threads)]
     if memory > 0:
-        base += ["--max_memory", f"{memory} GB"]
+        # Bactopia / Nextflow accepts dotted notation without space: 16.GB
+        base += ["--max_memory", f"{memory}.GB"]
     if resume:
         base += ["-resume"]
     base += ["--samples", str(fofn_path)]

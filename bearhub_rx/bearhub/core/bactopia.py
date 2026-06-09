@@ -24,8 +24,11 @@ def discover_samples(outdir: str | None = None) -> list[str]:
         }:
             continue
         loose.append(child.name)
-        if (child / "main").exists() or (child / "tools").exists():
-            strict.append(child.name)
+        try:
+            if (child / "main").exists() or (child / "tools").exists():
+                strict.append(child.name)
+        except PermissionError:
+            pass
     return strict if strict else loose
 
 

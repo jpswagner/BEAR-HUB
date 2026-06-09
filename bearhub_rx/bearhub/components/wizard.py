@@ -172,6 +172,14 @@ def dir_picker(S) -> rx.Component:
     """Directory browser dialog bound to a WizardMixin-derived state `S`."""
     return rx.dialog.root(
         rx.dialog.content(
+            rx.dialog.title("Select a directory"),
+            rx.text(
+                S.picker_cur,
+                font_family="monospace",
+                size="1",
+                color="var(--gray-10)",
+                margin_bottom="8px",
+            ),
             rx.vstack(
                 rx.foreach(
                     S.picker_dirs,
