@@ -1,0 +1,744 @@
+"""
+Reflex state for BEAR-HUB.
+
+A shared `WizardMixin` carries the bits every guided page needs (step nav,
+output directory + directory-picker, sample selection, general Nextflow params,
+and the live runner log/status). Concrete page states add their tool selection
+and a background `run` event that builds the command and streams output.
+"""
+from __future__ import annotations
+
+import os
+import pathlib
+import shlex
+from shlex import quote as _q, split as _split
+
+import reflex as rx
+
+from bearhub.core import bactopia, runner, system
+from bearhub.data import catalog
+from bearhub.core import fofn as _fofn
+
+_pathlib = pathlib
+
+
+def _to_int(v) -> int:
+    try:
+        return int(float(str(v))) if v else 0
+    except (TypeError, ValueError):
+        return 0
+
+
+# ── WizardMixin ────────────────────────────────────────────────────────────────
+
+class WizardMixin(rx.State, mixin=True):
+    step: int = 0
+    outdir: str = ""
+    samples: list[str] = []
+    selected: list[str] = []
+    profile: str = "docker"
+    threads: int = 0
+    memory: int = 0
+    resume: bool = True
+    extra: str = ""
+    picker_open: bool = False
+    picker_cur: str = ""
+    picker_dirs: list[str] = []
+    picker_target: str = "outdir"
+    log: list[str] = []
+    status: str = "idle"
+    running: bool = False
+    merged: list[str] = []
+    merged_dir: str = ""
+
+    def next_step(self):
+        self.step += 1
+
+    def prev_step(self):
+        if self.step > 0:
+            self.step -= 1
+
+    def goto(self, i: int):
+        self.step = i
+
+    def init_outdir(self):
+        if not self.outdir:
+            self.outdir = bactopia.guess_root_default()
+        self.scan()
+
+    def scan(self):
+        d = bactopia.safe_dir(self.outdir)
+        self.outdir = d
+        self.samples = bactopia.discover_samples(d)
+        self.selected = list(self.samples)
+
+    def toggle_sample(self, name: str):
+        if name in self.selected:
+            self.selected = [s for s in self.selected if s != name]
+        else:
+            self.selected = self.selected + [name]
+
+    def select_all_samples(self):
+        self.selected = list(self.samples)
+
+    def clear_samples(self):
+        self.selected = []
+
+    def set_profile(self, v: str):
+        self.profile = v
+
+    def set_threads(self, v):
+        if isinstance(v, (list, tuple)):
+            v = v[0] if v else 0
+        self.threads = _to_int(v)
+
+    def set_memory(self, v):
+        if isinstance(v, (list, tuple)):
+            v = v[0] if v else 0
+        self.memory = _to_int(v)
+
+    def set_resume(self, v):
+        self.resume = bool(v)
+
+    def set_extra(self, v: str):
+        self.extra = v
+
+    def open_picker_for(self, target: str):
+        self.picker_target = target
+        if not getattr(self, target, ""):
+            self.picker_cur = bactopia.safe_dir(self.outdir)
+        else:
+            self.picker_cur = bactopia.safe_dir(getattr(self, target))
+        self.picker_dirs = bactopia.list_subdirs(self.picker_cur)
+        self.picker_open = True
+
+    def open_picker(self):
+        self.open_picker_for("outdir")
+
+    def set_picker_open(self, v):
+        self.picker_open = bool(v)
+
+    def picker_enter(self, name: str):
+        self.picker_cur = bactopia.safe_dir(os.path.join(self.picker_cur, name))
+        self.picker_dirs = bactopia.list_subdirs(self.picker_cur)
+
+    def picker_up(self):
+        self.picker_cur = bactopia.safe_dir(os.path.dirname(self.picker_cur))
+        self.picker_dirs = bactopia.list_subdirs(self.picker_cur)
+
+    def picker_home(self):
+        self.picker_cur = bactopia.safe_dir(os.path.expanduser("~"))
+        self.picker_dirs = bactopia.list_subdirs(self.picker_cur)
+
+    def picker_select(self):
+        setattr(self, self.picker_target, self.picker_cur)
+        self.picker_open = False
+        if self.picker_target == "outdir":
+            self.samples = bactopia.discover_samples(self.outdir)
+            self.selected = list(self.samples)
+
+    def refresh_merged(self):
+        self.merged = []
+        self.merged_dir = ""
+        out = bactopia.safe_dir(self.outdir)
+        runs = _pathlib.Path(out) / "bactopia-runs"
+        if not runs.is_dir():
+            return
+        subs = sorted([p for p in runs.glob("*") if p.is_dir()])
+        if not subs:
+            return
+        mr = subs[-1] / "merged-results"
+        if mr.is_dir():
+            self.merged_dir = str(mr)
+            self.merged = [f.name for f in sorted(mr.glob("*.tsv"))]
+
+    @rx.var
+    def n_selected(self) -> int:
+        return len(self.selected)
+
+    @rx.var
+    def n_samples(self) -> int:
+        return len(self.samples)
+
+    @rx.var
+    def has_samples(self) -> bool:
+        return len(self.samples) > 0
+
+    @rx.var
+    def status_label(self) -> str:
+        return {"running": "Running…", "success": "Finished successfully",
+                "failed": "Run failed — check the log", "stopped": "Stopped by user",
+                "idle": ""}.get(self.status, self.status)
+
+    @rx.var
+    def status_color(self) -> str:
+        return {"running": "blue", "success": "green", "failed": "red",
+                "stopped": "amber", "idle": "gray"}.get(self.status, "gray")
+
+    @rx.var
+    def log_text(self) -> str:
+        return "\n".join(self.log)
+
+
+# ── ToolsState ─────────────────────────────────────────────────────────────────
+
+class ToolsState(WizardMixin, rx.State):
+    picks: dict[str, bool] = {}
+    opts: dict[str, str] = dict(catalog.DEFAULT_OPTS)
+    flags: dict[str, bool] = dict(catalog.DEFAULT_FLAGS)
+
+    def toggle(self, tid: str):
+        self.picks[tid] = not self.picks.get(tid, False)
+
+    def set_opt(self, key: str, value: str):
+        self.opts[key] = str(value)
+
+    def set_flag(self, key: str, value: bool):
+        self.flags[key] = bool(value)
+
+    @rx.var
+    def picked_ids(self) -> list[str]:
+        return [t for t, on in self.picks.items() if on]
+
+    @rx.var
+    def n_picked(self) -> int:
+        return len(self.picked_ids)
+
+    @rx.var
+    def picked_detailed(self) -> list[str]:
+        return [t for t in self.picked_ids if t in catalog.DETAILED]
+
+    @rx.var
+    def preview(self) -> str:
+        lines = []
+        for tid in self.picked_ids:
+            args = catalog.build_tool_args(tid, self.opts, self.flags)
+            lines.append(runner.nextflow_wf_cmd(
+                tid, "<outdir>", "<include-file>",
+                self.profile, int(self.threads or 0), int(self.memory or 0),
+                bool(self.resume), args, self.extra,
+            ))
+        return "\n\n".join(lines) if lines else "# select at least one tool"
+
+    def _build(self):
+        if not system.nextflow_available():
+            return ("", "Nextflow not found (PATH / BACTOPIA_ENV_PREFIX / NEXTFLOW_BIN).")
+        outdir = bactopia.safe_dir(self.outdir)
+        samples = list(self.selected) or list(self.samples)
+        if not samples:
+            return ("", "Select at least one sample.")
+        picked = self.picked_ids
+        if not picked:
+            return ("", "Select at least one tool.")
+        inc = _fofn.write_include_file(outdir, samples)
+        labelled = []
+        for tid in picked:
+            args = catalog.build_tool_args(tid, self.opts, self.flags)
+            cmd = runner.nextflow_wf_cmd(
+                tid, outdir, inc, self.profile,
+                int(self.threads or 0), int(self.memory or 0),
+                bool(self.resume), args, self.extra,
+            )
+            labelled.append((f"[Bactopia Tool] {tid}", cmd))
+        return (runner.join_subcommands(labelled), "")
+
+    @rx.event(background=True)
+    async def run(self):
+        async with self:
+            cmd, err = self._build()
+        if err:
+            yield rx.toast.error(err)
+            return
+        async for _ in runner.stream(self, cmd, "tools",
+                                      work_dir=bactopia.safe_dir(self.outdir)):
+            yield _
+        async with self:
+            self.refresh_merged()
+
+    @rx.event(background=True)
+    async def stop_run(self):
+        await runner.stop("tools")
+        async with self:
+            self.status = "stopped"
+            self.running = False
+
+
+# ── MerlinState ────────────────────────────────────────────────────────────────
+
+class MerlinState(WizardMixin, rx.State):
+    picks: dict[str, bool] = {wf: False for wf in catalog.MERLIN_WF_IDS}
+
+    def toggle(self, wf: str):
+        self.picks[wf] = not self.picks.get(wf, False)
+
+    @rx.var
+    def picked_ids(self) -> list[str]:
+        return [w for w, on in self.picks.items() if on]
+
+    @rx.var
+    def n_picked(self) -> int:
+        return len(self.picked_ids)
+
+    @rx.var
+    def preview(self) -> str:
+        lines = []
+        for wf in self.picked_ids:
+            lines.append(runner.nextflow_wf_cmd(
+                wf, "<outdir>", "<include-file>",
+                self.profile, int(self.threads or 0), int(self.memory or 0),
+                bool(self.resume), [], self.extra,
+            ))
+        return "\n\n".join(lines) if lines else "# select at least one species tool"
+
+    def _build(self):
+        if not system.nextflow_available():
+            return ("", "Nextflow not found (PATH / BACTOPIA_ENV_PREFIX / NEXTFLOW_BIN).")
+        outdir = bactopia.safe_dir(self.outdir)
+        samples = list(self.selected) or list(self.samples)
+        if not samples:
+            return ("", "Select at least one sample.")
+        picked = self.picked_ids
+        if not picked:
+            return ("", "Select at least one species-specific tool.")
+        inc = _fofn.write_include_file(outdir, samples)
+        labelled = []
+        for wf in picked:
+            cmd = runner.nextflow_wf_cmd(
+                wf, outdir, inc, self.profile,
+                int(self.threads or 0), int(self.memory or 0),
+                bool(self.resume), [], self.extra,
+            )
+            labelled.append((f"[Bactopia Species] {wf}", cmd))
+        return (runner.join_subcommands(labelled), "")
+
+    @rx.event(background=True)
+    async def run(self):
+        async with self:
+            cmd, err = self._build()
+        if err:
+            yield rx.toast.error(err)
+            return
+        async for _ in runner.stream(self, cmd, "merlin",
+                                      work_dir=bactopia.safe_dir(self.outdir)):
+            yield _
+        async with self:
+            self.refresh_merged()
+
+    @rx.event(background=True)
+    async def stop_run(self):
+        await runner.stop("merlin")
+        async with self:
+            self.status = "stopped"
+            self.running = False
+
+
+# ── BactopiaState defaults ─────────────────────────────────────────────────────
+# BEAR-HUB intentionally overrides some Bactopia defaults. Keep in sync with
+# docs/bactopia/PARAM_AUDIT.md §"Preserve the programmed defaults".
+
+_ASSEMBLY_MODES = [
+    "Illumina PE (Shovill)",
+    "Illumina PE (Unicycler)",
+    "Illumina SE (Shovill-SE)",
+    "ONT (Dragonflye)",
+    "Hybrid (Unicycler --hybrid)",
+    "Hybrid (Dragonflye --short_polish)",
+]
+_MODE_IMPLIED = {
+    "Illumina PE (Shovill)":              (False, None),
+    "Illumina PE (Unicycler)":            (True, None),
+    "Illumina SE (Shovill-SE)":           (False, None),
+    "ONT (Dragonflye)":                   (False, None),
+    "Hybrid (Unicycler --hybrid)":        (False, "--hybrid"),
+    "Hybrid (Dragonflye --short_polish)": (False, "--short_polish"),
+}
+
+DEFAULT_BOPTS: dict[str, str] = {
+    # FOFN
+    "species":        "UNKNOWN_SPECIES",
+    "genome_size":    "(Select or Custom)",
+    "datasets":       "",
+    # fastp
+    "fastp_mode":     "Simple",
+    "fastp_M":        "20",
+    "fastp_W":        "5",
+    "fastp_q":        "20",
+    "fastp_l":        "15",
+    "fastp_n":        "0",
+    "fastp_u":        "0",
+    "fastp_adapter_r1": "",
+    "fastp_adapter_r2": "",
+    "fastp_umi_loc":  "index1",
+    "fastp_umi_len":  "0",
+    "fastp_extra":    "",
+    "fastp_raw":      "-3 -M 20 -W 5",
+    # assembler
+    "assembly_mode":        "Illumina PE (Unicycler)",
+    "shovill_assembler":    "skesa",
+    "shovill_opts":         "",
+    "shovill_kmers":        "",
+    "dragonflye_assembler": "flye",
+    "dragonflye_opts":      "",
+    # unicycler — mode passed as --unicycler_mode (valid Bactopia param)
+    "unicycler_mode":       "normal",
+    # min_contig_len = 1000 (BEAR-HUB default; Bactopia default is 500).
+    # This also drives Unicycler --min_fasta_length via Bactopia's assembler subworkflow.
+    "min_contig_len":       "1000",
+    "min_contig_cov":       "10",
+    # polishing
+    "polypolish_rounds":    "1",
+    "pilon_rounds":         "0",
+    "racon_rounds":         "1",
+    "medaka_rounds":        "0",
+    "medaka_model":         "",
+    # annotation/typing
+    "amr_ident_min":        "0.9",
+    "amr_coverage_min":     "0.6",
+    "mlst_scheme":          "(auto/none)",
+    "mlst_minid":           "",
+    "mlst_mincov":          "",
+    "mlst_minscore":        "",
+    # extras
+    "extra_params":         "",
+}
+
+DEFAULT_BFLAGS: dict[str, bool] = {
+    # FOFN
+    "recursive":              True,
+    "include_assemblies":     True,
+    "treat_se_as_ont":        False,
+    "infer_ont_by_name":      True,
+    "merge_multi":            True,
+    # fastp
+    "fastp_dash3":            True,
+    "fastp_5prime":           False,
+    "fastp_cut_right":        False,
+    "fastp_q_enable":         False,
+    "fastp_l_enable":         False,
+    "fastp_dedup":            False,
+    "fastp_correction":       False,
+    "fastp_poly_g":           False,
+    "fastp_poly_x":           False,
+    "fastp_overrep":          False,
+    "fastp_umi":              False,
+    "fastp_detect_adapter_pe": False,
+    # assembly
+    "trim":        False,
+    "no_stitch":   False,
+    "no_corr":     False,
+    "nanohq":      False,
+    "no_miniasm":  False,
+    "reassemble":  False,
+    "no_rotate":   False,
+    # skip_qc_plot is the UI key; the correct Bactopia param is --skip_qc_plots (plural).
+    # _assembler_flags emits --skip_qc_plots when this is True.
+    "skip_qc_plot": True,
+    "no_polish":   False,
+    # Nextflow reports
+    "with_report":   True,
+    "with_timeline": True,
+    "with_trace":    True,
+    # MLST
+    "mlst_nopath": False,
+}
+
+
+# ── Command builders (pure functions — no rx state) ────────────────────────────
+
+def _numt(v: str) -> bool:
+    """True if v parses as a non-zero number."""
+    try:
+        return float(v) != 0
+    except (TypeError, ValueError):
+        return bool(str(v).strip())
+
+
+def _fastp_opts(o: dict, f: dict) -> str:
+    """Build the --fastp_opts string from bopts/bflags."""
+    mode = o.get("fastp_mode", "Simple")
+    if mode.startswith("Advanced"):
+        return o.get("fastp_raw", "").strip()
+    p: list[str] = []
+    if f.get("fastp_dash3"):    p.append("-3")
+    if f.get("fastp_5prime"):   p.append("-5")
+    if f.get("fastp_cut_right"): p.append("-r")
+    p += ["-M", o.get("fastp_M", "20")]
+    p += ["-W", o.get("fastp_W", "5")]
+    if f.get("fastp_q_enable"):
+        p += ["-q", o.get("fastp_q", "20")]
+    if f.get("fastp_l_enable"):
+        p += ["-l", o.get("fastp_l", "15")]
+    if _numt(o.get("fastp_n", "0")):
+        p += ["-n", o["fastp_n"]]
+    if _numt(o.get("fastp_u", "0")):
+        p += ["-u", o["fastp_u"]]
+    if f.get("fastp_dedup"):       p.append("-D")
+    if f.get("fastp_correction"):  p.append("-c")
+    if f.get("fastp_poly_g"):      p.append("-g")
+    if f.get("fastp_poly_x"):      p.append("-x")
+    if f.get("fastp_detect_adapter_pe"):
+        p.append("--detect_adapter_for_pe")
+    r1 = o.get("fastp_adapter_r1", "").strip()
+    r2 = o.get("fastp_adapter_r2", "").strip()
+    if r1: p.append(f"-a {_q(r1)}")
+    if r2: p.append(f"--adapter_sequence_r2 {_q(r2)}")
+    if f.get("fastp_overrep"): p.append("-p")
+    if f.get("fastp_umi"):
+        p.append("-U")
+        loc = o.get("fastp_umi_loc", "")
+        if loc: p.append(f"--umi_loc={loc}")
+        ulen = o.get("fastp_umi_len", "0")
+        if _numt(ulen): p.append(f"--umi_len={ulen}")
+    extra = o.get("fastp_extra", "").strip()
+    if extra: p.append(extra)
+    return " ".join(p)
+
+
+def _assembler_flags(o: dict, f: dict) -> list[str]:
+    """
+    Build the per-assembler CLI flags for the main Bactopia pipeline.
+
+    PARAMETER AUDIT:
+    - unicycler_opts  → INVALID (undeclared in Bactopia). Removed.
+      Use --unicycler_mode (declared) for the bridging mode.
+    - skip_qc_plot    → INVALID. Correct param is --skip_qc_plots (plural).
+    - --min_contig_len → always emitted at BEAR-HUB's 1000 default (Bactopia
+      default is 500); also drives Unicycler --min_fasta_length internally.
+    - --short_polish  → not a CLI param; set by FOFN runtype column instead.
+      The --hybrid flag here is only meaningful for single-sample (--sample),
+      not for FOFN runs. Both are passed for legacy compatibility but should be
+      dropped when the FOFN builder correctly sets runtype per row (see
+      docs/bactopia/PARAM_AUDIT.md §bugs).
+    """
+    import importlib
+    cat = importlib.import_module("bearhub.data.catalog")
+    af: list[str] = []
+    mode = o.get("assembly_mode", "Illumina PE (Unicycler)")
+    use_uni, hyb = _MODE_IMPLIED.get(mode, (False, None))
+    if use_uni:
+        af.append("--use_unicycler")
+    # --unicycler_mode (valid Bactopia param; default 'normal')
+    if mode in ("Illumina PE (Unicycler)", "Hybrid (Unicycler --hybrid)"):
+        uni_mode = o.get("unicycler_mode", "normal")
+        if uni_mode:
+            af += ["--unicycler_mode", uni_mode]
+    if hyb:
+        af.append(hyb)
+    # Shovill
+    sa = o.get("shovill_assembler", "skesa")
+    if sa and sa != "skesa":
+        af += ["--shovill_assembler", sa]
+    da = o.get("dragonflye_assembler", "flye")
+    if da and da != "flye":
+        af += ["--dragonflye_assembler", da]
+    for key, flag in [("shovill_opts", "--shovill_opts"),
+                      ("shovill_kmers", "--shovill_kmers"),
+                      ("dragonflye_opts", "--dragonflye_opts")]:
+        v = o.get(key, "").strip()
+        if v:
+            af += [flag, v]
+    # Boolean assembly flags
+    for key in ("trim", "no_stitch", "no_corr", "nanohq", "no_miniasm",
+                "reassemble", "no_rotate"):
+        if f.get(key):
+            af.append(f"--{key}")
+    # skip_qc_plots (plural) — Bactopia's declared param name
+    if f.get("skip_qc_plot"):
+        af.append("--skip_qc_plots")
+    if f.get("no_polish"):
+        af.append("--no_polish")
+    # min_contig_len: BEAR-HUB default 1000 (Bactopia default 500). Always emit.
+    mcl = o.get("min_contig_len", "1000")
+    af += ["--min_contig_len", str(mcl)]
+    # min_contig_cov: BEAR-HUB default 10 (Bactopia default 2). Only emit if ≠ default.
+    mcc = o.get("min_contig_cov", "10")
+    if mcc and mcc != "2":
+        af += ["--min_contig_cov", str(mcc)]
+    # AMRFinder+
+    if _numt(o.get("amr_ident_min", "0.9")):
+        af += ["--ident_min", o["amr_ident_min"]]
+    if _numt(o.get("amr_coverage_min", "0.6")):
+        af += ["--coverage_min", o["amr_coverage_min"]]
+    # MLST
+    scheme_disp = o.get("mlst_scheme", "(auto/none)")
+    if scheme_disp and scheme_disp != "(auto/none)":
+        code = cat.MLST_SCHEMES.get(scheme_disp)
+        if code:
+            af += ["--scheme", code]
+    for key, flag in [("mlst_minscore", "--minscore")]:
+        v = o.get(key, "").strip()
+        if v and _numt(v):
+            af += [flag, v]
+    if f.get("mlst_nopath"):
+        af.append("--nopath")
+    # Polishing
+    for key, flag, default in [
+        ("polypolish_rounds", "--polypolish_rounds", "1"),
+        ("pilon_rounds", "--pilon_rounds", "0"),
+        ("racon_rounds", "--racon_rounds", "1"),
+        ("medaka_rounds", "--medaka_rounds", "0"),
+    ]:
+        v = o.get(key, default)
+        if v and v != default:
+            af += [flag, str(v)]
+    mm = o.get("medaka_model", "").strip()
+    if mm:
+        af += ["--medaka_model", mm]
+    return af
+
+
+def _main_cmd(outdir: str, fofn_path: str, o: dict, f: dict,
+               threads: int, memory: int, resume: bool,
+               preview: bool = False) -> str:
+    """Build the full Nextflow command for the main Bactopia pipeline."""
+    nf = system.get_nextflow_bin()
+    base: list[str] = [nf, "run", "bactopia/bactopia"]
+    ver = system.get_bactopia_version()
+    if ver:
+        base += ["-r", f"v{ver}"]
+    base += ["-profile", o.get("profile", "docker") if not preview else "docker",
+             "--outdir", str(_pathlib.Path(outdir).expanduser().resolve())]
+    datasets = o.get("datasets", "").strip()
+    if datasets:
+        base += ["--datasets", datasets]
+    if f.get("with_report"):
+        base += ["-with-report", str(_pathlib.Path(outdir) / "nf-report.html")]
+    if f.get("with_timeline"):
+        base += ["-with-timeline", str(_pathlib.Path(outdir) / "nf-timeline.html")]
+    if f.get("with_trace"):
+        base += ["-with-trace", str(_pathlib.Path(outdir) / "nf-trace.txt")]
+    fp = _fastp_opts(o, f).strip()
+    if fp:
+        base += ["--fastp_opts", fp]
+    # Assembler-specific flags (unicycler_mode, skip_qc_plots, etc.)
+    base += _assembler_flags(o, f)
+    if threads > 0:
+        base += ["--max_cpus", str(threads)]
+    if memory > 0:
+        base += ["--max_memory", f"{memory} GB"]
+    if resume:
+        base += ["-resume"]
+    base += ["--samples", str(fofn_path)]
+    extra = o.get("extra_params", "").strip()
+    if extra:
+        base += _split(extra)
+    nf_cmd = " ".join(_q(x) for x in base)
+    if preview:
+        return nf_cmd
+    return f"cd {_q(str(_pathlib.Path(outdir).expanduser().resolve()))} && {nf_cmd}"
+
+
+# ── BactopiaState ──────────────────────────────────────────────────────────────
+
+class BactopiaState(WizardMixin, rx.State):
+    base_dir: str = ""
+    bopts: dict[str, str] = dict(DEFAULT_BOPTS)
+    bflags: dict[str, bool] = dict(DEFAULT_BFLAGS)
+    fofn_path: str = ""
+    fofn_summary: str = ""
+    fofn_issues: list[str] = []
+    fofn_built: bool = False
+
+    def set_bopt(self, key: str, value):
+        if isinstance(value, list):
+            value = value[0] if value else ""
+        self.bopts[key] = str(value)
+
+    def set_bflag(self, key: str, value):
+        self.bflags[key] = bool(value)
+
+    @rx.var
+    def fofn_target(self) -> str:
+        out = bactopia.safe_dir(self.outdir)
+        return str(_pathlib.Path(out) / "samples.txt")
+
+    def scan_fofn(self):
+        outdir = bactopia.safe_dir(self.outdir)
+        fofn_out = str(_pathlib.Path(outdir) / "samples.txt")
+        gsize = _fofn.parse_genome_size(self.bopts.get("genome_size", ""))
+        try:
+            res = _fofn.build_fofn(
+                self.base_dir or outdir,
+                recursive=self.bflags.get("recursive", True),
+                species=self.bopts.get("species", "UNKNOWN_SPECIES"),
+                gsize=gsize,
+                fofn_path=fofn_out,
+                treat_se_as_ont=self.bflags.get("treat_se_as_ont", False),
+                infer_ont_by_name=self.bflags.get("infer_ont_by_name", True),
+                merge_multi=self.bflags.get("merge_multi", True),
+                include_assemblies=self.bflags.get("include_assemblies", True),
+            )
+        except Exception as e:
+            self.fofn_built = False
+            self.fofn_summary = f"Failed: {e}"
+            yield rx.toast.error(str(e))
+            return
+        self.fofn_path = res["fofn_path"]
+        self.fofn_built = res["rows"] > 0
+        self.fofn_issues = res["issues"][:30]
+        counts_str = ", ".join(f"{k}={v}" for k, v in res["counts"].items() if v)
+        self.fofn_summary = f"{res['rows']} samples · {counts_str}"
+        yield rx.toast.success(f"FOFN written: {res['rows']} samples")
+
+    @rx.var
+    def preview(self) -> str:
+        outdir = self.outdir or "<outdir>"
+        fofn = (self.fofn_path or
+                str(_pathlib.Path(outdir) / "samples.txt"))
+        return _main_cmd(
+            outdir, fofn, self.bopts, self.bflags,
+            int(self.threads or 0), int(self.memory or 0),
+            bool(self.resume), preview=True,
+        )
+
+    def _build(self):
+        if not system.nextflow_available():
+            return ("", "Nextflow not found (PATH / BACTOPIA_ENV_PREFIX / NEXTFLOW_BIN).")
+        if not self.outdir.strip():
+            return ("", "Choose an output directory.")
+        outdir = bactopia.safe_dir(self.outdir)
+        _pathlib.Path(outdir).mkdir(parents=True, exist_ok=True)
+        fofn_out = str(_pathlib.Path(outdir) / "samples.txt")
+        if not _pathlib.Path(fofn_out).is_file():
+            return ("", "Generate the FOFN first (Scan & build FOFN).")
+        cmd = _main_cmd(outdir, fofn_out, self.bopts, self.bflags,
+                         int(self.threads or 0), int(self.memory or 0),
+                         bool(self.resume), preview=False)
+        return (cmd, "")
+
+    @rx.event(background=True)
+    async def run(self):
+        async with self:
+            cmd, err = self._build()
+        if err:
+            yield rx.toast.error(err)
+            return
+        async for _ in runner.stream(self, cmd, "bactopia",
+                                      work_dir=bactopia.safe_dir(self.outdir)):
+            yield _
+        async with self:
+            self.refresh_merged()
+
+    @rx.event(background=True)
+    async def stop_run(self):
+        await runner.stop("bactopia")
+        async with self:
+            self.status = "stopped"
+            self.running = False
+
+
+# ── StatusState ────────────────────────────────────────────────────────────────
+
+class StatusState(rx.State):
+    versions: dict[str, str] = {}
+    loading: bool = True
+
+    @rx.event(background=True)
+    async def load(self):
+        from bearhub.core import versions
+        async with self:
+            self.loading = True
+        data = versions.get_versions()
+        async with self:
+            self.versions = data
+            self.loading = False

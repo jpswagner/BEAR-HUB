@@ -1,5 +1,0 @@
-streamlit>=1.30,<2
-pandas>=1.4,<3
-pyyaml
-altair>=5,<6
-requests
