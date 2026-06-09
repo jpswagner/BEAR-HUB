@@ -24,6 +24,11 @@ c = build({"unicycler_mode": "bold"})
 check("unicycler_mode=bold → --unicycler_mode bold", "--unicycler_mode bold" in c)
 c = build({"unicycler_mode": "conservative"})
 check("unicycler_mode=conservative", "--unicycler_mode conservative" in c)
+c = build({"assembly_mode":"Illumina PE (Unicycler)","min_component_size":"500","min_dead_end_size":"2000"})
+check("--min_component_size 500", "--min_component_size 500" in c)
+check("--min_dead_end_size 2000", "--min_dead_end_size 2000" in c)
+c = build({"assembly_mode":"Illumina PE (Unicycler)"})
+check("component/dead_end blank → not emitted", "--min_component_size" not in c and "--min_dead_end_size" not in c)
 
 # ── 2. Shovill params ──────────────────────────────────────────────────────
 section("2. Assembler — Shovill (PE Shovill mode)")

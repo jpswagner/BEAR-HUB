@@ -387,13 +387,23 @@ def _step_assembler():
         rx.cond(
             _mode_is("Illumina PE (Unicycler)", "Hybrid (Unicycler --hybrid)"),
             rx.card(
-                helpmod.section("Unicycler", "unicycler", size="3"),
-                rx.flex(
-                    opt_sel("Mode", "unicycler_mode",
-                            ["conservative", "normal", "bold"], width="150px"),
-                    opt_in("min_fasta_length", "unicycler_min_len", typ="number", width="150px"),
-                    opt_in("Extra (append)", "unicycler_extra", width="200px"),
-                    wrap="wrap", spacing="3", align="end",
+                rx.vstack(
+                    helpmod.section("Unicycler", "unicycler", size="3"),
+                    rx.flex(
+                        opt_sel("Mode (--unicycler_mode)", "unicycler_mode",
+                                ["conservative", "normal", "bold"], width="160px"),
+                        opt_in("--min_component_size", "min_component_size",
+                               typ="number", width="170px"),
+                        opt_in("--min_dead_end_size", "min_dead_end_size",
+                               typ="number", width="170px"),
+                        wrap="wrap", spacing="3", align="end",
+                    ),
+                    rx.text(
+                        "Unicycler's --min_fasta_length is taken from 'Min contig "
+                        "len' below. Component/dead-end sizes default to 1000 bp.",
+                        size="1", color="var(--gray-9)",
+                    ),
+                    spacing="2", align="start", width="100%",
                 ),
                 width="100%", style={"borderColor": "var(--teal-6)"},
             ),

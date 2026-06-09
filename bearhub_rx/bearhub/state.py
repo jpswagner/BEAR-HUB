@@ -399,8 +399,12 @@ DEFAULT_BOPTS: dict[str, str] = {
     "shovill_kmers":        "",
     "dragonflye_assembler": "flye",
     "dragonflye_opts":      "",
-    # unicycler — mode passed as --unicycler_mode (valid Bactopia param)
+    # unicycler — mode passed as --unicycler_mode (valid Bactopia param).
+    # min_component_size / min_dead_end_size are integer Unicycler graph params
+    # (Bactopia default 1000). Blank = default; emitted only when set.
     "unicycler_mode":       "normal",
+    "min_component_size":   "",
+    "min_dead_end_size":    "",
     # min_contig_len = 1000 (BEAR-HUB default; Bactopia default is 500).
     # This also drives Unicycler --min_fasta_length via Bactopia's assembler subworkflow.
     "min_contig_len":       "1000",
@@ -554,6 +558,11 @@ def _assembler_flags(o: dict, f: dict) -> list[str]:
         uni_mode = o.get("unicycler_mode", "normal")
         if uni_mode:
             af += ["--unicycler_mode", uni_mode]
+        for key, flag in [("min_component_size", "--min_component_size"),
+                          ("min_dead_end_size", "--min_dead_end_size")]:
+            v = o.get(key, "").strip()
+            if v:
+                af += [flag, v]
     # --hybrid / --short_polish intentionally omitted: handled via FOFN runtype
     # Shovill
     sa = o.get("shovill_assembler", "skesa")
