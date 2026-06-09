@@ -1,0 +1,60 @@
+"""Status page — installed versions."""
+from __future__ import annotations
+
+import reflex as rx
+
+from bearhub.components.shell import shell
+from bearhub.components.wizard import hero
+from bearhub.data.catalog import BACTOPIA_VERSION
+from bearhub.state import StatusState
+
+_ROWS = [
+    ("Bactopia", "bactopia"),
+    ("Nextflow",  "nextflow"),
+    ("Java",      "java"),
+    ("Docker",    "docker"),
+]
+
+
+def _version_row(label: str, key: str) -> rx.Component:
+    return rx.hstack(
+        rx.text(label, weight="bold", size="2", width="120px"),
+        rx.code(StatusState.versions.get(key, "Unknown")),
+        spacing="3",
+        align="center",
+        width="100%",
+    )
+
+
+def status_page() -> rx.Component:
+    return shell(
+        hero("activity", "System Status",
+             "Versions of Bactopia and its dependencies."),
+        rx.card(
+            rx.hstack(
+                rx.heading("External tools", size="4"),
+                rx.spacer(),
+                rx.cond(
+                    StatusState.loading,
+                    rx.spinner(size="2"),
+                ),
+                rx.button(
+                    rx.icon("refresh-cw", size=16),
+                    "Refresh",
+                    on_click=StatusState.load,
+                    variant="soft",
+                    size="2",
+                ),
+                width="100%",
+                align="center",
+            ),
+            rx.divider(margin_y="3"),
+            rx.vstack(
+                *[_version_row(l, k) for l, k in _ROWS],
+                spacing="3",
+                width="100%",
+            ),
+            width="100%",
+        ),
+        active="/status",
+    )
