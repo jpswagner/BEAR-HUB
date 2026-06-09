@@ -143,8 +143,17 @@ setup_bear_hub_env() {
                 python=3.11 "reflex>=0.6,<1" websockets pyyaml
         fi
         echo "Ambiente 'bear-hub' criado em: ${BEAR_PREFIX}"
-        echo "Inicializando Reflex..."
-        "${BEAR_PREFIX}/bin/reflex" init --loglevel warning 2>/dev/null || true
+    fi
+    # Pre-build the Reflex frontend (.web/) so the first launch is fast.
+    # The app already lives in bearhub_rx/ — no `reflex init` needed (that would
+    # scaffold a new app). `reflex run` generates .web/ automatically; we just
+    # warm it up here so the user's first run isn't a long compile.
+    local app_dir="${BEAR_HUB_ROOT}/BEAR-HUB/bearhub_rx"
+    if [[ -f "${app_dir}/rxconfig.py" ]]; then
+        echo "Pre-compilando frontend Reflex em ${app_dir}/.web ..."
+        ( cd "${app_dir}" && "${BEAR_PREFIX}/bin/reflex" export --frontend-only \
+            --no-zip --loglevel warning 2>/dev/null ) || \
+            echo "  (pre-compile skipped — will build on first run)"
     fi
 }
 
