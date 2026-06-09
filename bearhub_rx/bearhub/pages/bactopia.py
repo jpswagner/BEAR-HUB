@@ -514,14 +514,18 @@ def _step_typing():
             rx.vstack(
                 helpmod.section("AMRFinderPlus", "amrfinder", size="3"),
                 rx.flex(
-                    opt_in("--organism", "amrfinderplus_organism", width="220px",
+                    opt_in("--ident_min (0–1)", "amrfinderplus_ident_min",
+                           typ="number", width="140px"),
+                    opt_in("--coverage_min (0–1)", "amrfinderplus_coverage_min",
+                           typ="number", width="150px"),
+                    opt_in("--organism", "amrfinderplus_organism", width="200px",
                            placeholder="e.g. Streptococcus_pyogenes"),
                     flag_cb("--noplus", "amrfinderplus_noplus"),
                     wrap="wrap", spacing="3", align="end",
                 ),
                 rx.text(
-                    "ident_min / coverage_min run with Bactopia defaults here "
-                    "(configurable on the Bactopia Tools page).",
+                    "ident_min / coverage_min are passed via a params-file "
+                    "(bactopia-params.json) so their float values are preserved.",
                     size="1", color="var(--gray-9)",
                 ),
                 spacing="3", align="start", width="100%",

@@ -204,6 +204,20 @@ o = {**DEFAULT_BOPTS, "annotator":"Bakta", "bakta_db":"/db/bakta"}
 c = _main_cmd("/o","/o/s.txt",o,DEFAULT_BFLAGS,0,0,True,preview=True)
 check("Bakta with db → --use_bakta --bakta_db", "--use_bakta" in c and "--bakta_db /db/bakta" in c)
 
+
+# ── 13. Float params via -params-file (AMRFinder ident/coverage) ───────────
+section("13. Float params via -params-file")
+from bearhub.state import _json_params
+check("default → no params-file", "-params-file" not in build({}))
+o = {"amrfinderplus_ident_min":"0.9", "amrfinderplus_coverage_min":"0.6"}
+jp = _json_params({**DEFAULT_BOPTS, **o})
+check("_json_params parses floats", jp == {"amrfinderplus_ident_min":0.9,"amrfinderplus_coverage_min":0.6})
+c = build(o)
+check("command gets -params-file", "-params-file" in c)
+check("floats NOT inline CLI flags", "--amrfinderplus_ident_min 0.9" not in c)
+check("preview shows json contents", "bactopia-params.json:" in c and "amrfinderplus_ident_min=0.9" in c)
+check("bad float ignored", _json_params({**DEFAULT_BOPTS,"amrfinderplus_ident_min":"abc"}) == {})
+
 # ── Summary ────────────────────────────────────────────────────────────────
 section("SUMMARY")
 p = sum(results); t = len(results)

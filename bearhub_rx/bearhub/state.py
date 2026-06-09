@@ -417,9 +417,10 @@ DEFAULT_BOPTS: dict[str, str] = {
     "medaka_model":         "",
     # Typing — main-pipeline params use the *prefixed* names (amrfinderplus_*, mlst_*).
     # Blank = use Bactopia defaults; only emitted when the user sets a value.
-    # NOTE: AMRFinder ident_min/coverage_min are FLOAT params; nf-schema rejects
-    # floats passed from the CLI ("string but should be number"). Tune those via
-    # --amrfinderplus_opts or the Bactopia Tools page instead.
+    # ident_min/coverage_min are FLOAT params — passed via -params-file (JSON
+    # preserves the number type; nf-schema rejects floats from the CLI).
+    "amrfinderplus_ident_min":    "",
+    "amrfinderplus_coverage_min": "",
     "amrfinderplus_organism":     "",
     "mlst_scheme":                "(auto/none)",
     "mlst_minid":                 "",
@@ -675,6 +676,25 @@ def _typing_flags(o: dict, f: dict) -> list[str]:
     return tf
 
 
+# Float params that nf-schema rejects from the CLI — passed via -params-file
+# (JSON preserves the `number` type). Key = Bactopia param name.
+_FLOAT_PARAMS = ("amrfinderplus_ident_min", "amrfinderplus_coverage_min")
+_PARAMS_FILE = "bactopia-params.json"
+
+
+def _json_params(o: dict) -> dict:
+    """Collect float params the user set, for the -params-file JSON."""
+    jp: dict[str, float] = {}
+    for key in _FLOAT_PARAMS:
+        v = o.get(key, "").strip()
+        if v:
+            try:
+                jp[key] = float(v)
+            except ValueError:
+                pass
+    return jp
+
+
 def _main_cmd(outdir: str, fofn_path: str, o: dict, f: dict,
                threads: int, memory: int, resume: bool,
                preview: bool = False, profile: str = "docker") -> str:
@@ -686,6 +706,10 @@ def _main_cmd(outdir: str, fofn_path: str, o: dict, f: dict,
         base += ["-r", f"v{ver}"]
     base += ["-profile", profile or "docker",
              "--outdir", str(_pathlib.Path(outdir).expanduser().resolve())]
+    # Float params (e.g. AMRFinder ident_min/coverage_min) via -params-file.
+    jp = _json_params(o)
+    if jp:
+        base += ["-params-file", str(_pathlib.Path(outdir) / _PARAMS_FILE)]
     datasets = o.get("datasets", "").strip()
     if datasets:
         base += ["--datasets", datasets]
@@ -731,6 +755,10 @@ def _main_cmd(outdir: str, fofn_path: str, o: dict, f: dict,
         base += _split(extra)
     nf_cmd = " ".join(_q(x) for x in base)
     if preview:
+        # Show the params-file contents inline so the preview stays transparent.
+        if jp:
+            kv = ", ".join(f"{k}={v}" for k, v in jp.items())
+            return f"# {_PARAMS_FILE}: {{{kv}}}\n{nf_cmd}"
         return nf_cmd
     return f"cd {_q(str(_pathlib.Path(outdir).expanduser().resolve()))} && {nf_cmd}"
 
@@ -812,6 +840,12 @@ class BactopiaState(WizardMixin, rx.State):
         fofn_out = str(_pathlib.Path(outdir) / "samples.txt")
         if not _pathlib.Path(fofn_out).is_file():
             return ("", "Generate the FOFN first (Scan & build FOFN).")
+        # Write the -params-file JSON for float params (if any user-set).
+        jp = _json_params(self.bopts)
+        if jp:
+            import json as _json
+            (_pathlib.Path(outdir) / _PARAMS_FILE).write_text(
+                _json.dumps(jp, indent=2), encoding="utf-8")
         cmd = _main_cmd(outdir, fofn_out, self.bopts, self.bflags,
                          int(self.threads or 0), int(self.memory or 0),
                          bool(self.resume), preview=False, profile=self.profile)
