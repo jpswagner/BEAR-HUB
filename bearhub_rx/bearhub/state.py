@@ -411,8 +411,22 @@ DEFAULT_BOPTS: dict[str, str] = {
     "racon_rounds":         "1",
     "medaka_rounds":        "0",
     "medaka_model":         "",
-    # NOTE: AMRFinder+ / MLST params removed — not valid in the main pipeline
-    # (they are Bactopia Tools params). Annotation/typing run with defaults here.
+    # Typing — main-pipeline params use the *prefixed* names (amrfinderplus_*, mlst_*).
+    # Blank = use Bactopia defaults; only emitted when the user sets a value.
+    # NOTE: AMRFinder ident_min/coverage_min are FLOAT params; nf-schema rejects
+    # floats passed from the CLI ("string but should be number"). Tune those via
+    # --amrfinderplus_opts or the Bactopia Tools page instead.
+    "amrfinderplus_organism":     "",
+    "mlst_scheme":                "(auto/none)",
+    "mlst_minid":                 "",
+    "mlst_mincov":                "",
+    "mlst_minscore":              "",
+    # Annotation — Prokka (default, no DB) or Bakta (requires bakta_db)
+    "annotator":                  "Prokka",
+    "prokka_proteins":            "",
+    "prokka_opts":                "",
+    "bakta_db":                   "",
+    "bakta_opts":                 "",
     # extras
     "extra_params":         "",
 }
@@ -449,6 +463,10 @@ DEFAULT_BFLAGS: dict[str, bool] = {
     # _assembler_flags emits --skip_qc_plots when this is True.
     "skip_qc_plot": True,
     "no_polish":   False,
+    # Typing / annotation
+    "amrfinderplus_noplus":  False,   # --amrfinderplus_noplus (disable --plus)
+    "mlst_nopath":           False,   # --mlst_nopath
+    "prokka_compliant":      False,   # --prokka_compliant
     # Nextflow reports
     "with_report":   True,
     "with_timeline": True,
@@ -589,6 +607,65 @@ def _assembler_flags(o: dict, f: dict) -> list[str]:
     return af
 
 
+def _typing_flags(o: dict, f: dict) -> list[str]:
+    """
+    Main-pipeline typing & annotation flags. These use the PREFIXED names
+    (amrfinderplus_*, mlst_*, prokka_*, bakta_*) — the unprefixed forms are
+    Bactopia Tools params and are rejected by the main pipeline.
+    All blank by default → Bactopia defaults; emitted only when the user sets them.
+    """
+    import importlib
+    cat = importlib.import_module("bearhub.data.catalog")
+    tf: list[str] = []
+
+    # AMRFinder+ — only organism is safely configurable in the main pipeline.
+    # ident_min/coverage_min are floats (rejected by nf-schema from the CLI) AND
+    # are already passed internally by Bactopia (so --amrfinderplus_opts can't
+    # re-pass them — "used more than once"). They run with defaults here.
+    org = o.get("amrfinderplus_organism", "").strip()
+    if org:
+        tf += ["--amrfinderplus_organism", org]
+    if f.get("amrfinderplus_noplus"):
+        tf.append("--amrfinderplus_noplus")
+
+    # MLST
+    scheme_disp = o.get("mlst_scheme", "(auto/none)")
+    if scheme_disp and scheme_disp != "(auto/none)":
+        code = cat.MLST_SCHEMES.get(scheme_disp, scheme_disp)
+        if code:
+            tf += ["--mlst_scheme", code]
+    for key, flag in [
+        ("mlst_minid",    "--mlst_minid"),
+        ("mlst_mincov",   "--mlst_mincov"),
+        ("mlst_minscore", "--mlst_minscore"),
+    ]:
+        v = o.get(key, "").strip()
+        if v:
+            tf += [flag, v]
+    if f.get("mlst_nopath"):
+        tf.append("--mlst_nopath")
+
+    # Annotation — Prokka (default) or Bakta
+    annotator = o.get("annotator", "Prokka")
+    if annotator == "Bakta":
+        db = o.get("bakta_db", "").strip()
+        if db:  # --use_bakta requires --bakta_db
+            tf += ["--use_bakta", "--bakta_db", db]
+            opts = o.get("bakta_opts", "").strip()
+            if opts:
+                tf += ["--bakta_opts", opts]
+    else:  # Prokka
+        pp = o.get("prokka_proteins", "").strip()
+        if pp:
+            tf += ["--prokka_proteins", pp]
+        po = o.get("prokka_opts", "").strip()
+        if po:
+            tf += ["--prokka_opts", po]
+        if f.get("prokka_compliant"):
+            tf.append("--prokka_compliant")
+    return tf
+
+
 def _main_cmd(outdir: str, fofn_path: str, o: dict, f: dict,
                threads: int, memory: int, resume: bool,
                preview: bool = False, profile: str = "docker") -> str:
@@ -630,6 +707,8 @@ def _main_cmd(outdir: str, fofn_path: str, o: dict, f: dict,
             base += ["--fastp_opts", fp]
     # Assembler-specific flags (unicycler_mode, skip_qc_plots, etc.)
     base += _assembler_flags(o, f)
+    # Typing & annotation flags (amrfinderplus_*, mlst_*, prokka_*, bakta_*)
+    base += _typing_flags(o, f)
     if threads > 0:
         base += ["--max_cpus", str(threads)]
     if memory > 0:

@@ -166,6 +166,39 @@ check("ONT (Dragonflye) OMITS --fastp_opts", not _has_fastp("ONT (Dragonflye)"))
 check("Hybrid Unicycler keeps --fastp_opts (has Illumina)", _has_fastp("Hybrid (Unicycler --hybrid)"))
 check("Hybrid Dragonflye keeps --fastp_opts (has Illumina)", _has_fastp("Hybrid (Dragonflye --short_polish)"))
 
+
+# ── 12. Typing/annotation params (prefixed, main-pipeline) ─────────────────
+section("12. Typing & annotation — prefixed names")
+from bearhub.state import _typing_flags
+# Default = no typing flags
+check("default → no typing flags", _typing_flags(DEFAULT_BOPTS, DEFAULT_BFLAGS) == [])
+# AMRFinder+ (organism/opts/noplus; floats ident_min/coverage_min excluded)
+o = {**DEFAULT_BOPTS, "amrfinderplus_organism":"Streptococcus_pyogenes",
+     }
+c = _main_cmd("/o","/o/s.txt",o,DEFAULT_BFLAGS,0,0,True,preview=True)
+check("--amrfinderplus_organism", "--amrfinderplus_organism Streptococcus_pyogenes" in c)
+check("float --amrfinderplus_ident_min NOT a CLI flag", "--amrfinderplus_ident_min" not in c)
+c = _main_cmd("/o","/o/s.txt",DEFAULT_BOPTS,{**DEFAULT_BFLAGS,"amrfinderplus_noplus":True},0,0,True,preview=True)
+check("--amrfinderplus_noplus flag", "--amrfinderplus_noplus" in c)
+# MLST
+o = {**DEFAULT_BOPTS, "mlst_scheme":"spyogenes", "mlst_minid":"95", "mlst_mincov":"10"}
+c = _main_cmd("/o","/o/s.txt",o,DEFAULT_BFLAGS,0,0,True,preview=True)
+check("--mlst_scheme spyogenes", "--mlst_scheme spyogenes" in c)
+check("--mlst_minid 95", "--mlst_minid 95" in c)
+check("unprefixed --scheme NEVER emitted", "--scheme " not in c)
+check("mlst_scheme (auto/none) → not emitted", "--mlst_scheme" not in _main_cmd("/o","/o/s.txt",DEFAULT_BOPTS,DEFAULT_BFLAGS,0,0,True,preview=True))
+# Annotation: Prokka default
+o = {**DEFAULT_BOPTS, "prokka_proteins":"/db/p.faa"}
+c = _main_cmd("/o","/o/s.txt",o,{**DEFAULT_BFLAGS,"prokka_compliant":True},0,0,True,preview=True)
+check("--prokka_proteins", "--prokka_proteins /db/p.faa" in c)
+check("--prokka_compliant", "--prokka_compliant" in c)
+# Bakta requires db
+o = {**DEFAULT_BOPTS, "annotator":"Bakta"}
+check("Bakta without db → no --use_bakta", "--use_bakta" not in _main_cmd("/o","/o/s.txt",o,DEFAULT_BFLAGS,0,0,True,preview=True))
+o = {**DEFAULT_BOPTS, "annotator":"Bakta", "bakta_db":"/db/bakta"}
+c = _main_cmd("/o","/o/s.txt",o,DEFAULT_BFLAGS,0,0,True,preview=True)
+check("Bakta with db → --use_bakta --bakta_db", "--use_bakta" in c and "--bakta_db /db/bakta" in c)
+
 # ── Summary ────────────────────────────────────────────────────────────────
 section("SUMMARY")
 p = sum(results); t = len(results)
