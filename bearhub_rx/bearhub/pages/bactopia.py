@@ -442,51 +442,36 @@ def _step_assembler():
     )
 
 
-# ── Step 4: typing (AMRFinderPlus + MLST + datasets) ───────────────────────────
+# ── Step 4: typing & annotation (informational + datasets) ─────────────────────
 def _step_typing():
     return rx.vstack(
         rx.text(
-            "Annotation & typing run as part of the pipeline.",
+            "Annotation & typing run automatically as part of the main pipeline.",
             size="2", color="var(--gray-10)",
         ),
-        rx.card(
-            rx.vstack(
-                helpmod.section("AMRFinderPlus", "amrfinder", size="3"),
-                rx.flex(
-                    opt_in("--ident_min", "amr_ident_min", typ="number", width="150px"),
-                    opt_in("--coverage_min", "amr_coverage_min", typ="number", width="160px"),
-                    wrap="wrap", spacing="4", align="end",
-                ),
-                spacing="3", align="start", width="100%",
-            ),
-            width="100%",
+        rx.callout(
+            "The main Bactopia pipeline runs MLST, AMRFinder+, sketching and "
+            "annotation (Bakta/Prokka) with their default settings — these are "
+            "NOT configurable at the pipeline level (Nextflow rejects them). To "
+            "tune a specific tool's parameters, run it from the Bactopia Tools "
+            "page (e.g. amrfinderplus, mlst) over the assembled samples.",
+            icon="info",
+            color_scheme="teal",
+            size="1",
         ),
         rx.card(
             rx.vstack(
-                helpmod.section("MLST", "mlst", size="3"),
-                rx.vstack(
-                    helpmod.field_label("--scheme", "mlst"),
-                    rx.select(
-                        MLST_OPTS,
-                        value=S.bopts["mlst_scheme"],
-                        size="2",
-                        width="300px",
-                        on_change=lambda v: S.set_bopt("mlst_scheme", v),
-                    ),
-                    spacing="1", align="start",
+                helpmod.section("Datasets (optional)", "datasets", size="3"),
+                rx.text(
+                    "Path to a Bactopia datasets folder for species-specific "
+                    "MLST schemes, AMR databases, etc. Leave blank to use built-ins.",
+                    size="1", color="var(--gray-10)",
                 ),
-                rx.flex(
-                    opt_in("--minid", "mlst_minid", typ="number", width="130px"),
-                    opt_in("--mincov", "mlst_mincov", typ="number", width="130px"),
-                    opt_in("--minscore", "mlst_minscore", typ="number", width="130px"),
-                    flag_cb("--nopath", "mlst_nopath"),
-                    wrap="wrap", spacing="5", align="end",
-                ),
-                spacing="3", align="start", width="100%",
+                opt_in("--datasets path", "datasets", width="100%"),
+                spacing="2", align="start", width="100%",
             ),
             width="100%",
         ),
-        opt_in("datasets/ (optional path)", "datasets", width="100%"),
         wz.nav_buttons(S.prev_step, S.next_step),
         spacing="6",
         width="100%",

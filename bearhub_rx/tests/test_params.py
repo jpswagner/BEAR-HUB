@@ -102,23 +102,17 @@ check("fastp extra passthrough", "--trim_front1 10" in fo)
 fo = _fastp_opts({**DEFAULT_BOPTS, "fastp_mode": "Advanced", "fastp_raw": "-3 -M 25 --cut_tail"}, DEFAULT_BFLAGS)
 check("fastp Advanced mode uses raw line", fo == "-3 -M 25 --cut_tail")
 
-# ── 7. AMRFinder / MLST ────────────────────────────────────────────────────
-section("7. Annotation / Typing")
-c = build({"amr_ident_min": "0.95"})
-check("amr_ident_min=0.95", "--ident_min 0.95" in c)
-c = build({"amr_coverage_min": "0.7"})
-check("amr_coverage_min=0.7", "--coverage_min 0.7" in c)
-# MLST scheme — need real scheme name from catalog
-from bearhub.data.catalog import MLST_SCHEMES, MLST_DISPLAY
-if len(MLST_DISPLAY) > 1:
-    disp = MLST_DISPLAY[1]  # first real scheme
-    code = MLST_SCHEMES.get(disp)
-    c = build({"mlst_scheme": disp})
-    check(f"mlst_scheme={disp} → --scheme {code}", f"--scheme {code}" in c, c[-200:])
-c = build({"mlst_minscore": "100"})
-check("mlst_minscore=100", "--minscore 100" in c)
-c = build(None, {"mlst_nopath": True})
-check("--nopath flag", "--nopath" in c)
+# ── 7. AMRFinder / MLST must NOT appear (Tools-only params) ────────────────
+section("7. Annotation / Typing — AMRFinder/MLST params NOT in main pipeline")
+# These are Bactopia Tools params (--wf amrfinderplus / --wf mlst), invalid in
+# the main pipeline. The command must never emit them (Nextflow would abort).
+c = build({"amr_ident_min": "0.95", "amr_coverage_min": "0.7",
+           "mlst_scheme": "saureus", "mlst_minscore": "100"})
+check("--ident_min NEVER emitted (Tools-only)",    "--ident_min" not in c)
+check("--coverage_min NEVER emitted (Tools-only)", "--coverage_min" not in c)
+check("--scheme NEVER emitted (Tools-only)",       "--scheme" not in c)
+check("--minscore NEVER emitted (Tools-only)",     "--minscore" not in c)
+check("--nopath NEVER emitted (Tools-only)",       "--nopath" not in c)
 
 # ── 8. QC gate thresholds ──────────────────────────────────────────────────
 section("8. QC gate thresholds")

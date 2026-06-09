@@ -17,9 +17,19 @@ run with *"Parameter X ... is not declared in the script or config"*. Three were
 
 | BEAR-HUB emitted | Correct Bactopia param | Status | Impact |
 |---|---|---|---|
-| `--unicycler_opts "..."` | *(none)* — use `--unicycler_mode` + `--min_contig_len` | **fixed** in `pages/BACTOPIA.py` | crashed every Unicycler/hybrid run |
-| `--skip_qc_plot` | `--skip_qc_plots` (plural) | **fixed** in `pages/BACTOPIA.py` | checkbox defaults **True** → crashed *every* run after the unicycler fix |
-| `--short_polish` | *(not a CLI param)* — set FOFN `runtype=short_polish` | **documented, not fixed** | crashes the "Hybrid (Dragonflye)" mode |
+| `--unicycler_opts "..."` | *(none)* — use `--unicycler_mode` + `--min_contig_len` | **fixed** | crashed every Unicycler/hybrid run |
+| `--skip_qc_plot` | `--skip_qc_plots` (plural) | **fixed** | checkbox defaults **True** → crashed *every* run |
+| `--short_polish` / `--hybrid` | *(not CLI params)* — set FOFN `runtype` column | **fixed** (Reflex) | wrong with FOFN; now per-row runtype |
+| `--ident_min` `--coverage_min` (AMRFinder) | *(Tools-only)* — `--wf amrfinderplus` | **fixed** (Reflex) | **caught by real run** — not declared in MAIN pipeline |
+| `--scheme` `--minscore` `--nopath` (MLST) | *(Tools-only)* — `--wf mlst` | **fixed** (Reflex) | not declared in MAIN pipeline |
+
+> ⚠️ **Main pipeline vs Bactopia Tools params are different sets.** The earlier
+> `bactopia_params_v4.0.0.json` summed *all* module params (incl. `bactopia-tools/*`),
+> so AMRFinder/MLST tool params looked "declared". They are valid only under
+> `--wf <tool>`, **not** the top-level `bactopia` pipeline (which runs those tools
+> with defaults). A real run (`nextflow run bactopia/bactopia ... --ident_min 0.9`)
+> aborts with *"Parameter ident_min is not declared"*. The main-pipeline param set
+> = top `nextflow_schema.json` + `modules/local/**/params.config` (NOT bactopia-tools).
 
 ### The `--hybrid` / `--short_polish` design issue (needs the restructure)
 

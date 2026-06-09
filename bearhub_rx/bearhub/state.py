@@ -411,13 +411,8 @@ DEFAULT_BOPTS: dict[str, str] = {
     "racon_rounds":         "1",
     "medaka_rounds":        "0",
     "medaka_model":         "",
-    # annotation/typing
-    "amr_ident_min":        "0.9",
-    "amr_coverage_min":     "0.5",
-    "mlst_scheme":          "(auto/none)",
-    "mlst_minid":           "",
-    "mlst_mincov":          "",
-    "mlst_minscore":        "",
+    # NOTE: AMRFinder+ / MLST params removed — not valid in the main pipeline
+    # (they are Bactopia Tools params). Annotation/typing run with defaults here.
     # extras
     "extra_params":         "",
 }
@@ -458,8 +453,6 @@ DEFAULT_BFLAGS: dict[str, bool] = {
     "with_report":   True,
     "with_timeline": True,
     "with_trace":    True,
-    # MLST
-    "mlst_nopath": False,
 }
 
 
@@ -574,23 +567,12 @@ def _assembler_flags(o: dict, f: dict) -> list[str]:
     mcc = o.get("min_contig_cov", "10")
     if mcc and mcc != "2":
         af += ["--min_contig_cov", str(mcc)]
-    # AMRFinder+
-    if _numt(o.get("amr_ident_min", "0.9")):
-        af += ["--ident_min", o["amr_ident_min"]]
-    if _numt(o.get("amr_coverage_min", "0.5")):
-        af += ["--coverage_min", o["amr_coverage_min"]]
-    # MLST
-    scheme_disp = o.get("mlst_scheme", "(auto/none)")
-    if scheme_disp and scheme_disp != "(auto/none)":
-        code = cat.MLST_SCHEMES.get(scheme_disp)
-        if code:
-            af += ["--scheme", code]
-    for key, flag in [("mlst_minscore", "--minscore")]:
-        v = o.get(key, "").strip()
-        if v and _numt(v):
-            af += [flag, v]
-    if f.get("mlst_nopath"):
-        af.append("--nopath")
+    # NOTE: AMRFinder+ (--ident_min/--coverage_min/--organism) and MLST
+    # (--scheme/--minscore/--nopath) are NOT declared in the MAIN Bactopia
+    # pipeline — they are Bactopia *Tools* params (--wf amrfinderplus / --wf mlst).
+    # In the main pipeline these tools run with defaults. Passing them here
+    # makes Nextflow abort ("Parameter X is not declared"). To configure them,
+    # use the Bactopia Tools page. See docs/bactopia/PARAM_AUDIT.md.
     # Polishing
     for key, flag, default in [
         ("polypolish_rounds", "--polypolish_rounds", "1"),

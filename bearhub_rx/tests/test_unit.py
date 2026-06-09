@@ -140,8 +140,6 @@ from bearhub.state import DEFAULT_BOPTS, DEFAULT_BFLAGS, _assembler_flags, _fast
 # Default values
 check("min_contig_len default = 1000",  DEFAULT_BOPTS["min_contig_len"] == "1000")
 check("min_contig_cov default = 10",    DEFAULT_BOPTS["min_contig_cov"] == "10")
-check("amr_ident_min default = 0.9",    DEFAULT_BOPTS["amr_ident_min"] == "0.9")
-check("amr_coverage_min default = 0.5", DEFAULT_BOPTS["amr_coverage_min"] == "0.5")
 check("unicycler_mode default = normal",DEFAULT_BOPTS["unicycler_mode"] == "normal")
 check("assembly_mode = PE Unicycler",   "Unicycler" in DEFAULT_BOPTS["assembly_mode"])
 check("skip_qc_plot default = True",    DEFAULT_BFLAGS["skip_qc_plot"] == True)
@@ -195,8 +193,8 @@ for flag, expected in [
     ("--skip_qc_plots",     True),
     ("--min_contig_len 1000", True),
     ("--min_contig_cov 10", True),
-    ("--ident_min 0.9",     True),
-    ("--coverage_min 0.5",  True),
+    ("--ident_min",         False),
+    ("--coverage_min",      False),
     ("-with-report",        True),
     ("--fastp_opts",        True),
     ("--max_cpus 4",        True),
