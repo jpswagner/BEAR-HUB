@@ -172,7 +172,9 @@ def build_fofn(
 
     all_samples = sorted(set(list(by_sample.keys()) + list(fa_by_sample.keys())))
 
-    header = ["sample", "runtype", "genome_size", "species", "r1", "r2", "extra"]
+    # Bactopia 4.0 canonical FOFN header — dedicated columns per read type.
+    header = ["sample", "runtype", "genome_size", "species",
+              "r1", "r2", "se", "ont", "assembly"]
     rows: list[list[str]] = []
     issues: list[str] = []
     counts: dict[str, int] = {}
@@ -192,62 +194,44 @@ def build_fofn(
         if pe2 and not pe1:
             issues.append(f"{sample}: R2 found without R1.")
 
+        # Dedicated column slots (r1, r2, se, ont, assembly)
+        c_r1 = c_r2 = c_se = c_ont = c_asm = ""
+
+        if fa and (pe1 or pe2 or se or ont):
+            issues.append(
+                f"{sample}: FASTA and FASTQ detected; ignoring assembly in FOFN."
+            )
+            fa = []  # fall through to FASTQ classification below
+
         # Classify
         if fa and not (pe1 or pe2 or se or ont):
             runtype = "assembly"
-            r1 = _pick(fa, merge_multi)
-            r2, extra = "", ""
+            c_asm = _pick(fa, merge_multi)
         elif pe1 and pe2 and ont:
             # Dragonflye hybrid uses short_polish runtype; Unicycler uses hybrid.
             runtype = ("short_polish"
                        if "short_polish" in hybrid_strategy
                        else "hybrid")
-            r1 = _pick(pe1, merge_multi)
-            r2 = _pick(pe2, merge_multi)
-            extra = _pick(ont, merge_multi)
+            c_r1 = _pick(pe1, merge_multi)
+            c_r2 = _pick(pe2, merge_multi)
+            c_ont = _pick(ont, merge_multi)
         elif pe1 and pe2:
             runtype = "paired-end"
-            r1 = _pick(pe1, merge_multi)
-            r2 = _pick(pe2, merge_multi)
-            extra = ""
+            c_r1 = _pick(pe1, merge_multi)
+            c_r2 = _pick(pe2, merge_multi)
         elif ont and not (pe1 or pe2):
             runtype = "ont"
-            r1 = _pick(ont, merge_multi)
-            r2, extra = "", ""
+            c_ont = _pick(ont, merge_multi)
         elif se and not (pe1 or pe2 or ont):
             runtype = "single-end"
-            r1 = _pick(se, merge_multi)
-            r2, extra = "", ""
-        elif fa and (pe1 or pe2 or se or ont):
-            issues.append(
-                f"{sample}: FASTA and FASTQ detected; ignoring assembly in FOFN."
-            )
-            if pe1 and pe2 and ont:
-                runtype = ("short_polish"
-                           if "short_polish" in hybrid_strategy
-                           else "hybrid")
-                r1 = _pick(pe1, merge_multi)
-                r2 = _pick(pe2, merge_multi)
-                extra = _pick(ont, merge_multi)
-            elif pe1 and pe2:
-                runtype = "paired-end"
-                r1 = _pick(pe1, merge_multi)
-                r2 = _pick(pe2, merge_multi)
-                extra = ""
-            elif ont:
-                runtype = "ont"
-                r1 = _pick(ont, merge_multi)
-                r2, extra = "", ""
-            else:
-                runtype = "single-end"
-                r1 = _pick(se, merge_multi)
-                r2, extra = "", ""
+            c_se = _pick(se, merge_multi)
         else:
             issues.append(f"{sample}: could not classify sample (missing files?).")
             continue
 
         counts[runtype] = counts.get(runtype, 0) + 1
-        rows.append([sample, runtype, gsize, species or "UNKNOWN_SPECIES", r1, r2, extra])
+        rows.append([sample, runtype, gsize, species or "UNKNOWN_SPECIES",
+                     c_r1, c_r2, c_se, c_ont, c_asm])
 
     # Write FOFN
     lines = ["\t".join(header)]

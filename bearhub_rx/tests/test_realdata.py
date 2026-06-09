@@ -77,10 +77,10 @@ res = build_fofn(str(sc), fofn_path=str(sc/"samples.txt"),
                  hybrid_strategy="Hybrid (Unicycler --hybrid)")
 rows = [r.split("\t") for r in (sc/"samples.txt").read_text().splitlines()[1:] if r]
 print(f"  Unicycler hybrid → counts: {res['counts']}")
-for r in rows: print(f"    {r[0]:20} runtype={r[1]:14} r1={pathlib.Path(r[4]).name if r[4] else '-'} extra={pathlib.Path(r[6]).name if r[6] else '-'}")
+for r in rows: print(f"    {r[0]:20} runtype={r[1]:14} r1={pathlib.Path(r[4]).name if r[4] else '-'} extra={pathlib.Path(r[7]).name if r[6] else '-'}")
 check("Hybrid: 1 sample (PE+ONT merged)", res["rows"] == 1)
 check("Hybrid Unicycler: runtype=hybrid", rows and rows[0][1]=="hybrid")
-check("Hybrid: r1, r2, extra(ONT) all populated", rows and rows[0][4] and rows[0][5] and rows[0][6])
+check("Hybrid: r1, r2, ont all populated", rows and rows[0][4] and rows[0][5] and rows[0][7])
 # Dragonflye short_polish
 res2 = build_fofn(str(sc), fofn_path=str(sc/"s2.txt"),
                   hybrid_strategy="Hybrid (Dragonflye --short_polish)")
@@ -96,7 +96,7 @@ rows = [r.split("\t") for r in (sd/"samples.txt").read_text().splitlines()[1:] i
 print(f"  counts: {res['counts']}")
 for r in rows: print(f"    {r[0]:20} runtype={r[1]:12} input={pathlib.Path(r[4]).name if r[4] else '-'}")
 check("Assembly: runtype=assembly", rows and rows[0][1]=="assembly")
-check("Assembly: FASTA in r1 column", rows and rows[0][4].endswith(".fa"))
+check("Assembly: FASTA in r1 column", rows and rows[0][8].endswith(".fa"))
 
 # ── Scenario E: recursive scan (LACEN-style subdirs) ──────────────────────
 print("\n" + "="*60 + "\n  E. Recursive scan (samples in subdirs)\n" + "="*60)
