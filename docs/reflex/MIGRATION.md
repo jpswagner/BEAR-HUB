@@ -93,7 +93,7 @@ BEAR-HUB intentionally overrides some Bactopia defaults. Carry these into the po
 | Min Contig Len (all assemblers; also Unicycler `--min_fasta_length`) | `--min_contig_len` | **1000** (always emitted) | 500 |
 | Min Coverage | `--min_contig_cov` | **10** | 2 |
 | AMRFinder ident | `--ident_min` | **0.9** | -1 |
-| AMRFinder coverage | `--coverage_min` | **0.6** | 0.5 |
+| AMRFinder coverage | `--coverage_min` | **0.5** (matches Bactopia default) | 0.5 |
 | Unicycler mode | `--unicycler_mode` | normal (always emitted when Unicycler active) | normal |
 | Skip QC plots | `--skip_qc_plots` | **True** | false |
 

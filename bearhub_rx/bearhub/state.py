@@ -393,7 +393,7 @@ DEFAULT_BOPTS: dict[str, str] = {
     "medaka_model":         "",
     # annotation/typing
     "amr_ident_min":        "0.9",
-    "amr_coverage_min":     "0.6",
+    "amr_coverage_min":     "0.5",
     "mlst_scheme":          "(auto/none)",
     "mlst_minid":           "",
     "mlst_mincov":          "",
@@ -557,7 +557,7 @@ def _assembler_flags(o: dict, f: dict) -> list[str]:
     # AMRFinder+
     if _numt(o.get("amr_ident_min", "0.9")):
         af += ["--ident_min", o["amr_ident_min"]]
-    if _numt(o.get("amr_coverage_min", "0.6")):
+    if _numt(o.get("amr_coverage_min", "0.5")):
         af += ["--coverage_min", o["amr_coverage_min"]]
     # MLST
     scheme_disp = o.get("mlst_scheme", "(auto/none)")
