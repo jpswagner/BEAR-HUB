@@ -217,6 +217,10 @@ check("command gets -params-file", "-params-file" in c)
 check("floats NOT inline CLI flags", "--amrfinderplus_ident_min 0.9" not in c)
 check("preview shows json contents", "bactopia-params.json:" in c and "amrfinderplus_ident_min=0.9" in c)
 check("bad float ignored", _json_params({**DEFAULT_BOPTS,"amrfinderplus_ident_min":"abc"}) == {})
+check("min_proportion+screen_i → params-file", "-params-file" in build({"min_proportion":"0.4","screen_i":"0.9"}))
+check("min_proportion in json", _json_params({**DEFAULT_BOPTS,"min_proportion":"0.4"})=={"min_proportion":0.4})
+check("screen_i in json", _json_params({**DEFAULT_BOPTS,"screen_i":"0.9"})=={"screen_i":0.9})
+check("min_proportion NOT inline CLI", "--min_proportion" not in build({"min_proportion":"0.4"}))
 
 # ── Summary ────────────────────────────────────────────────────────────────
 section("SUMMARY")

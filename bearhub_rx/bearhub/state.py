@@ -378,6 +378,8 @@ DEFAULT_BOPTS: dict[str, str] = {
     "min_reads":       "",
     "min_genome_size": "",
     "max_genome_size": "",
+    "min_proportion":  "",   # float → params-file (Gather QC gate)
+    "screen_i":        "",   # float → params-file (Sketcher)
     # fastp
     "fastp_mode":     "Simple",
     "fastp_M":        "20",
@@ -678,7 +680,11 @@ def _typing_flags(o: dict, f: dict) -> list[str]:
 
 # Float params that nf-schema rejects from the CLI — passed via -params-file
 # (JSON preserves the `number` type). Key = Bactopia param name.
-_FLOAT_PARAMS = ("amrfinderplus_ident_min", "amrfinderplus_coverage_min")
+_FLOAT_PARAMS = (
+    "amrfinderplus_ident_min", "amrfinderplus_coverage_min",
+    "min_proportion",   # Gather: min proportion of bp for PE reads (default 0.5)
+    "screen_i",         # Sketcher: min identity to report (default 0.8)
+)
 _PARAMS_FILE = "bactopia-params.json"
 
 

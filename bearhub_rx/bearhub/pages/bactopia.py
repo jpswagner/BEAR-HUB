@@ -93,11 +93,13 @@ def _qc_thresholds_card() -> rx.Component:
                     opt_in("--min_reads",       "min_reads",       typ="number", width="140px"),
                     opt_in("--min_genome_size", "min_genome_size", typ="number", width="150px"),
                     opt_in("--max_genome_size", "max_genome_size", typ="number", width="150px"),
+                    opt_in("--min_proportion",  "min_proportion",  typ="number", width="150px"),
                     wrap="wrap", spacing="3", align="end",
                 ),
                 rx.text(
                     "Bactopia defaults: coverage=10 · basepairs=2 241 820 · "
-                    "reads=7 472 · min_genome=100 000 · max_genome=18 040 666",
+                    "reads=7 472 · min_genome=100 000 · max_genome=18 040 666 · "
+                    "min_proportion=0.5 (PE bp balance)",
                     size="1", color="var(--gray-9)",
                 ),
                 spacing="3", align="start", width="100%",
@@ -565,6 +567,15 @@ def _step_extras():
             size="2", color="var(--gray-10)",
         ),
         wz.general_params(S),
+        rx.card(
+            rx.vstack(
+                helpmod.section("Sketcher", "sketcher", size="3"),
+                opt_in("--screen_i (min mash-screen identity, default 0.8)",
+                       "screen_i", typ="number", width="280px"),
+                spacing="2", align="start", width="100%",
+            ),
+            width="100%",
+        ),
         rx.flex(
             flag_cb("-with-report", "with_report"),
             flag_cb("-with-timeline", "with_timeline"),
