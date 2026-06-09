@@ -99,7 +99,7 @@ EOF
 
 ERROR: neither 'mamba' nor 'conda' was found in PATH.
 BEAR-HUB uses conda environments for:
-  - 'bear-hub' (Streamlit UI)
+  - 'bear-hub' (Reflex UI)
   - 'bactopia' (pipeline + Nextflow)
 
 Quick Miniconda install (Linux x86_64):
@@ -122,11 +122,11 @@ EOF
 }
 
 # =============================================================================
-# Step 2: setup_bear_hub_env — create the Streamlit UI environment
+# Step 2: setup_bear_hub_env — create the Reflex UI environment
 # =============================================================================
 setup_bear_hub_env() {
     echo
-    echo "=== Step 2: Setting up 'bear-hub' environment ==="
+    echo "=== Step 2: Setting up 'bear-hub' environment (Reflex UI) ==="
 
     mkdir -p "${ENVS_DIR}"
 
@@ -137,12 +137,14 @@ setup_bear_hub_env() {
 
         if [[ -n "${MAMBA_BIN}" ]]; then
             "${MAMBA_BIN}" create -y -p "${BEAR_PREFIX}" -c conda-forge \
-                python=3.11 "streamlit>=1.30,<2" pyyaml "pandas>=1.4,<3" "altair>=5,<6" requests
+                python=3.11 "reflex>=0.6,<1" websockets pyyaml
         else
             "${CONDA_BIN}" create -y -p "${BEAR_PREFIX}" -c conda-forge \
-                python=3.11 "streamlit>=1.30,<2" pyyaml "pandas>=1.4,<3" "altair>=5,<6" requests
+                python=3.11 "reflex>=0.6,<1" websockets pyyaml
         fi
         echo "Ambiente 'bear-hub' criado em: ${BEAR_PREFIX}"
+        echo "Inicializando Reflex..."
+        "${BEAR_PREFIX}/bin/reflex" init --loglevel warning 2>/dev/null || true
     fi
 }
 
@@ -277,37 +279,21 @@ write_config() {
 }
 
 # =============================================================================
-# Step 5: configure_streamlit — suppress first-run prompts
+# Step 5: configure_reflex — disable Reflex telemetry
 # =============================================================================
-configure_streamlit() {
+configure_reflex() {
     echo
-    echo "=== Step 5: Configuring Streamlit ==="
-
-    local st_dir="${HOME}/.streamlit"
-    mkdir -p "${st_dir}"
-
-    # credentials.toml: suppress email prompt
-    local cred_file="${st_dir}/credentials.toml"
-    if [[ ! -f "${cred_file}" ]]; then
-        echo "Criando ${cred_file}..."
-        cat > "${cred_file}" <<'TOML'
-[general]
-email = ""
-TOML
+    echo "=== Step 5: Configuring Reflex ==="
+    # Disable Reflex telemetry / analytics
+    export TELEMETRY_ENABLED=false
+    local rx_dir="${HOME}/.reflex"
+    mkdir -p "${rx_dir}"
+    local rx_cfg="${rx_dir}/config.json"
+    if [[ ! -f "${rx_cfg}" ]]; then
+        echo '{"telemetry_enabled": false}' > "${rx_cfg}"
+        echo "Reflex telemetry disabled."
     else
-        echo "${cred_file} already exists — skipping."
-    fi
-
-    # config.toml: disable usage stats (only if no project-level config)
-    local config_file="${st_dir}/config.toml"
-    if [[ ! -f "${config_file}" ]]; then
-        echo "Criando ${config_file}..."
-        cat > "${config_file}" <<'TOML'
-[browser]
-gatherUsageStats = false
-TOML
-    else
-        echo "${config_file} already exists — skipping."
+        echo "${rx_cfg} already exists — skipping."
     fi
 }
 
@@ -328,7 +314,7 @@ main() {
     setup_bear_hub_env
     setup_bactopia_env
     write_config
-    configure_streamlit
+    configure_reflex
 
     echo
     echo "======================================="
@@ -338,10 +324,11 @@ main() {
     echo "Next steps:"
     echo "  source \"${CONFIG_FILE}\""
     echo "  cd \"${BEAR_HUB_ROOT}/BEAR-HUB\""
-    echo "  ./run_bear.sh"
+    echo "  bash \"${BEAR_HUB_ROOT}/BEAR-HUB/bearhub_rx/run.sh\""
     echo
     echo "Or manually:"
-    echo "  conda run -p \"${BEAR_PREFIX}\" streamlit run BEAR-HUB.py"
+    echo "  cd \"${BEAR_HUB_ROOT}/BEAR-HUB/bearhub_rx\""
+    echo "  conda run -p \"${BEAR_PREFIX}\" reflex run"
     echo
     echo "Bactopia will run via '-profile docker' — make sure Docker is running."
 }
