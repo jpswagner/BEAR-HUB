@@ -6,6 +6,7 @@ samples file with columns: sample, runtype, genome_size, species, r1, r2, extra.
 """
 from __future__ import annotations
 
+import os
 import pathlib
 import re
 
@@ -75,7 +76,11 @@ def _collect(base: pathlib.Path, patterns: tuple[str, ...],
             fn = base.rglob if recursive else base.glob
             for p in sorted(fn(pat)):
                 if p.is_file():
-                    out.append(p.resolve())
+                    # os.path.abspath: absolute + normalises '..' but does NOT
+                    # follow symlinks. Critical: preserves the user's filename and
+                    # folder layout (e.g. nanopore/) so sample classification and
+                    # ONT inference work even when data is organised with symlinks.
+                    out.append(pathlib.Path(os.path.abspath(p)))
     except OSError:
         pass
     return list(dict.fromkeys(out))  # deduplicate preserving order

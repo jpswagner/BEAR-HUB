@@ -609,14 +609,14 @@ def _assembler_flags(o: dict, f: dict) -> list[str]:
 
 def _main_cmd(outdir: str, fofn_path: str, o: dict, f: dict,
                threads: int, memory: int, resume: bool,
-               preview: bool = False) -> str:
+               preview: bool = False, profile: str = "docker") -> str:
     """Build the full Nextflow command for the main Bactopia pipeline."""
     nf = system.get_nextflow_bin()
     base: list[str] = [nf, "run", "bactopia/bactopia"]
     ver = system.get_bactopia_version()
     if ver:
         base += ["-r", f"v{ver}"]
-    base += ["-profile", o.get("profile", "docker") if not preview else "docker",
+    base += ["-profile", profile or "docker",
              "--outdir", str(_pathlib.Path(outdir).expanduser().resolve())]
     datasets = o.get("datasets", "").strip()
     if datasets:
@@ -724,7 +724,7 @@ class BactopiaState(WizardMixin, rx.State):
         return _main_cmd(
             outdir, fofn, self.bopts, self.bflags,
             int(self.threads or 0), int(self.memory or 0),
-            bool(self.resume), preview=True,
+            bool(self.resume), preview=True, profile=self.profile,
         )
 
     def _build(self):
@@ -739,7 +739,7 @@ class BactopiaState(WizardMixin, rx.State):
             return ("", "Generate the FOFN first (Scan & build FOFN).")
         cmd = _main_cmd(outdir, fofn_out, self.bopts, self.bflags,
                          int(self.threads or 0), int(self.memory or 0),
-                         bool(self.resume), preview=False)
+                         bool(self.resume), preview=False, profile=self.profile)
         return (cmd, "")
 
     @rx.event(background=True)
