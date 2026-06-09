@@ -358,6 +358,14 @@ DEFAULT_BOPTS: dict[str, str] = {
     "species":        "UNKNOWN_SPECIES",
     "genome_size":    "(Select or Custom)",
     "datasets":       "",
+    # QC gate thresholds (Gather/QC module) — Bactopia native defaults.
+    # These define when a sample fails QC and is skipped. Users with low-yield
+    # isolates frequently need to relax them. Empty string = use Bactopia default.
+    "min_coverage":    "",
+    "min_basepairs":   "",
+    "min_reads":       "",
+    "min_genome_size": "",
+    "max_genome_size": "",
     # fastp
     "fastp_mode":     "Simple",
     "fastp_M":        "20",
@@ -601,6 +609,17 @@ def _main_cmd(outdir: str, fofn_path: str, o: dict, f: dict,
     datasets = o.get("datasets", "").strip()
     if datasets:
         base += ["--datasets", datasets]
+    # QC gate thresholds — only emit when user overrides the Bactopia default.
+    for key, flag in [
+        ("min_coverage",    "--min_coverage"),
+        ("min_basepairs",   "--min_basepairs"),
+        ("min_reads",       "--min_reads"),
+        ("min_genome_size", "--min_genome_size"),
+        ("max_genome_size", "--max_genome_size"),
+    ]:
+        v = o.get(key, "").strip()
+        if v:
+            base += [flag, v]
     if f.get("with_report"):
         base += ["-with-report", str(_pathlib.Path(outdir) / "nf-report.html")]
     if f.get("with_timeline"):

@@ -65,6 +65,50 @@ def _fastp_card(title, key, checks, inputs):
     )
 
 
+def _qc_thresholds_card() -> rx.Component:
+    """Collapsible card for Bactopia's Gather/QC gate thresholds.
+
+    These define when a sample fails QC and is skipped. Leave blank to use
+    Bactopia's defaults. Useful for low-yield or unusual-size isolates.
+    """
+    return rx.accordion.root(
+        rx.accordion.item(
+            header=rx.hstack(
+                helpmod.section("QC thresholds (Gather)", "qc_thresholds", size="3"),
+                rx.text(
+                    "Leave blank to use Bactopia defaults",
+                    size="1", color="var(--gray-9)", margin_left="8px",
+                ),
+                align="center",
+            ),
+            content=rx.vstack(
+                rx.text(
+                    "Samples that don't meet these minimums are skipped by Bactopia's "
+                    "Gather module. Relax them for low-yield isolates.",
+                    size="1", color="var(--gray-10)",
+                ),
+                rx.flex(
+                    opt_in("--min_coverage",    "min_coverage",    typ="number", width="140px"),
+                    opt_in("--min_basepairs",   "min_basepairs",   typ="number", width="150px"),
+                    opt_in("--min_reads",       "min_reads",       typ="number", width="140px"),
+                    opt_in("--min_genome_size", "min_genome_size", typ="number", width="150px"),
+                    opt_in("--max_genome_size", "max_genome_size", typ="number", width="150px"),
+                    wrap="wrap", spacing="3", align="end",
+                ),
+                rx.text(
+                    "Bactopia defaults: coverage=10 · basepairs=2 241 820 · "
+                    "reads=7 472 · min_genome=100 000 · max_genome=18 040 666",
+                    size="1", color="var(--gray-9)",
+                ),
+                spacing="3", align="start", width="100%",
+            ),
+        ),
+        collapsible=True,
+        width="100%",
+        variant="ghost",
+    )
+
+
 def _mode_is(*modes):
     cond = S.bopts["assembly_mode"] == modes[0]
     for m in modes[1:]:
@@ -157,6 +201,7 @@ def _step_input():
             spacing="3",
         ),
         wz.dir_picker(S),
+        _qc_thresholds_card(),
         wz.nav_buttons(S.prev_step, S.next_step, first=True),
         spacing="6",
         width="100%",
