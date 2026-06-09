@@ -249,8 +249,12 @@ class ToolsState(WizardMixin, rx.State):
         if err:
             yield rx.toast.error(err)
             return
-        async for _ in runner.stream(self, cmd, "tools",
-                                      work_dir=bactopia.safe_dir(self.outdir)):
+        async for _ in runner.stream(
+            self, cmd, "tools",
+            work_dir=bactopia.safe_dir(self.outdir),
+            page="Bactopia Tools",
+            n_samples=self.n_selected,
+        ):
             yield _
         async with self:
             self.refresh_merged()
@@ -318,8 +322,12 @@ class MerlinState(WizardMixin, rx.State):
         if err:
             yield rx.toast.error(err)
             return
-        async for _ in runner.stream(self, cmd, "merlin",
-                                      work_dir=bactopia.safe_dir(self.outdir)):
+        async for _ in runner.stream(
+            self, cmd, "merlin",
+            work_dir=bactopia.safe_dir(self.outdir),
+            page="MERLIN",
+            n_samples=self.n_selected,
+        ):
             yield _
         async with self:
             self.refresh_merged()
@@ -736,8 +744,12 @@ class BactopiaState(WizardMixin, rx.State):
         if err:
             yield rx.toast.error(err)
             return
-        async for _ in runner.stream(self, cmd, "bactopia",
-                                      work_dir=bactopia.safe_dir(self.outdir)):
+        async for _ in runner.stream(
+            self, cmd, "bactopia",
+            work_dir=bactopia.safe_dir(self.outdir),
+            page="Bactopia",
+            n_samples=self.n_selected,
+        ):
             yield _
         async with self:
             self.refresh_merged()
@@ -748,6 +760,54 @@ class BactopiaState(WizardMixin, rx.State):
         async with self:
             self.status = "stopped"
             self.running = False
+
+
+# ── RunsState ─────────────────────────────────────────────────────────────────
+
+from bearhub.core import history as _history
+
+
+class RunsState(rx.State):
+    """Runs page state: history list + selected run log viewer."""
+    records: list[dict] = []
+    selected_id: str = ""
+    selected_cmd: str = ""
+
+    @staticmethod
+    def _enrich(r: dict) -> dict:
+        """Add pre-formatted display fields so Reflex Vars can render them."""
+        return {**r,
+            "started_fmt":  _history.fmt_time(r.get("started")),
+            "duration_fmt": _history.fmt_duration(r.get("duration")),
+            "samples_fmt":  f"{r.get('n_samples',0)} samples" if r.get("n_samples") else "—",
+            "color":        _history.STATUS_COLOR.get(r.get("status",""), "gray"),
+        }
+
+    def load(self):
+        _history.cancel_stale()
+        self.records = [self._enrich(r) for r in _history.load_recent(100)]
+
+    def select(self, run_id: str):
+        self.selected_id = run_id
+        for r in self.records:
+            if r["id"] == run_id:
+                self.selected_cmd = r.get("cmd", "")
+                break
+
+    def clear_selected(self):
+        self.selected_id = ""
+        self.selected_cmd = ""
+
+    def refresh(self):
+        self.records = [self._enrich(r) for r in _history.load_recent(100)]
+
+    @rx.var
+    def has_records(self) -> bool:
+        return len(self.records) > 0
+
+    @rx.var
+    def active_count(self) -> int:
+        return sum(1 for r in self.records if r.get("status") == "running")
 
 
 # ── StatusState ────────────────────────────────────────────────────────────────

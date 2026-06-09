@@ -10,6 +10,7 @@ NAV = [
     ("Bactopia",       "/bactopia", "dna"),
     ("Bactopia Tools", "/tools",    "wrench"),
     ("MERLIN",         "/merlin",   "wand-sparkles"),
+    ("Runs",           "/runs",     "history"),
     ("Status",         "/status",   "activity"),
 ]
 

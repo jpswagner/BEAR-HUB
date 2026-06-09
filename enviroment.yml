@@ -1,16 +1,11 @@
 name: bear-hub
 channels:
-  - bioconda
   - conda-forge
   - defaults
 dependencies:
   - python=3.11
-  - openjdk=11
-  - nextflow
-  - git
   - pip
   - pip:
-      - streamlit>=1.30
+      - "reflex>=0.6,<1"
+      - websockets
       - pyyaml
-      - pandas
-

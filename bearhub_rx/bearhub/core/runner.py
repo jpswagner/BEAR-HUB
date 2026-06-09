@@ -14,6 +14,7 @@ from bearhub.core.system import (
     get_bactopia_version,
     get_nextflow_bin,
 )
+from bearhub.core import history as _hist
 
 MAX_LOG_LINES: int = 1500
 
@@ -113,16 +114,30 @@ def join_subcommands(labelled: list[tuple[str, str]]) -> str:
     return " ; ".join(parts)
 
 
-async def stream(state, cmd: str, ns: str, *, work_dir: str = "") -> None:
+async def stream(
+    state, cmd: str, ns: str, *,
+    work_dir: str = "",
+    page: str = "",
+    n_samples: int = 0,
+) -> None:
     """
     Run cmd as a background shell process, stream stdout/stderr to state.log.
 
     Uses `async with state` to make state updates within the Reflex background
     event context. Replaces the per-namespace process in _PROCS so stop() can
-    kill it.
+    kill it. Persists a run record to history via core/history.py.
     """
     cwd = work_dir if work_dir and os.path.isdir(work_dir) else str(APP_STATE_DIR)
     APP_STATE_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Create history record before the process starts
+    record = _hist.new_record(
+        ns=ns, page=page or ns, cmd=cmd,
+        outdir=work_dir, n_samples=n_samples,
+    )
+    _hist.append_record(record)
+    run_id = record["id"]
+
     async with state:
         state.running = True
         state.status = "running"
@@ -162,6 +177,8 @@ async def stream(state, cmd: str, ns: str, *, work_dir: str = "") -> None:
 
     rc = await proc.wait()
     _PROCS.pop(ns, None)
+    # Persist finish to history
+    _hist.finish_record(run_id, rc)
     async with state:
         state.running = False
         state.status = "success" if rc == 0 else "failed"
@@ -181,3 +198,9 @@ async def stop(ns: str) -> None:
         except ProcessLookupError:
             pass
     _PROCS.pop(ns, None)
+    # Mark any still-running record for this ns as stopped
+    records = _hist.load_all()
+    for r in reversed(records):
+        if r["ns"] == ns and r["status"] == "running":
+            _hist.finish_record(r["id"], -1)
+            break
