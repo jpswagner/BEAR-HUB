@@ -47,6 +47,20 @@ ASSEMBLER:ASSEMBLER_MODULE (GECL0527)   ← Dragonflye/Flye running
 ```
 FOFN format, runtype classification, and parameter validation all pass for long reads.
 
+## Typing/annotation params (main pipeline uses PREFIXED names)
+
+The main pipeline DOES accept typing/annotation params, but prefixed:
+`amrfinderplus_*`, `mlst_*`, `prokka_*`, `bakta_*` (unprefixed = Tools-only).
+
+| Param | How it's passed | Why |
+|---|---|---|
+| `mlst_scheme/minid/mincov/minscore`, `prokka_*`, `amrfinderplus_organism` | CLI flags | strings/integers/bools accepted from CLI |
+| `amrfinderplus_ident_min`, `amrfinderplus_coverage_min` | **`-params-file bactopia-params.json`** | FLOAT params — nf-schema rejects floats from the CLI ("string but should be number"); JSON preserves the `number` type. Also, Bactopia already passes these internally, so `--amrfinderplus_opts` can't re-pass them ("used more than once"). |
+| `use_bakta` | CLI, requires `--bakta_db` | semantic requirement |
+
+Real runs confirmed: `mlst_scheme=spyogenes`+`minid=95` → ST28 PERFECT;
+`-params-file {ident_min:0.9, coverage_min:0.6}` accepted, Success: true.
+
 ## Test suites (run from bearhub_rx/)
 - `tests/test_unit.py` — 100 unit assertions
 - `tests/test_params.py` — 52 parameter-flow checks (every UI param → command)
