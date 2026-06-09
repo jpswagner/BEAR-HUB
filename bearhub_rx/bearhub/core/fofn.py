@@ -127,6 +127,7 @@ def build_fofn(
     infer_ont_by_name: bool = True,
     merge_multi: bool = True,
     include_assemblies: bool = True,
+    hybrid_strategy: str = "",
 ) -> dict:
     """
     Scan base_dir for reads/assemblies and write a Bactopia samples.txt FOFN.
@@ -134,6 +135,11 @@ def build_fofn(
     Returns a dict with keys: fofn_path, rows, issues, counts.
     The runtype column follows Bactopia 4 conventions:
       paired-end, single-end, ont, hybrid, short_polish, assembly.
+
+    `hybrid_strategy` is the assembly_mode string from the UI. For PE+ONT samples:
+      - "Hybrid (Dragonflye --short_polish)" → runtype = "short_polish"
+      - anything else with PE+ONT             → runtype = "hybrid"
+    This replaces the invalid global --hybrid / --short_polish CLI flags.
     """
     base = pathlib.Path(base_dir)
     if not base.exists():
@@ -187,7 +193,10 @@ def build_fofn(
             r1 = _pick(fa, merge_multi)
             r2, extra = "", ""
         elif pe1 and pe2 and ont:
-            runtype = "hybrid"
+            # Dragonflye hybrid uses short_polish runtype; Unicycler uses hybrid.
+            runtype = ("short_polish"
+                       if "short_polish" in hybrid_strategy
+                       else "hybrid")
             r1 = _pick(pe1, merge_multi)
             r2 = _pick(pe2, merge_multi)
             extra = _pick(ont, merge_multi)
@@ -209,7 +218,9 @@ def build_fofn(
                 f"{sample}: FASTA and FASTQ detected; ignoring assembly in FOFN."
             )
             if pe1 and pe2 and ont:
-                runtype = "hybrid"
+                runtype = ("short_polish"
+                           if "short_polish" in hybrid_strategy
+                           else "hybrid")
                 r1 = _pick(pe1, merge_multi)
                 r2 = _pick(pe2, merge_multi)
                 extra = _pick(ont, merge_multi)

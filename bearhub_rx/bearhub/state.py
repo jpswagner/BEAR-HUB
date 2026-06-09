@@ -504,17 +504,18 @@ def _assembler_flags(o: dict, f: dict) -> list[str]:
     - skip_qc_plot    → INVALID. Correct param is --skip_qc_plots (plural).
     - --min_contig_len → always emitted at BEAR-HUB's 1000 default (Bactopia
       default is 500); also drives Unicycler --min_fasta_length internally.
-    - --short_polish  → not a CLI param; set by FOFN runtype column instead.
-      The --hybrid flag here is only meaningful for single-sample (--sample),
-      not for FOFN runs. Both are passed for legacy compatibility but should be
-      dropped when the FOFN builder correctly sets runtype per row (see
-      docs/bactopia/PARAM_AUDIT.md §bugs).
+    - --short_polish  → NOT a CLI param. Set via FOFN `runtype` column instead
+      (build_fofn receives `hybrid_strategy` and writes the correct runtype per row).
+    - --hybrid        → only valid for single-sample (--sample/--r1/--r2/--se).
+      With FOFN (--samples) the assembly mode is per-row in `runtype`; emitting
+      --hybrid as a global flag is redundant and confusing. Removed.
+    Both are now handled exclusively in core/fofn.py build_fofn().
     """
     import importlib
     cat = importlib.import_module("bearhub.data.catalog")
     af: list[str] = []
     mode = o.get("assembly_mode", "Illumina PE (Unicycler)")
-    use_uni, hyb = _MODE_IMPLIED.get(mode, (False, None))
+    use_uni, _hyb = _MODE_IMPLIED.get(mode, (False, None))
     if use_uni:
         af.append("--use_unicycler")
     # --unicycler_mode (valid Bactopia param; default 'normal')
@@ -522,8 +523,7 @@ def _assembler_flags(o: dict, f: dict) -> list[str]:
         uni_mode = o.get("unicycler_mode", "normal")
         if uni_mode:
             af += ["--unicycler_mode", uni_mode]
-    if hyb:
-        af.append(hyb)
+    # --hybrid / --short_polish intentionally omitted: handled via FOFN runtype
     # Shovill
     sa = o.get("shovill_assembler", "skesa")
     if sa and sa != "skesa":
@@ -667,6 +667,10 @@ class BactopiaState(WizardMixin, rx.State):
                 infer_ont_by_name=self.bflags.get("infer_ont_by_name", True),
                 merge_multi=self.bflags.get("merge_multi", True),
                 include_assemblies=self.bflags.get("include_assemblies", True),
+                # Thread the chosen hybrid strategy so build_fofn writes the correct
+                # runtype per row ("hybrid" for Unicycler, "short_polish" for Dragonflye)
+                # instead of emitting --hybrid / --short_polish as global CLI flags.
+                hybrid_strategy=self.bopts.get("assembly_mode", ""),
             )
         except Exception as e:
             self.fofn_built = False
