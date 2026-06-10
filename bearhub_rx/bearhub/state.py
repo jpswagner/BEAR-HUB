@@ -108,10 +108,13 @@ class WizardMixin(rx.State, mixin=True):
 
     def open_picker_for(self, target: str):
         self.picker_target = target
-        if not getattr(self, target, ""):
-            self.picker_cur = bactopia.safe_dir(self.outdir)
+        # `opt:<key>` targets a per-tool option (ToolsState.opts dict); plain
+        # targets are state attributes (e.g. "outdir").
+        if target.startswith("opt:") and hasattr(self, "opts"):
+            cur = self.opts.get(target[4:], "")
         else:
-            self.picker_cur = bactopia.safe_dir(getattr(self, target))
+            cur = getattr(self, target, "")
+        self.picker_cur = bactopia.safe_dir(cur or self.outdir)
         self.picker_dirs = bactopia.list_subdirs(self.picker_cur)
         self.picker_open = True
 
@@ -134,9 +137,14 @@ class WizardMixin(rx.State, mixin=True):
         self.picker_dirs = bactopia.list_subdirs(self.picker_cur)
 
     def picker_select(self):
-        setattr(self, self.picker_target, self.picker_cur)
+        target = self.picker_target
+        if target.startswith("opt:") and hasattr(self, "opts"):
+            self.opts[target[4:]] = self.picker_cur
+            self.picker_open = False
+            return
+        setattr(self, target, self.picker_cur)
         self.picker_open = False
-        if self.picker_target == "outdir":
+        if target == "outdir":
             self.samples = bactopia.discover_samples(self.outdir)
             self.selected = list(self.samples)
 

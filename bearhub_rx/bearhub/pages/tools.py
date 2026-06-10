@@ -39,13 +39,21 @@ def _field(field: dict) -> rx.Component:
     if kind == "path":
         return wz.labeled(
             label,
-            rx.input(
-                value=ToolsState.opts[key],
-                type="text",
-                size="2",
-                width="360px",
-                placeholder=field.get("help", "/absolute/path"),
-                on_change=lambda v: ToolsState.set_opt(key, v),
+            rx.hstack(
+                rx.input(
+                    value=ToolsState.opts[key],
+                    type="text",
+                    size="2",
+                    width="300px",
+                    placeholder=field.get("help", "/absolute/path"),
+                    on_change=lambda v: ToolsState.set_opt(key, v),
+                ),
+                rx.button(
+                    rx.icon("folder-open", size=15), "Browse",
+                    on_click=lambda: ToolsState.open_picker_for(f"opt:{key}"),
+                    variant="soft", color_scheme="gray", size="2",
+                ),
+                spacing="2", align="center",
             ),
         )
     typ = "number" if kind in ("int", "float") else "text"
@@ -210,6 +218,7 @@ def _step_params() -> rx.Component:
                 width="100%",
             ),
         ),
+        wz.dir_picker(ToolsState),
         wz.nav_buttons(
             ToolsState.prev_step, ToolsState.next_step,
             next_label="Review & run",
