@@ -215,11 +215,15 @@ class ToolsState(WizardMixin, rx.State):
     def preview(self) -> str:
         lines = []
         for tid in self.picked_ids:
-            args = catalog.build_tool_args(tid, self.opts, self.flags)
+            args, jp = catalog.build_tool_args(tid, self.opts, self.flags)
+            pf = ""
+            if jp:
+                lines.append(f"# tool-params-{tid}.json: {_json.dumps(jp)}")
+                pf = f"<tool-params-{tid}.json>"
             lines.append(runner.nextflow_wf_cmd(
                 tid, "<outdir>", "<include-file>",
                 self.profile, int(self.threads or 0), int(self.memory or 0),
-                bool(self.resume), args, self.extra,
+                bool(self.resume), args, self.extra, pf,
             ))
         return "\n\n".join(lines) if lines else "# select at least one tool"
 
@@ -236,11 +240,12 @@ class ToolsState(WizardMixin, rx.State):
         inc = _fofn.write_include_file(outdir, samples)
         labelled = []
         for tid in picked:
-            args = catalog.build_tool_args(tid, self.opts, self.flags)
+            args, jp = catalog.build_tool_args(tid, self.opts, self.flags)
+            pf = runner.write_tool_params_file(outdir, tid, jp)
             cmd = runner.nextflow_wf_cmd(
                 tid, outdir, inc, self.profile,
                 int(self.threads or 0), int(self.memory or 0),
-                bool(self.resume), args, self.extra,
+                bool(self.resume), args, self.extra, pf,
             )
             labelled.append((f"[Bactopia Tool] {tid}", cmd))
         return (runner.join_subcommands(labelled), "")

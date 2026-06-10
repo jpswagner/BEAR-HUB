@@ -36,6 +36,18 @@ def _field(field: dict) -> rx.Component:
                 on_change=lambda v: ToolsState.set_opt(key, v),
             ),
         )
+    if kind == "path":
+        return wz.labeled(
+            label,
+            rx.input(
+                value=ToolsState.opts[key],
+                type="text",
+                size="2",
+                width="360px",
+                placeholder=field.get("help", "/absolute/path"),
+                on_change=lambda v: ToolsState.set_opt(key, v),
+            ),
+        )
     typ = "number" if kind in ("int", "float") else "text"
     return wz.labeled(
         label,

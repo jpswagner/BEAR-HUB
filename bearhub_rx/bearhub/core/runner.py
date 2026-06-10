@@ -61,6 +61,17 @@ def write_include_file(outdir: str, samples: list[str]) -> str:
     return fname
 
 
+def write_tool_params_file(outdir: str, wf: str, jp: dict) -> str:
+    """Write a tool's float `-params-file` JSON; return its path ("" if empty)."""
+    if not jp:
+        return ""
+    import json, pathlib
+    APP_STATE_DIR.mkdir(parents=True, exist_ok=True)
+    fname = str(APP_STATE_DIR / f"tool-params-{wf}.json")
+    pathlib.Path(fname).write_text(json.dumps(jp, indent=2), encoding="utf-8")
+    return fname
+
+
 def nextflow_wf_cmd(
     wf: str,
     outdir: str,
@@ -71,6 +82,7 @@ def nextflow_wf_cmd(
     resume: bool = True,
     tool_args: list[str] = (),
     global_extra: str = "",
+    params_file: str = "",
 ) -> str:
     """
     Build a Nextflow command for a Bactopia Tool (`--wf` workflow).
@@ -91,6 +103,8 @@ def nextflow_wf_cmd(
     ]
     if include_file:
         base += ["--include", include_file]
+    if params_file:
+        base += ["-params-file", params_file]
     if threads > 0:
         base += ["--max_cpus", str(threads)]
     if memory_gb and memory_gb > 0:

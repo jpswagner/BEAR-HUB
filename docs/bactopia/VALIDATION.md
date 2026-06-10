@@ -61,6 +61,50 @@ The main pipeline DOES accept typing/annotation params, but prefixed:
 Real runs confirmed: `mlst_scheme=spyogenes`+`minid=95` → ST28 PERFECT;
 `-params-file {ident_min:0.9, coverage_min:0.6}` accepted, Success: true.
 
+## Phase 3 — Bactopia Tools (`--wf`) param correctness
+
+The Tools used **wrong (unprefixed) param names** in `catalog.build_tool_args`
+(e.g. `--ident_min`, `--minid`, `--pf_mincov`, `--bb`, `--traits`). Rewrote
+against each tool's `nextflow_schema.json`: every name is now the schema's
+prefixed form (`--amrfinderplus_ident_min`, `--mlst_minid`,
+`--plasmidfinder_mincov`, `--iqtree_bb`, `--scoary_traits`, …). `rgi` was the
+only tool already correct.
+
+`build_tool_args` now returns `(cli_args, json_params)`:
+- **CLI args** — strings/ints/bools (prefixed names).
+- **`-params-file` JSON** — `number`-typed params (floats nf-schema rejects from
+  the CLI): `amrfinderplus_ident_min/coverage_min`, `plasmidfinder_mincov/threshold`,
+  `panaroo_threshold/core_threshold`, `scoary_p_value_cutoff` (`FLOAT_TOOL_PARAMS`).
+- Numeric/text fields default to **empty** (help shows the Bactopia default) and
+  are emitted only when the user sets them, so Bactopia keeps its own defaults.
+
+### Bug found ONLY by running real `--wf` data — Nextflow 26 empty `Path?`
+
+Bactopia 4.0 tools statically type some inputs as `Path?` (e.g.
+`amrfinderplus_db : Path?`) while the schema default is `""`. Nextflow 26
+coerces `""`→Path at param resolution and **aborts the whole run** before any
+process: `ERROR ~ Path string cannot be empty` (`completed=0 failed=0`). Fix:
+pass the param as JSON **`null`** via the `-params-file` (`TOOL_NULL_PATHS`,
+mapped for all ~30 tools). Verified: with `{"amrfinderplus_db": null}` the run
+proceeds → `AMRFINDERPLUS_RUN` → `CSVTK_CONCAT`, `pyogenes-10.tsv` produced.
+
+### End-to-end Tool runs (pyogenes-10, docker) ✅/⚠️
+
+| Tool | Result | Notes |
+|---|---|---|
+| `amrfinderplus` | ✅ runs | `amrfinderplus_db: null` → internal DATASETS fallback; floats via params-file |
+| `plasmidfinder` | ✅ runs | no db param; `PLASMIDFINDER_MODULE`→`CSVTK_CONCAT`, tsv/json/txt produced |
+| `mlst` | ⚠️ needs db | module input `db: Path` is **non-nullable** (no DATASETS fallback) — the tool **requires** a user-supplied `--mlst_db` (PubMLST dir/.tar.gz). Exposed as a `path` field. |
+
+### How a user passes paths (DBs, references, queries)
+
+Paths reach Bactopia as `--<param> /abs/path` CLI args. Because Nextflow gives
+the CLI precedence over the `-params-file`, a user value overrides the `null` we
+inject. In the UI they're entered via **`path`-kind fields** (added `--mlst_db`),
+or — for tools not yet given a detailed card — the **global "Extra args"** box
+(`--<param> /path`). As each tool gets a detailed card, its required path inputs
+get dedicated `path` fields.
+
 ## Test suites (run from bearhub_rx/)
 - `tests/test_unit.py` — 100 unit assertions
 - `tests/test_params.py` — 52 parameter-flow checks (every UI param → command)

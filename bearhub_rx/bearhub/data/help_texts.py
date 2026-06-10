@@ -128,30 +128,33 @@ HELP: dict[str, str] = {
     ),
     "mlst": (
         "**MLST**\n\n"
-        "- **`--scheme`** — force a scheme (e.g. `ecoli`, `saureus`); leave *auto/none* "
+        "- **`--mlst_scheme`** — force a scheme (e.g. `ecoli`, `saureus`); leave *auto/none* "
         "to let Bactopia decide.\n"
-        "- **`--minid` / `--mincov` / `--minscore`** — thresholds to accept an ST.\n"
-        "- **`--nopath`** — disable path resolution for specific schemes."
+        "- **`--mlst_minid` / `--mlst_mincov` / `--mlst_minscore`** — thresholds to accept an ST "
+        "(Bactopia defaults 95 / 10 / 50).\n"
+        "- **`--mlst_nopath`** — disable path resolution for specific schemes."
     ),
     "plasmidfinder": (
         "**PlasmidFinder**\n\n"
-        "- **`--pf_mincov`** — minimum coverage (0–1, e.g. 0.6).\n"
-        "- **`--pf_threshold`** — minimum identity (0–1, e.g. 0.9).\n"
-        "Identifies plasmid replicons in assemblies."
+        "- **`--plasmidfinder_mincov`** — minimum coverage (0–1, default 0.6).\n"
+        "- **`--plasmidfinder_threshold`** — minimum identity (0–1, default 0.9).\n"
+        "Both are floats passed via `-params-file`. Identifies plasmid replicons in assemblies."
     ),
     "mashtree": (
         "**Mashtree** — fast neighbour-joining trees from Mash sketches.\n\n"
-        "- **`--kmerlength` / `--sketchsize`** control resolution vs cost.\n"
-        "- **`--trunclength`, `--genomesize`, `--mindepth`, `--sortorder`** fine-tune the build.\n"
-        "- **`--save_sketches`** keeps sketches for reuse."
+        "- **`--mashtree_kmerlength` / `--mashtree_sketchsize`** control resolution vs cost.\n"
+        "- **`--mashtree_trunclength`, `--mashtree_genomesize`, `--mashtree_mindepth`, "
+        "`--mashtree_sortorder`** fine-tune the build.\n"
+        "- **`--mashtree_save_sketches`** keeps sketches for reuse."
     ),
     "pangenome": (
         "**Pangenome**\n\n"
         "- **Engine** — Panaroo (default, graph-based), PIRATE (multi-threshold), Roary (classic).\n"
         "- Anchor on references with **`--species`** or **`--accessions`**.\n"
-        "- Phylogeny via **IQ-TREE** (`--iqtree_model`, `--bb` ultrafast bootstrap, `--alrt`).\n"
-        "- **Scoary** gene–phenotype association via **`--traits`** (CSV/TSV).\n"
-        "- **`--skip_recombination`** skips ClonalFrameML."
+        "- Phylogeny via **IQ-TREE** (`--iqtree_model`, `--iqtree_bb` ultrafast bootstrap, `--iqtree_alrt`).\n"
+        "- **Scoary** gene–phenotype association via **`--scoary_traits`** (CSV/TSV).\n"
+        "- **`--skip_recombination`** skips ClonalFrameML. Float thresholds "
+        "(`--panaroo_threshold`, `--scoary_p_value_cutoff`) go via `-params-file`."
     ),
     # ── MERLIN ──
     "merlin": (
