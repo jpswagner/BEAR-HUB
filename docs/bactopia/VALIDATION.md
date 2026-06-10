@@ -94,7 +94,9 @@ proceeds → `AMRFINDERPLUS_RUN` → `CSVTK_CONCAT`, `pyogenes-10.tsv` produced.
 |---|---|---|
 | `amrfinderplus` | ✅ runs | `amrfinderplus_db: null` → internal DATASETS fallback; floats via params-file |
 | `plasmidfinder` | ✅ runs | no db param; `PLASMIDFINDER_MODULE`→`CSVTK_CONCAT`, tsv/json/txt produced |
-| `mlst` | ⚠️ needs db | module input `db: Path` is **non-nullable** (no DATASETS fallback) — the tool **requires** a user-supplied `--mlst_db` (PubMLST dir/.tar.gz). Exposed as a `path` field. |
+| `rgi` | ✅ runs | no Path param; `RGI_MAIN`→`CSVTK_CONCAT`→`RGI_HEATMAP`, tsv/json produced |
+| `emmtyper` | ✅ runs | **non-detailed** tool — proves the null-fix generalizes to all ~30 tools, not just the 6 with cards. `emmtyper_blastdb: null` → ran on pyogenes-10 → **EMM1.0** (valid emm-type) |
+| `mlst` | ⚠️ needs db | module input `db: Path` is **non-nullable** (no DATASETS fallback) — the tool **requires** a user-supplied `--mlst_db` (PubMLST dir/.tar.gz). Exposed as a `path` field with a Browse picker. |
 
 ### How a user passes paths (DBs, references, queries)
 
