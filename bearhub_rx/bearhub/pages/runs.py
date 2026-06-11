@@ -3,9 +3,41 @@ from __future__ import annotations
 
 import reflex as rx
 
+from bearhub.components import wizard as wzmod
 from bearhub.components.shell import shell
 from bearhub.components.wizard import hero
 from bearhub.state import RunsState
+
+
+def _live_log_panel() -> rx.Component:
+    """Live log of the selected run (tails its on-disk log; updates while active)."""
+    return rx.vstack(
+        rx.hstack(
+            rx.text("Live log", size="2", weight="bold", color="var(--gray-11)"),
+            rx.cond(
+                RunsState.selected_active,
+                rx.badge("● live", color_scheme="blue", size="1", variant="soft"),
+            ),
+            rx.spacer(),
+            rx.cond(
+                RunsState.selected_active,
+                rx.button(
+                    rx.icon("square", size=13), "Stop run",
+                    on_click=RunsState.stop_selected,
+                    color_scheme="red", variant="soft", size="1",
+                ),
+            ),
+            wzmod.copy_button(RunsState.selected_log_text, "Copy log"),
+            width="100%", align="center",
+        ),
+        rx.cond(
+            RunsState.selected_log.length() > 0,
+            wzmod.log_view(RunsState.selected_log_text, height="280px"),
+            rx.text("No captured log for this run (older run, or log rotated).",
+                    size="1", color="var(--gray-9)", padding="8px"),
+        ),
+        spacing="2", width="100%", align="start", margin_top="6px",
+    )
 
 
 def _run_row(r) -> rx.Component:
@@ -61,6 +93,7 @@ def _cmd_panel() -> rx.Component:
                 rx.badge(RunsState.selected_id, size="1", color_scheme="gray",
                          variant="outline"),
                 rx.spacer(),
+                wzmod.copy_button(RunsState.selected_cmd, "Copy"),
                 rx.button(
                     rx.icon("x", size=14),
                     on_click=RunsState.clear_selected,
@@ -76,6 +109,7 @@ def _cmd_panel() -> rx.Component:
                 wrap_long_lines=True,
                 font_size="12px",
             ),
+            _live_log_panel(),
             width="100%",
         ),
     )
@@ -118,7 +152,7 @@ def runs_page() -> rx.Component:
             rx.button(
                 rx.icon("refresh-cw", size=14),
                 "Refresh",
-                on_click=RunsState.refresh,
+                on_click=[RunsState.refresh, RunsState.monitor],
                 variant="soft",
                 size="2",
             ),

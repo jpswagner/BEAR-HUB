@@ -247,10 +247,16 @@ def _step_run() -> rx.Component:
             width="100%",
             style={"background": "var(--teal-2)", "borderColor": "var(--teal-6)"},
         ),
-        rx.heading("Command preview", size="3"),
+        wz.docker_banner(ToolsState),
+        rx.hstack(
+            rx.heading("Command preview", size="3"),
+            rx.spacer(),
+            wz.copy_button(ToolsState.preview, "Copy command"),
+            width="100%", align="center",
+        ),
         rx.code_block(ToolsState.preview, language="bash",
                       width="100%", wrap_long_lines=True),
-        wz.run_panel(ToolsState),
+        wz.run_panel(ToolsState, can_run=ToolsState.ready),
         wz.merged_panel(ToolsState),
         wz.nav_buttons(
             ToolsState.prev_step, ToolsState.next_step,

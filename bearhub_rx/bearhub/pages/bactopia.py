@@ -593,7 +593,13 @@ def _step_extras():
 # ── Step 6: run ────────────────────────────────────────────────────────────────
 def _step_run():
     return rx.vstack(
-        rx.heading("Command preview", size="3"),
+        wz.docker_banner(S),
+        rx.hstack(
+            rx.heading("Command preview", size="3"),
+            rx.spacer(),
+            wz.copy_button(S.preview, "Copy command"),
+            width="100%", align="center",
+        ),
         rx.code_block(S.preview, language="bash", width="100%", wrap_long_lines=True),
         rx.cond(
             ~S.fofn_built,
@@ -602,7 +608,7 @@ def _step_run():
                 icon="triangle_alert", color_scheme="amber", size="1",
             ),
         ),
-        wz.run_panel(S),
+        wz.run_panel(S, can_run=S.ready),
         wz.merged_panel(S),
         wz.nav_buttons(S.prev_step, S.next_step, next_label="Back", next_handler=S.prev_step),
         spacing="6",

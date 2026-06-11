@@ -118,8 +118,59 @@ def labeled(label: str, *children: rx.Component, width: str = "auto") -> rx.Comp
     )
 
 
-def run_panel(S) -> rx.Component:
-    """Run/Stop buttons, status badge, and the live log. `S` is a page state."""
+def copy_button(text_var, label: str = "Copy", size: str = "1") -> rx.Component:
+    """Small button that copies `text_var` (a state Var or str) to the clipboard."""
+    return rx.button(
+        rx.icon("copy", size=14), label,
+        on_click=[rx.set_clipboard(text_var), rx.toast.info("Copied to clipboard")],
+        variant="soft", color_scheme="gray", size=size,
+    )
+
+
+def log_view(log_text_var, empty_var=None, height: str = "320px") -> rx.Component:
+    """Scrollable live-log box that auto-sticks to the newest line.
+
+    The `column-reverse` flex trick keeps the scroll pinned to the bottom as
+    new lines arrive (unless the user scrolls up), without any JS.
+    """
+    return rx.box(
+        rx.code_block(log_text_var, language="bash", width="100%",
+                      wrap_long_lines=True),
+        rx.cond(
+            (empty_var is not None) & (empty_var if empty_var is not None else False),
+            rx.text("Output will stream here when you run.",
+                    size="1", color="var(--gray-9)", padding="8px"),
+        ),
+        width="100%",
+        height=height,
+        overflow="auto",
+        display="flex",
+        flex_direction="column-reverse",
+        border="1px solid var(--gray-5)",
+        border_radius="8px",
+        background="var(--gray-2)",
+    )
+
+
+def docker_banner(S) -> rx.Component:
+    """Red callout shown when the Docker daemon isn't reachable (runs would fail)."""
+    return rx.cond(
+        ~S.docker_ok,
+        rx.callout(
+            "Docker daemon is not running. Bactopia runs with -profile docker and "
+            "will fail until you start Docker (e.g. `sudo systemctl start docker`).",
+            icon="triangle_alert", color_scheme="red", size="1",
+        ),
+    )
+
+
+def run_panel(S, can_run=None) -> rx.Component:
+    """Run/Stop buttons, status badge, and the live log. `S` is a page state.
+
+    `can_run` (optional Var) gates the Run button so it's disabled until the
+    page's prerequisites are met (FOFN built / tool & samples selected).
+    """
+    run_disabled = S.running if can_run is None else (S.running | ~can_run)
     return rx.vstack(
         rx.hstack(
             rx.button(
@@ -128,7 +179,7 @@ def run_panel(S) -> rx.Component:
                 on_click=S.run,
                 color_scheme="teal",
                 size="4",
-                disabled=S.running,
+                disabled=run_disabled,
                 loading=S.running,
             ),
             rx.button(
@@ -144,24 +195,16 @@ def run_panel(S) -> rx.Component:
                 S.status != "idle",
                 rx.badge(S.status_label, color_scheme=S.status_color, size="2"),
             ),
-            spacing="5",
-            align="center",
-        ),
-        rx.box(
-            rx.code_block(S.log_text, language="bash", width="100%",
-                          wrap_long_lines=True),
+            rx.spacer(),
             rx.cond(
-                S.log.length() == 0,
-                rx.text("Output will stream here when you run.",
-                        size="1", color="var(--gray-9)", padding="8px"),
+                S.log.length() > 0,
+                copy_button(S.log_text, "Copy log"),
             ),
+            spacing="4",
+            align="center",
             width="100%",
-            height="320px",
-            overflow="auto",
-            border="1px solid var(--gray-5)",
-            border_radius="8px",
-            background="var(--gray-2)",
         ),
+        log_view(S.log_text, S.log.length() == 0),
         spacing="5",
         width="100%",
         align="start",

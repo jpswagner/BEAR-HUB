@@ -18,8 +18,36 @@ from bearhub.core import history as _hist
 
 MAX_LOG_LINES: int = 1500
 
-# Per-namespace process registry (for stop())
+# Per-namespace process registry (for stop()) and per-run_id registry (so any
+# page — chiefly Runs — can monitor/stop any active run, enabling parallelism).
 _PROCS: dict[str, asyncio.subprocess.Process] = {}
+_PROCS_BY_ID: dict[str, asyncio.subprocess.Process] = {}
+
+_LOG_DIR = APP_STATE_DIR / "logs"
+
+
+def run_log_path(run_id: str) -> str:
+    """Path to a run's on-disk live log (written line-by-line by stream())."""
+    return str(_LOG_DIR / f"{run_id}.log")
+
+
+def tail_run_log(run_id: str, n: int = MAX_LOG_LINES) -> list[str]:
+    """Return the last `n` lines of a run's on-disk log (empty if none)."""
+    p = _LOG_DIR / f"{run_id}.log"
+    try:
+        return p.read_text(encoding="utf-8", errors="replace").splitlines()[-n:]
+    except OSError:
+        return []
+
+
+def active_run_ids() -> list[str]:
+    """run_ids with a live (not-yet-exited) process."""
+    return [rid for rid, p in _PROCS_BY_ID.items() if p.returncode is None]
+
+
+def is_active(run_id: str) -> bool:
+    p = _PROCS_BY_ID.get(run_id)
+    return bool(p and p.returncode is None)
 
 # ANSI escape sequence stripper
 _ANSI = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]", re.IGNORECASE)
@@ -152,10 +180,15 @@ async def stream(
     _hist.append_record(record)
     run_id = record["id"]
 
+    # Open the on-disk live log so any page (e.g. Runs) can tail this run.
+    _LOG_DIR.mkdir(parents=True, exist_ok=True)
+    log_fh = open(_LOG_DIR / f"{run_id}.log", "w", encoding="utf-8", buffering=1)
+
     async with state:
         state.running = True
         state.status = "running"
         state.log = []
+        state.run_id = run_id
 
     proc = await asyncio.create_subprocess_exec(
         "bash", "-c", cmd,
@@ -165,6 +198,11 @@ async def stream(
         env={**os.environ, "PYTHONUNBUFFERED": "1", "NXF_ANSI_LOG": "false"},
     )
     _PROCS[ns] = proc
+    _PROCS_BY_ID[run_id] = proc
+
+    def _persist(new_lines: list[str]) -> None:
+        for ln in new_lines:
+            log_fh.write(ln + "\n")
 
     try:
         buf = b""
@@ -178,11 +216,13 @@ async def stream(
                 line_bytes, buf = buf.split(b"\n", 1)
                 lines = normalize_chunk(line_bytes + b"\n")
                 if lines:
+                    _persist(lines)
                     async with state:
                         state.log = (state.log + lines)[-MAX_LOG_LINES:]
         if buf:
             lines = normalize_chunk(buf)
             if lines:
+                _persist(lines)
                 async with state:
                     state.log = (state.log + lines)[-MAX_LOG_LINES:]
     except Exception as exc:
@@ -191,6 +231,11 @@ async def stream(
 
     rc = await proc.wait()
     _PROCS.pop(ns, None)
+    _PROCS_BY_ID.pop(run_id, None)
+    try:
+        log_fh.close()
+    except OSError:
+        pass
     # Persist finish to history
     _hist.finish_record(run_id, rc)
     async with state:
@@ -198,11 +243,7 @@ async def stream(
         state.status = "success" if rc == 0 else "failed"
 
 
-async def stop(ns: str) -> None:
-    """Terminate the running process for namespace `ns`."""
-    proc = _PROCS.get(ns)
-    if proc is None or proc.returncode is not None:
-        return
+async def _terminate(proc: asyncio.subprocess.Process) -> None:
     try:
         proc.terminate()
         await asyncio.wait_for(proc.wait(), timeout=5)
@@ -211,10 +252,33 @@ async def stop(ns: str) -> None:
             proc.kill()
         except ProcessLookupError:
             pass
+
+
+async def stop(ns: str) -> None:
+    """Terminate the running process for namespace `ns`."""
+    proc = _PROCS.get(ns)
+    if proc is None or proc.returncode is not None:
+        return
+    await _terminate(proc)
     _PROCS.pop(ns, None)
     # Mark any still-running record for this ns as stopped
     records = _hist.load_all()
     for r in reversed(records):
         if r["ns"] == ns and r["status"] == "running":
             _hist.finish_record(r["id"], -1)
+            _PROCS_BY_ID.pop(r["id"], None)
             break
+
+
+async def stop_run_id(run_id: str) -> None:
+    """Terminate a specific run by id (used by the Runs monitor page)."""
+    proc = _PROCS_BY_ID.get(run_id)
+    if proc is None or proc.returncode is not None:
+        return
+    await _terminate(proc)
+    _PROCS_BY_ID.pop(run_id, None)
+    # Drop it from the ns registry too if it's the current one there.
+    for ns, p in list(_PROCS.items()):
+        if p is proc:
+            _PROCS.pop(ns, None)
+    _hist.finish_record(run_id, -1)

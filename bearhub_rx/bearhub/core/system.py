@@ -77,6 +77,24 @@ def docker_available() -> bool:
     return bool(which("docker"))
 
 
+def docker_running() -> bool:
+    """True if the Docker daemon is reachable (not just the CLI installed).
+
+    BEAR-HUB runs Bactopia with `-profile docker`, so a stopped daemon makes
+    every run fail with a cryptic error. `docker info` is the cheap probe.
+    """
+    if not which("docker"):
+        return False
+    try:
+        r = subprocess.run(
+            ["docker", "info"],
+            capture_output=True, text=True, timeout=8,
+        )
+        return r.returncode == 0
+    except OSError:
+        return False
+
+
 def get_default_outdir() -> str:
     env_out = os.getenv("BEAR_HUB_OUTDIR")
     if env_out:

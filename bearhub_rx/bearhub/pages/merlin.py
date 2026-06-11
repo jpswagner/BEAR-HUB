@@ -131,10 +131,16 @@ def _step_run() -> rx.Component:
             width="100%",
             style={"background": "var(--teal-2)", "borderColor": "var(--teal-6)"},
         ),
-        rx.heading("Command preview", size="3"),
+        wz.docker_banner(MerlinState),
+        rx.hstack(
+            rx.heading("Command preview", size="3"),
+            rx.spacer(),
+            wz.copy_button(MerlinState.preview, "Copy command"),
+            width="100%", align="center",
+        ),
         rx.code_block(MerlinState.preview, language="bash",
                       width="100%", wrap_long_lines=True),
-        wz.run_panel(MerlinState),
+        wz.run_panel(MerlinState, can_run=MerlinState.ready),
         wz.merged_panel(MerlinState),
         wz.nav_buttons(
             MerlinState.prev_step, MerlinState.next_step,

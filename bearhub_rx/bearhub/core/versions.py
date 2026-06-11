@@ -34,6 +34,14 @@ def get_versions() -> dict[str, str]:
 
     docker_out = _run(["docker", "--version"])
     m = re.search(r"Docker version\s+([\d.]+)", docker_out, re.IGNORECASE)
-    out["docker"] = m.group(1) if m else "unknown"
+    ver = m.group(1) if m else "unknown"
+    # Distinguish "installed" from "daemon running" — a stopped daemon breaks runs.
+    from bearhub.core.system import docker_running
+    if ver == "unknown":
+        out["docker"] = "not installed"
+    elif docker_running():
+        out["docker"] = f"{ver} (running)"
+    else:
+        out["docker"] = f"{ver} (daemon NOT running)"
 
     return out

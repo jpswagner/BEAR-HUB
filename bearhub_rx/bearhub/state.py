@@ -8,6 +8,7 @@ and a background `run` event that builds the command and streams output.
 """
 from __future__ import annotations
 
+import asyncio
 import os
 import pathlib
 import shlex
@@ -48,8 +49,16 @@ class WizardMixin(rx.State, mixin=True):
     log: list[str] = []
     status: str = "idle"
     running: bool = False
+    run_id: str = ""
     merged: list[str] = []
     merged_dir: str = ""
+    docker_ok: bool = True  # optimistic; a background check flips it if the daemon is down
+
+    @rx.event(background=True)
+    async def check_docker(self):
+        ok = system.docker_running()
+        async with self:
+            self.docker_ok = ok
 
     def next_step(self):
         self.step += 1
@@ -216,6 +225,11 @@ class ToolsState(WizardMixin, rx.State):
         return len(self.picked_ids)
 
     @rx.var
+    def ready(self) -> bool:
+        """Run is allowed once at least one tool and one sample are chosen."""
+        return len(self.picked_ids) > 0 and (len(self.selected) > 0 or len(self.samples) > 0)
+
+    @rx.var
     def picked_detailed(self) -> list[str]:
         return [t for t in self.picked_ids if t in catalog.DETAILED]
 
@@ -298,6 +312,10 @@ class MerlinState(WizardMixin, rx.State):
     @rx.var
     def n_picked(self) -> int:
         return len(self.picked_ids)
+
+    @rx.var
+    def ready(self) -> bool:
+        return len(self.picked_ids) > 0 and (len(self.selected) > 0 or len(self.samples) > 0)
 
     @rx.var
     def preview(self) -> str:
@@ -802,6 +820,11 @@ class BactopiaState(WizardMixin, rx.State):
         self.bflags[key] = bool(value)
 
     @rx.var
+    def ready(self) -> bool:
+        """Main pipeline runs from the FOFN, so readiness == FOFN built."""
+        return self.fofn_built
+
+    @rx.var
     def fofn_target(self) -> str:
         out = bactopia.safe_dir(self.outdir)
         return str(_pathlib.Path(out) / "samples.txt")
@@ -901,10 +924,12 @@ from bearhub.core import history as _history
 
 
 class RunsState(rx.State):
-    """Runs page state: history list + selected run log viewer."""
+    """Runs page state: history list + live monitor of any active run."""
     records: list[dict] = []
     selected_id: str = ""
     selected_cmd: str = ""
+    selected_log: list[str] = []
+    monitoring: bool = False
 
     @staticmethod
     def _enrich(r: dict) -> dict:
@@ -916,9 +941,12 @@ class RunsState(rx.State):
             "color":        _history.STATUS_COLOR.get(r.get("status",""), "gray"),
         }
 
+    def _reload(self):
+        self.records = [self._enrich(r) for r in _history.load_recent(100)]
+
     def load(self):
         _history.cancel_stale()
-        self.records = [self._enrich(r) for r in _history.load_recent(100)]
+        self._reload()
 
     def select(self, run_id: str):
         self.selected_id = run_id
@@ -926,13 +954,51 @@ class RunsState(rx.State):
             if r["id"] == run_id:
                 self.selected_cmd = r.get("cmd", "")
                 break
+        self.selected_log = runner.tail_run_log(run_id)
 
     def clear_selected(self):
         self.selected_id = ""
         self.selected_cmd = ""
+        self.selected_log = []
 
     def refresh(self):
-        self.records = [self._enrich(r) for r in _history.load_recent(100)]
+        self._reload()
+        if self.selected_id:
+            self.selected_log = runner.tail_run_log(self.selected_id)
+
+    @rx.event(background=True)
+    async def stop_selected(self):
+        rid = self.selected_id
+        if rid:
+            await runner.stop_run_id(rid)
+        async with self:
+            self.refresh()
+
+    @rx.event(background=True)
+    async def monitor(self):
+        """Poll history + the selected run's on-disk log while anything is active.
+
+        Self-terminates when no run is active, so it isn't an always-on loop.
+        Restart it via Refresh or by selecting a run.
+        """
+        async with self:
+            if self.monitoring:
+                return  # already polling
+            self.monitoring = True
+        try:
+            while True:
+                async with self:
+                    self._reload()
+                    sel = self.selected_id
+                    if sel:
+                        self.selected_log = runner.tail_run_log(sel)
+                    active = self.active_count > 0 or len(runner.active_run_ids()) > 0
+                if not active:
+                    break
+                await asyncio.sleep(2)
+        finally:
+            async with self:
+                self.monitoring = False
 
     @rx.var
     def has_records(self) -> bool:
@@ -941,6 +1007,15 @@ class RunsState(rx.State):
     @rx.var
     def active_count(self) -> int:
         return sum(1 for r in self.records if r.get("status") == "running")
+
+    @rx.var
+    def selected_active(self) -> bool:
+        return any(r["id"] == self.selected_id and r.get("status") == "running"
+                   for r in self.records)
+
+    @rx.var
+    def selected_log_text(self) -> str:
+        return "\n".join(self.selected_log)
 
 
 # ── StatusState ────────────────────────────────────────────────────────────────

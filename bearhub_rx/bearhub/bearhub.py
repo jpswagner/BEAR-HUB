@@ -23,13 +23,16 @@ app.add_page(
     bactopia_page,
     route="/bactopia",
     title="Bactopia — BEAR-HUB",
-    on_load=BactopiaState.init_outdir,
+    on_load=[BactopiaState.init_outdir, BactopiaState.check_docker],
 )
 app.add_page(
-    tools_page, route="/tools", title="Bactopia Tools — BEAR-HUB", on_load=ToolsState.init_outdir
+    tools_page, route="/tools", title="Bactopia Tools — BEAR-HUB",
+    on_load=[ToolsState.init_outdir, ToolsState.check_docker],
 )
 app.add_page(
-    merlin_page, route="/merlin", title="MERLIN — BEAR-HUB", on_load=MerlinState.init_outdir
+    merlin_page, route="/merlin", title="MERLIN — BEAR-HUB",
+    on_load=[MerlinState.init_outdir, MerlinState.check_docker],
 )
-app.add_page(runs_page, route="/runs", title="Runs — BEAR-HUB", on_load=RunsState.load)
+app.add_page(runs_page, route="/runs", title="Runs — BEAR-HUB",
+             on_load=[RunsState.load, RunsState.monitor])
 app.add_page(status_page, route="/status", title="Status — BEAR-HUB", on_load=StatusState.load)
