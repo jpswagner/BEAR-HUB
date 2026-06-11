@@ -20,10 +20,17 @@ BACTOPIA_VERSION = "4.0.0"
 PROFILES = ["docker", "singularity", "standard"]
 
 
-# ── Static data (load utils/data.py by path; it only imports `re`) ─────────────
-def _load_data_module():
-    data_py = _REPO_ROOT / "utils" / "data.py"
+# ── Static data (MLST schemes + genome-size presets) ──────────────────────────
+# Lives in-package (bearhub/data/static.py). Falls back to the legacy root-level
+# utils/data.py by path if the in-package module is ever missing.
+def _load_static():
     try:
+        from bearhub.data import static as _s  # noqa: PLC0415
+        return _s
+    except Exception:
+        pass
+    try:
+        data_py = _REPO_ROOT / "utils" / "data.py"
         spec = importlib.util.spec_from_file_location("_bactopia_data", data_py)
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)  # type: ignore[union-attr]
@@ -32,7 +39,7 @@ def _load_data_module():
         return None
 
 
-_DATA = _load_data_module()
+_DATA = _load_static()
 MLST_SCHEMES = dict(getattr(_DATA, "MLST_SCHEMES", {}))
 MLST_DISPLAY = ["(auto/none)"] + sorted(MLST_SCHEMES.keys())
 GENOME_SIZES = list(getattr(_DATA, "GENOME_SIZES", []))
