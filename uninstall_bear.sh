@@ -39,13 +39,14 @@ fi
 
 removed_something=false
 
-# ── Stop running Streamlit instances ─────────────────────────────────────────
+# ── Stop running Reflex instances ────────────────────────────────────────────
 echo
 echo "--- Stopping running instances ---"
-# Match the actual streamlit process for BEAR-HUB, excluding this script
-if pgrep -f "streamlit run.*BEAR-HUB" >/dev/null 2>&1; then
-    echo "Found running BEAR-HUB Streamlit instance(s). Stopping..."
-    pkill -f "streamlit run.*BEAR-HUB" || true
+# Match the BEAR-HUB Reflex app (reflex run / granian serving bearhub).
+if pgrep -f "reflex run" >/dev/null 2>&1 || pgrep -f "bearhub_rx" >/dev/null 2>&1; then
+    echo "Found running BEAR-HUB Reflex instance(s). Stopping..."
+    pkill -f "reflex run" || true
+    pkill -f "bearhub_rx" || true
     sleep 2
     echo "Stopped."
 else

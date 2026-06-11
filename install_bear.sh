@@ -8,12 +8,14 @@
 #   bash install_bear.sh [--bactopia-version X.Y.Z]
 #
 # Environment overrides:
-#   BACTOPIA_VERSION   Override the pinned Bactopia version (default: 3.0.0)
+#   BACTOPIA_VERSION   Override the pinned Bactopia version (default: 4.0.0)
 # ---------------------------------------------------------------------------
 set -euo pipefail
 
 # ── Versioned defaults ────────────────────────────────────────────────────────
-BACTOPIA_VERSION="${BACTOPIA_VERSION:-3.0.0}"
+# 4.0.0 is the validated version (requires Nextflow >= 26.04). Keep the conda
+# package and this pin in sync — the app runs `-r v${BACTOPIA_VERSION}`.
+BACTOPIA_VERSION="${BACTOPIA_VERSION:-4.0.0}"
 
 # ── Directories ───────────────────────────────────────────────────────────────
 BEAR_HUB_ROOT="${HOME}/BEAR-HUB"
@@ -135,13 +137,19 @@ setup_bear_hub_env() {
     else
         echo "Criando ambiente 'bear-hub' em ${BEAR_PREFIX}..."
 
+        # Reflex is NOT on conda-forge — it ships on PyPI only. So conda creates
+        # the Python base (+ conda-available deps) and pip installs Reflex.
+        # Pin to the validated version: Reflex makes breaking changes even
+        # across patch releases, so a lab deployment pins exactly.
         if [[ -n "${MAMBA_BIN}" ]]; then
             "${MAMBA_BIN}" create -y -p "${BEAR_PREFIX}" -c conda-forge \
-                python=3.11 "reflex>=0.6,<1" websockets pyyaml
+                python=3.11 websockets pyyaml
         else
             "${CONDA_BIN}" create -y -p "${BEAR_PREFIX}" -c conda-forge \
-                python=3.11 "reflex>=0.6,<1" websockets pyyaml
+                python=3.11 websockets pyyaml
         fi
+        echo "Instalando Reflex (PyPI) no ambiente 'bear-hub'..."
+        "${BEAR_PREFIX}/bin/python" -m pip install "reflex==0.9.3"
         echo "Ambiente 'bear-hub' criado em: ${BEAR_PREFIX}"
     fi
     # Pre-build the Reflex frontend (.web/) so the first launch is fast.
@@ -169,15 +177,17 @@ setup_bactopia_env() {
     if [[ -d "${BACTOPIA_PREFIX}/bin" ]]; then
         echo "Ambiente 'bactopia' ja existe em: ${BACTOPIA_PREFIX}"
     else
-        echo "Criando ambiente 'bactopia' em ${BACTOPIA_PREFIX} com Bactopia..."
+        echo "Criando ambiente 'bactopia' em ${BACTOPIA_PREFIX} com Bactopia ${BACTOPIA_VERSION}..."
         echo "  (o pipeline sera executado com '-profile docker' pelo BEAR-HUB)"
 
+        # Pin the conda package to the validated version so installs are
+        # reproducible (it also pulls a compatible Nextflow, >= 26.04 for 4.x).
         if [[ -n "${MAMBA_BIN}" ]]; then
             "${MAMBA_BIN}" create -y -p "${BACTOPIA_PREFIX}" \
-                -c conda-forge -c bioconda bactopia
+                -c conda-forge -c bioconda "bactopia=${BACTOPIA_VERSION}"
         else
             "${CONDA_BIN}" create -y -p "${BACTOPIA_PREFIX}" \
-                -c conda-forge -c bioconda bactopia
+                -c conda-forge -c bioconda "bactopia=${BACTOPIA_VERSION}"
         fi
         echo "Ambiente 'bactopia' criado em: ${BACTOPIA_PREFIX}"
     fi
@@ -244,7 +254,7 @@ ensure_nextflow() {
 }
 
 # =============================================================================
-# Step 4: write_config — persist config.env for the Streamlit app
+# Step 4: write_config — persist config.env for the Reflex app
 # =============================================================================
 write_config() {
     echo
