@@ -242,6 +242,39 @@ def build_fofn(
     return {"fofn_path": fofn_path, "rows": len(rows), "issues": issues, "counts": counts}
 
 
+# Canonical Bactopia 4.0 FOFN columns and the valid runtypes (for the editor).
+FOFN_HEADER = ["sample", "runtype", "genome_size", "species",
+               "r1", "r2", "se", "ont", "assembly"]
+RUNTYPES = ["paired-end", "single-end", "ont", "hybrid", "short_polish", "assembly"]
+
+
+def read_fofn(path: str) -> list[dict]:
+    """Parse a written FOFN (tab-separated) into a list of column dicts."""
+    p = pathlib.Path(path)
+    if not p.is_file():
+        return []
+    lines = [ln for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    if not lines:
+        return []
+    header = lines[0].split("\t")
+    rows: list[dict] = []
+    for ln in lines[1:]:
+        cells = ln.split("\t")
+        cells += [""] * (len(header) - len(cells))  # pad short rows
+        rows.append({h: cells[i] for i, h in enumerate(header)})
+    return rows
+
+
+def write_fofn_rows(path: str, rows: list[dict]) -> int:
+    """Rewrite a FOFN from edited row dicts (canonical column order). Returns count."""
+    out = ["\t".join(FOFN_HEADER)]
+    for r in rows:
+        out.append("\t".join(str(r.get(col, "")) for col in FOFN_HEADER))
+    pathlib.Path(path).parent.mkdir(parents=True, exist_ok=True)
+    pathlib.Path(path).write_text("\n".join(out) + "\n", encoding="utf-8")
+    return len(rows)
+
+
 def write_include_file(outdir: str, samples: list[str]) -> str:
     """Write an --include file (one sample per line) and return its path."""
     from bearhub.core.runner import write_include_file as _wif

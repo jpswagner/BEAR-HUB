@@ -118,6 +118,112 @@ def _mode_is(*modes):
     return cond
 
 
+# ── Sample-sheet (FOFN) editor ─────────────────────────────────────────────────
+def _files_cell(row) -> rx.Component:
+    """Compact read-type indicator (which file columns are populated)."""
+    return rx.hstack(
+        rx.cond(row["r1"] != "", rx.badge("R1", size="1", color_scheme="gray", variant="soft")),
+        rx.cond(row["r2"] != "", rx.badge("R2", size="1", color_scheme="gray", variant="soft")),
+        rx.cond(row["se"] != "", rx.badge("SE", size="1", color_scheme="gray", variant="soft")),
+        rx.cond(row["ont"] != "", rx.badge("ONT", size="1", color_scheme="blue", variant="soft")),
+        rx.cond(row["assembly"] != "", rx.badge("FA", size="1", color_scheme="amber", variant="soft")),
+        spacing="1",
+    )
+
+
+def _fofn_row(row, i: int) -> rx.Component:
+    return rx.table.row(
+        rx.table.cell(rx.text(row["sample"], size="1", weight="medium")),
+        rx.table.cell(
+            rx.select(
+                S.fofn_runtypes,
+                value=row["runtype"],
+                size="1",
+                on_change=lambda v: S.set_fofn_field(i, "runtype", v),
+            ),
+        ),
+        rx.table.cell(
+            rx.input(
+                value=row["species"], size="1", width="170px",
+                on_blur=lambda v: S.set_fofn_field(i, "species", v),
+            ),
+        ),
+        rx.table.cell(
+            rx.input(
+                value=row["genome_size"], size="1", width="100px", placeholder="auto",
+                on_blur=lambda v: S.set_fofn_field(i, "genome_size", v),
+            ),
+        ),
+        rx.table.cell(_files_cell(row)),
+        rx.table.cell(
+            rx.button(
+                rx.icon("trash-2", size=13),
+                on_click=S.remove_fofn_row(i),
+                size="1", variant="ghost", color_scheme="red",
+            ),
+        ),
+    )
+
+
+def _fofn_editor() -> rx.Component:
+    return rx.cond(
+        S.fofn_rows.length() > 0,
+        rx.card(
+            rx.hstack(
+                rx.button(
+                    rx.icon(
+                        "chevron-down", size=16,
+                    ),
+                    "Edit sample sheet (",
+                    S.fofn_rows.length().to_string(),
+                    " samples)",
+                    on_click=S.toggle_fofn_editor,
+                    variant="ghost", size="2",
+                ),
+                rx.spacer(),
+                rx.cond(
+                    S.fofn_editor_open,
+                    rx.button(
+                        rx.icon("save", size=14), "Save sample sheet",
+                        on_click=S.save_fofn, color_scheme="teal", size="1",
+                    ),
+                ),
+                width="100%", align="center",
+            ),
+            rx.cond(
+                S.fofn_editor_open,
+                rx.vstack(
+                    rx.text(
+                        "Adjust runtype / species / genome size per sample, or remove "
+                        "samples. Edits rewrite samples.txt.",
+                        size="1", color="var(--gray-10)",
+                    ),
+                    rx.scroll_area(
+                        rx.table.root(
+                            rx.table.header(
+                                rx.table.row(
+                                    rx.table.column_header_cell("Sample"),
+                                    rx.table.column_header_cell("Runtype"),
+                                    rx.table.column_header_cell("Species"),
+                                    rx.table.column_header_cell("Genome size"),
+                                    rx.table.column_header_cell("Files"),
+                                    rx.table.column_header_cell(""),
+                                ),
+                            ),
+                            rx.table.body(rx.foreach(S.fofn_rows, _fofn_row)),
+                            size="1", width="100%",
+                        ),
+                        type="auto", scrollbars="horizontal", max_height="360px",
+                        width="100%",
+                    ),
+                    spacing="2", width="100%", align="start",
+                ),
+            ),
+            width="100%",
+        ),
+    )
+
+
 # ── Step 1: input & FOFN ───────────────────────────────────────────────────────
 def _step_input():
     return rx.vstack(
@@ -202,6 +308,7 @@ def _step_input():
             width="100%",
             spacing="3",
         ),
+        _fofn_editor(),
         wz.dir_picker(S),
         _qc_thresholds_card(),
         wz.nav_buttons(S.prev_step, S.next_step, first=True),

@@ -880,6 +880,8 @@ class BactopiaState(WizardMixin, rx.State):
     fofn_summary: str = ""
     fofn_issues: list[str] = []
     fofn_built: bool = False
+    fofn_rows: list[dict] = []          # editable sample sheet (one dict per sample)
+    fofn_editor_open: bool = False
 
     def set_bopt(self, key: str, value):
         if isinstance(value, list):
@@ -927,9 +929,43 @@ class BactopiaState(WizardMixin, rx.State):
         self.fofn_path = res["fofn_path"]
         self.fofn_built = res["rows"] > 0
         self.fofn_issues = res["issues"][:30]
+        self.fofn_rows = _fofn.read_fofn(res["fofn_path"])
         counts_str = ", ".join(f"{k}={v}" for k, v in res["counts"].items() if v)
         self.fofn_summary = f"{res['rows']} samples · {counts_str}"
         yield rx.toast.success(f"FOFN written: {res['rows']} samples")
+
+    # ── Sample-sheet (FOFN) editor ────────────────────────────────────────────
+    def toggle_fofn_editor(self):
+        self.fofn_editor_open = not self.fofn_editor_open
+
+    def set_fofn_field(self, idx: int, field: str, value):
+        if isinstance(value, list):
+            value = value[0] if value else ""
+        rows = list(self.fofn_rows)
+        if 0 <= idx < len(rows):
+            rows[idx] = {**rows[idx], field: str(value)}
+            self.fofn_rows = rows
+
+    def remove_fofn_row(self, idx: int):
+        rows = [r for i, r in enumerate(self.fofn_rows) if i != idx]
+        self.fofn_rows = rows
+        self._persist_fofn()
+
+    def _persist_fofn(self):
+        from collections import Counter
+        n = _fofn.write_fofn_rows(self.fofn_path, list(self.fofn_rows))
+        self.fofn_built = n > 0
+        c = Counter(r.get("runtype", "") for r in self.fofn_rows)
+        counts_str = ", ".join(f"{k}={v}" for k, v in c.items() if k)
+        self.fofn_summary = f"{n} samples · {counts_str}"
+
+    def save_fofn(self):
+        self._persist_fofn()
+        yield rx.toast.success(f"Sample sheet saved: {len(self.fofn_rows)} samples")
+
+    @rx.var
+    def fofn_runtypes(self) -> list[str]:
+        return _fofn.RUNTYPES
 
     @rx.var
     def preview(self) -> str:
