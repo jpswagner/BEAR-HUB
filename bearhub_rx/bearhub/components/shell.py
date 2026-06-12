@@ -20,7 +20,12 @@ def _nav_item(label: str, href: str, icon: str, active: str) -> rx.Component:
     return rx.link(
         rx.hstack(
             rx.icon(icon, size=18),
-            rx.text(label, size="2", weight="bold" if is_active else "regular"),
+            # Label hidden on narrow screens → sidebar collapses to an icon rail.
+            rx.text(
+                label, size="2", weight="bold" if is_active else "regular",
+                display=rx.breakpoints(initial="none", md="block"),
+                white_space="nowrap",
+            ),
             spacing="3",
             align="center",
             width="100%",
@@ -33,6 +38,7 @@ def _nav_item(label: str, href: str, icon: str, active: str) -> rx.Component:
         href=href,
         underline="none",
         width="100%",
+        title=label,
     )
 
 
@@ -40,16 +46,18 @@ def _sidebar(active: str) -> rx.Component:
     return rx.vstack(
         *[_nav_item(label, href, icon, active) for label, href, icon in NAV],
         rx.spacer(),
-        rx.text("Bactopia", size="1", color="var(--gray-9)"),
+        rx.text("Bactopia", size="1", color="var(--gray-9)",
+                display=rx.breakpoints(initial="none", md="block")),
         rx.badge(f"v{BACTOPIA_VERSION}", color_scheme="teal", variant="soft"),
         spacing="1",
         padding="16px 12px",
-        width="230px",
+        width=rx.breakpoints(initial="60px", md="230px"),
         height="calc(100vh - 56px)",
         border_right="1px solid var(--gray-4)",
         align="start",
         position="sticky",
         top="56px",
+        flex_shrink="0",
     )
 
 
@@ -88,7 +96,7 @@ def shell(*content: rx.Component, active: str) -> rx.Component:
                     width="100%",
                     max_width="1080px",
                     margin="0 auto",
-                    padding="28px",
+                    padding=rx.breakpoints(initial="14px", md="28px"),
                 ),
                 flex="1",
                 height="calc(100vh - 56px)",

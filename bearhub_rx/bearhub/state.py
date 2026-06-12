@@ -19,6 +19,26 @@ import reflex as rx
 from bearhub.core import bactopia, runner, system
 from bearhub.data import catalog
 from bearhub.core import fofn as _fofn
+from bearhub.core import progress as _progress
+
+
+def _completion_events(status: str, label: str):
+    """Toast + best-effort desktop notification when a run finishes (A10)."""
+    if status == "success":
+        msg, fn = f"{label} finished successfully", rx.toast.success
+    elif status == "failed":
+        msg, fn = f"{label} failed — check the log", rx.toast.error
+    elif status == "stopped":
+        msg, fn = f"{label} stopped", rx.toast.warning
+    else:
+        msg, fn = f"{label}: {status}", rx.toast.info
+    js = (
+        "(function(){var t=" + repr(msg) + ";if(window.Notification){"
+        "if(Notification.permission==='granted'){new Notification('BEAR-HUB',{body:t});}"
+        "else if(Notification.permission!=='denied'){Notification.requestPermission()"
+        ".then(function(p){if(p==='granted'){new Notification('BEAR-HUB',{body:t});}});}}})();"
+    )
+    return [fn(msg, duration=8000), rx.call_script(js)]
 
 _pathlib = pathlib
 
@@ -184,6 +204,18 @@ class WizardMixin(rx.State, mixin=True):
     def has_samples(self) -> bool:
         return len(self.samples) > 0
 
+    sample_filter: str = ""
+
+    def set_sample_filter(self, v: str):
+        self.sample_filter = v
+
+    @rx.var
+    def filtered_samples(self) -> list[str]:
+        q = self.sample_filter.strip().lower()
+        if not q:
+            return self.samples
+        return [s for s in self.samples if q in s.lower()]
+
     @rx.var
     def status_label(self) -> str:
         return {"running": "Running…", "success": "Finished successfully",
@@ -198,6 +230,42 @@ class WizardMixin(rx.State, mixin=True):
     @rx.var
     def log_text(self) -> str:
         return "\n".join(self.log)
+
+    # ── Parsed progress / failure summary (A6/A7) ──────────────────────────────
+    @rx.var
+    def _prog(self) -> dict:
+        return _progress.parse(self.log)
+
+    @rx.var
+    def prog_stages(self) -> list[str]:
+        return self._prog["stages"]
+
+    @rx.var
+    def prog_current(self) -> str:
+        return self._prog["current"]
+
+    @rx.var
+    def prog_summary(self) -> str:
+        return _progress.summary_line(self._prog)
+
+    @rx.var
+    def has_error(self) -> bool:
+        return self._prog["error"] is not None
+
+    @rx.var
+    def err_process(self) -> str:
+        e = self._prog["error"]
+        return e["process"] if e else ""
+
+    @rx.var
+    def err_message(self) -> str:
+        e = self._prog["error"]
+        return (e["message"] if e else "") or ""
+
+    @rx.var
+    def err_workdir(self) -> str:
+        e = self._prog["error"]
+        return (e["workdir"] if e else "") or ""
 
 
 # ── ToolsState ─────────────────────────────────────────────────────────────────
@@ -279,15 +347,16 @@ class ToolsState(WizardMixin, rx.State):
         if err:
             yield rx.toast.error(err)
             return
-        async for _ in runner.stream(
+        await runner.stream(
             self, cmd, "tools",
             work_dir=bactopia.safe_dir(self.outdir),
             page="Bactopia Tools",
             n_samples=self.n_selected,
-        ):
-            yield _
+        )
         async with self:
             self.refresh_merged()
+            done = self.status
+        yield _completion_events(done, "Tools run")
 
     @rx.event(background=True)
     async def stop_run(self):
@@ -356,15 +425,16 @@ class MerlinState(WizardMixin, rx.State):
         if err:
             yield rx.toast.error(err)
             return
-        async for _ in runner.stream(
+        await runner.stream(
             self, cmd, "merlin",
             work_dir=bactopia.safe_dir(self.outdir),
             page="MERLIN",
             n_samples=self.n_selected,
-        ):
-            yield _
+        )
         async with self:
             self.refresh_merged()
+            done = self.status
+        yield _completion_events(done, "MERLIN run")
 
     @rx.event(background=True)
     async def stop_run(self):
@@ -900,15 +970,16 @@ class BactopiaState(WizardMixin, rx.State):
         if err:
             yield rx.toast.error(err)
             return
-        async for _ in runner.stream(
+        await runner.stream(
             self, cmd, "bactopia",
             work_dir=bactopia.safe_dir(self.outdir),
             page="Bactopia",
             n_samples=self.n_selected,
-        ):
-            yield _
+        )
         async with self:
             self.refresh_merged()
+            done = self.status
+        yield _completion_events(done, "Bactopia run")
 
     @rx.event(background=True)
     async def stop_run(self):

@@ -164,6 +164,59 @@ def docker_banner(S) -> rx.Component:
     )
 
 
+def progress_strip(S) -> rx.Component:
+    """Friendly progress: current step, stages reached, and final tally (A6)."""
+    return rx.cond(
+        (S.prog_stages.length() > 0) | (S.prog_summary != ""),
+        rx.card(
+            rx.hstack(
+                rx.cond(S.running, rx.spinner(size="2"),
+                        rx.icon("check", size=18, color="var(--green-9)")),
+                rx.cond(
+                    S.running & (S.prog_current != ""),
+                    rx.text("Running: ", rx.text.strong(S.prog_current), size="2"),
+                    rx.text("Pipeline steps", size="2", color="var(--gray-11)"),
+                ),
+                rx.spacer(),
+                rx.cond(
+                    S.prog_summary != "",
+                    rx.badge(S.prog_summary, color_scheme="teal", variant="soft", size="2"),
+                ),
+                width="100%", align="center",
+            ),
+            rx.flex(
+                rx.foreach(
+                    S.prog_stages,
+                    lambda s: rx.badge(s, color_scheme="teal", variant="soft", size="1"),
+                ),
+                wrap="wrap", spacing="2", margin_top="8px",
+            ),
+            width="100%",
+        ),
+    )
+
+
+def failure_panel(S) -> rx.Component:
+    """Parsed failure summary: which process failed + work dir to inspect (A7)."""
+    return rx.cond(
+        S.has_error & ~S.running,
+        rx.callout.root(
+            rx.callout.icon(rx.icon("circle_x")),
+            rx.callout.text(
+                rx.text.strong("Run failed."), " ",
+                rx.cond(S.err_process != "",
+                        rx.text.span("Process: ", rx.text.strong(S.err_process), ". ")),
+                rx.cond(S.err_message != "", rx.text.span(S.err_message, ". ")),
+                rx.cond(
+                    S.err_workdir != "",
+                    rx.text.span("Inspect: ", rx.code(S.err_workdir + "/.command.log")),
+                ),
+            ),
+            color_scheme="red", size="1", width="100%",
+        ),
+    )
+
+
 def run_panel(S, can_run=None) -> rx.Component:
     """Run/Stop buttons, status badge, and the live log. `S` is a page state.
 
@@ -204,6 +257,8 @@ def run_panel(S, can_run=None) -> rx.Component:
             align="center",
             width="100%",
         ),
+        progress_strip(S),
+        failure_panel(S),
         log_view(S.log_text, S.log.length() == 0),
         spacing="5",
         width="100%",
@@ -343,6 +398,17 @@ def samples_field(S) -> rx.Component:
                         size="2", color="var(--gray-10)"),
             ),
             rx.spacer(),
+            rx.cond(
+                S.n_samples > 8,
+                rx.input(
+                    rx.input.slot(rx.icon("search", size=14)),
+                    value=S.sample_filter,
+                    on_change=S.set_sample_filter,
+                    placeholder="Filter…",
+                    size="1",
+                    width="160px",
+                ),
+            ),
             rx.button("All", on_click=S.select_all_samples,
                       variant="soft", size="1"),
             rx.button("None", on_click=S.clear_samples,
@@ -353,7 +419,7 @@ def samples_field(S) -> rx.Component:
         rx.scroll_area(
             rx.flex(
                 rx.foreach(
-                    S.samples,
+                    S.filtered_samples,
                     lambda s: rx.badge(
                         s,
                         color_scheme=rx.cond(S.selected.contains(s), "teal", "gray"),
