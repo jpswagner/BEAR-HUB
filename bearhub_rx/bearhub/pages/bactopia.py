@@ -224,6 +224,46 @@ def _fofn_editor() -> rx.Component:
     )
 
 
+# ── Parameter presets bar (visible on every step) ──────────────────────────────
+def _presets_bar() -> rx.Component:
+    return rx.card(
+        rx.flex(
+            rx.hstack(
+                rx.icon("bookmark", size=16, color="var(--teal-9)"),
+                rx.text("Presets", size="2", weight="bold"),
+                spacing="2", align="center",
+            ),
+            rx.select(
+                S.presets,
+                placeholder="Load preset…",
+                on_change=S.load_preset,
+                size="2", width="190px",
+            ),
+            rx.spacer(),
+            rx.input(
+                value=S.preset_name,
+                on_change=S.set_preset_name,
+                placeholder="Save current params as…",
+                size="2", width="220px",
+            ),
+            rx.button(
+                rx.icon("save", size=14), "Save",
+                on_click=S.save_preset, color_scheme="teal", size="2",
+            ),
+            rx.cond(
+                S.presets.contains(S.preset_name),
+                rx.button(
+                    rx.icon("trash-2", size=14),
+                    on_click=S.delete_preset, color_scheme="red",
+                    variant="soft", size="2",
+                ),
+            ),
+            wrap="wrap", spacing="3", align="center", width="100%",
+        ),
+        width="100%",
+    )
+
+
 # ── Step 1: input & FOFN ───────────────────────────────────────────────────────
 def _step_input():
     return rx.vstack(
@@ -729,6 +769,7 @@ def bactopia_page():
         wz.hero("dna", "Bactopia",
                 "Main pipeline: QC, assembly, annotation and typing from raw reads."),
         wz.step_indicator(STEPS, S.step, S.goto),
+        _presets_bar(),
         rx.divider(),
         rx.match(
             S.step,

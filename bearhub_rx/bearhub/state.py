@@ -20,6 +20,7 @@ from bearhub.core import bactopia, runner, system
 from bearhub.data import catalog
 from bearhub.core import fofn as _fofn
 from bearhub.core import progress as _progress
+from bearhub.core import presets as _presets
 
 
 def _completion_events(status: str, label: str):
@@ -882,6 +883,48 @@ class BactopiaState(WizardMixin, rx.State):
     fofn_built: bool = False
     fofn_rows: list[dict] = []          # editable sample sheet (one dict per sample)
     fofn_editor_open: bool = False
+
+    # ── Parameter presets ──────────────────────────────────────────────────────
+    presets: list[str] = []
+    preset_name: str = ""
+
+    def load_presets(self):
+        self.presets = _presets.list_presets("bactopia")
+
+    def set_preset_name(self, v: str):
+        self.preset_name = v
+
+    def save_preset(self):
+        name = self.preset_name.strip()
+        if not name:
+            yield rx.toast.error("Name the preset before saving.")
+            return
+        _presets.save_preset("bactopia", name, {
+            "bopts": dict(self.bopts), "bflags": dict(self.bflags),
+        })
+        self.presets = _presets.list_presets("bactopia")
+        yield rx.toast.success(f"Preset '{name}' saved.")
+
+    def load_preset(self, name: str):
+        data = _presets.get_preset("bactopia", name)
+        if not data:
+            yield rx.toast.error(f"Preset '{name}' not found.")
+            return
+        bopts = dict(DEFAULT_BOPTS); bopts.update(data.get("bopts", {}))
+        bflags = dict(DEFAULT_BFLAGS); bflags.update(data.get("bflags", {}))
+        self.bopts = bopts
+        self.bflags = bflags
+        self.preset_name = name
+        yield rx.toast.success(f"Preset '{name}' loaded.")
+
+    def delete_preset(self):
+        name = self.preset_name.strip()
+        if not name:
+            return
+        _presets.delete_preset("bactopia", name)
+        self.presets = _presets.list_presets("bactopia")
+        self.preset_name = ""
+        yield rx.toast.info(f"Preset '{name}' deleted.")
 
     def set_bopt(self, key: str, value):
         if isinstance(value, list):

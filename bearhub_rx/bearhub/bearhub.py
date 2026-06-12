@@ -23,7 +23,7 @@ app.add_page(
     bactopia_page,
     route="/bactopia",
     title="Bactopia — BEAR-HUB",
-    on_load=[BactopiaState.init_outdir, BactopiaState.check_docker],
+    on_load=[BactopiaState.init_outdir, BactopiaState.check_docker, BactopiaState.load_presets],
 )
 app.add_page(
     tools_page, route="/tools", title="Bactopia Tools — BEAR-HUB",
