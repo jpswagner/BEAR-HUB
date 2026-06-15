@@ -9,6 +9,7 @@ and a background `run` event that builds the command and streams output.
 from __future__ import annotations
 
 import asyncio
+import json as _json
 import os
 import pathlib
 import shlex
@@ -1034,7 +1035,6 @@ class BactopiaState(WizardMixin, rx.State):
         # Write the -params-file JSON for float params (if any user-set).
         jp = _json_params(self.bopts)
         if jp:
-            import json as _json
             (_pathlib.Path(outdir) / _PARAMS_FILE).write_text(
                 _json.dumps(jp, indent=2), encoding="utf-8")
         cmd = _main_cmd(outdir, fofn_out, self.bopts, self.bflags,
