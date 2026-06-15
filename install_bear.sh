@@ -86,6 +86,19 @@ EOF
     fi
     echo "Docker found: $(command -v docker)"
 
+    # CLI present != daemon running / user in the docker group. Warn (don't abort)
+    # so the user can start the daemon later; runs need it though.
+    if docker info >/dev/null 2>&1; then
+        echo "Docker daemon: reachable."
+    else
+        echo
+        echo "WARNING: 'docker' is installed but the daemon is not reachable."
+        echo "  Bactopia runs ('-profile docker') will fail until this is fixed:"
+        echo "    - start the daemon:   sudo systemctl start docker"
+        echo "    - add your user:      sudo usermod -aG docker \"\$USER\"   (then log out/in)"
+        echo "  Continuing installation..."
+    fi
+
     # conda / mamba
     if command -v mamba >/dev/null 2>&1; then
         MAMBA_BIN="$(command -v mamba)"
@@ -317,6 +330,65 @@ configure_reflex() {
 }
 
 # =============================================================================
+# Step 6: verify_install — post-install smoke test of every runtime dependency
+# =============================================================================
+verify_install() {
+    echo
+    echo "=== Step 6: Verifying installation ==="
+    local ok=0 warn=0 fail=0
+    local nf="${BACTOPIA_PREFIX}/bin/nextflow"
+    local jv="${BACTOPIA_PREFIX}/bin/java"
+
+    # Reflex (bear-hub env). NB: reflex has no `__version__`; use importlib.metadata.
+    if "${BEAR_PREFIX}/bin/python" -c "import reflex" >/dev/null 2>&1; then
+        local rxver
+        rxver=$("${BEAR_PREFIX}/bin/python" -c "import importlib.metadata as m; print(m.version('reflex'))" 2>/dev/null)
+        echo "  [OK]   Reflex importable (${rxver:-unknown})"; ok=$((ok+1))
+    else
+        echo "  [FAIL] Reflex not importable in ${BEAR_PREFIX}"; fail=$((fail+1))
+    fi
+
+    # Java (Nextflow requires a JDK — normally pulled in by the bactopia conda env)
+    if [[ -x "${jv}" ]] && "${jv}" -version >/dev/null 2>&1; then
+        echo "  [OK]   Java (env): $("${jv}" -version 2>&1 | head -1)"; ok=$((ok+1))
+    elif command -v java >/dev/null 2>&1; then
+        echo "  [OK]   Java (system): $(java -version 2>&1 | head -1)"; ok=$((ok+1))
+    else
+        echo "  [FAIL] Java not found — Nextflow cannot run. Install a JDK (>=17)."; fail=$((fail+1))
+    fi
+
+    # Nextflow
+    if [[ -x "${nf}" ]] && "${nf}" -version >/dev/null 2>&1; then
+        echo "  [OK]   Nextflow: $("${nf}" -version 2>&1 | grep -i version | head -1 | tr -s ' ')"; ok=$((ok+1))
+    else
+        echo "  [FAIL] Nextflow not runnable at ${nf}"; fail=$((fail+1))
+    fi
+
+    # Bactopia
+    if "${BACTOPIA_PREFIX}/bin/bactopia" --version >/dev/null 2>&1; then
+        echo "  [OK]   Bactopia: $("${BACTOPIA_PREFIX}/bin/bactopia" --version 2>&1 | head -1)"; ok=$((ok+1))
+    else
+        echo "  [WARN] Bactopia CLI not verifiable (the pipeline runs via Nextflow regardless)"; warn=$((warn+1))
+    fi
+
+    # Docker daemon (runtime requirement, not a build dep → warning)
+    if docker info >/dev/null 2>&1; then
+        echo "  [OK]   Docker daemon reachable"; ok=$((ok+1))
+    else
+        echo "  [WARN] Docker daemon not reachable — start it before running analyses"; warn=$((warn+1))
+    fi
+
+    echo
+    echo "  Summary: ${ok} OK, ${warn} warning(s), ${fail} failure(s)"
+    if [[ ${fail} -gt 0 ]]; then
+        echo "  ✗ Installation has failures above — BEAR-HUB will not run until fixed."
+        return 1
+    fi
+    echo "  ✓ Core dependencies verified."
+    return 0
+}
+
+# =============================================================================
 # Main
 # =============================================================================
 main() {
@@ -335,9 +407,16 @@ main() {
     write_config
     configure_reflex
 
+    local verify_rc=0
+    verify_install || verify_rc=$?
+
     echo
     echo "======================================="
-    echo "  Installation complete!"
+    if [[ ${verify_rc} -eq 0 ]]; then
+        echo "  Installation complete!"
+    else
+        echo "  Installation finished WITH ERRORS (see Step 6)"
+    fi
     echo "======================================="
     echo
     echo "Next steps:"
@@ -350,6 +429,10 @@ main() {
     echo "  conda run -p \"${BEAR_PREFIX}\" reflex run"
     echo
     echo "Bactopia will run via '-profile docker' — make sure Docker is running."
+    echo
+    echo "Optional — pre-download Bactopia datasets (genome sizes, species DBs):"
+    echo "  conda run -p \"${BACTOPIA_PREFIX}\" bactopia datasets --help"
+    echo "  (not required for the core pipeline; enables species-specific features)"
 }
 
 main "$@"
