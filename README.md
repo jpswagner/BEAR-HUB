@@ -1,116 +1,96 @@
 <p align="center">
-<img width="480" height="480" alt="BEAR-HUB Logo" src="https://github.com/user-attachments/assets/6d23dc4b-fc4d-4fa7-9b2a-e55adb623598" />
+<img width="360" alt="BEAR-HUB Logo" src="https://github.com/user-attachments/assets/6d23dc4b-fc4d-4fa7-9b2a-e55adb623598" />
 </p>
 
-# 🐻 BEAR-HUB  
+# 🐻 BEAR-HUB
 **Bacterial Epidemiology & AMR Reporter — HUB**
 
-BEAR-HUB is a streamlined **Streamlit** interface designed to orchestrate bacterial epidemiology and antimicrobial resistance (AMR) pipelines. It serves as a user-friendly wrapper around powerful command-line tools, primarily **Bactopia** and **Nextflow**.
+A web UI (built with **Reflex**) that orchestrates the **Bactopia 4.0** bacterial
+genomics pipeline (**Nextflow + Docker**). Scan reads → build a sample sheet →
+QC, assembly, annotation and typing → run Bactopia Tools and MERLIN — without
+touching the command line.
 
-## Key Features
-
--   **Bactopia Pipeline**: Run the complete Bactopia pipeline with automatic run-type detection (Paired-End, Single-End, Hybrid, ONT, Assembly).
-    -   **FOFN Generator**: Automatic generation of "File of File Names" for sample management.
--   **Bactopia Tools**: Execute specific post-processing workflows (e.g., AMRFinderPlus, MLST, Pan-genome analysis) on completed samples.
--   **Merlin**: Access species-specific tools and workflows.
--   **PORT**: (In Development) Support for plasmid-focused outbreak investigations using Nanopore/Hybrid assemblies.
+**Features:** main pipeline (PE / single-end / ONT / hybrid / assembly, with auto
+run-type detection + editable sample sheet), Bactopia Tools (`--wf`), MERLIN,
+parameter presets, live run monitor + history.
 
 ---
 
 ## 1. Requirements
 
-BEAR-HUB is designed for **Linux** environments (Ubuntu-like).
+Linux (Ubuntu-like). The installer sets up everything else in two local conda
+environments.
 
-**Prerequisites:**
+- **conda** or **mamba** (Miniconda / Mambaforge)
+- **Docker** with the daemon running (Bactopia runs with `-profile docker`)
+- Internet access (conda/pip packages + container images) and free disk space
 
--   [x] **Conda** (Miniconda, Anaconda, or Mambaforge) - Required for managing bioinformatics environments.
--   [x] **Docker** (Highly recommended; required for `profile: docker`) - Required for running Bactopia containers.
--   [x] **Internet Access** (for downloading packages and datasets)
--   [x] **Disk Space** (Bactopia and its datasets can require significant storage)
-
-> **Note:** While Singularity/Apptainer is supported by Nextflow, this hub is optimized for running bactopia with Docker.
+> Java and Nextflow are installed automatically inside the `bactopia` env; Reflex
+> is installed into the `bear-hub` env. Nothing else is needed system-wide.
 
 ---
 
-## 2. Installation
-
-We provide shell scripts to automate the setup of Conda environments (`bear-hub` and `bactopia`) directly from the source code.
-
-### 2.1. Clone the Repository
+## 2. Install
 
 ```bash
 git clone https://github.com/jpswagner/BEAR-HUB.git
 cd BEAR-HUB
+bash install_bear.sh
 ```
 
-### 2.2. Install Environment
+This creates two conda envs (`bear-hub` for the UI, `bactopia` for the pipeline),
+pins **Bactopia 4.0.0**, writes `~/.bear-hub/config.env`, and ends with a
+verification step (**Step 6**) that checks Reflex, Java, Nextflow, Bactopia and
+the Docker daemon. A clean install must finish with `✓ Core dependencies verified.`
+
+## 3. Run
 
 ```bash
-chmod +x install_bear.sh
-./install_bear.sh
+bash bearhub_rx/run.sh
 ```
 
-### 2.3. Run the Application
-Use the launcher script to start the interface.
+Then open **http://localhost:3200**. The first launch compiles the frontend
+(~1–2 min); later launches are fast. Backend runs on `:8200`.
+
+## 4. Uninstall
 
 ```bash
-chmod +x run_bear.sh
-./run_bear.sh
+bash uninstall_bear.sh
 ```
-This will activate the `bear-hub` environment and launch Streamlit in your default web browser.
 
-### 2.4. Uninstall
-To uninstall the application, you can use the provided uninstaller script:
-
-```bash
-chmod +x uninstall_bear.sh
-./uninstall_bear.sh
-```
-This script will help you remove the configuration folders and optionally the `bear-hub` and `bactopia` Conda environments. Finally, you can delete the repository directory manually.
+Removes the conda envs and config (with prompts). Delete the repo folder to
+finish.
 
 ---
 
-## 3. Usage & Navigation
+## 5. Troubleshooting
 
--   **Home**: Dashboard overview and system health checks (Nextflow/Docker status).
--   **BACTOPIA**: The core pipeline runner. Use this to process raw reads.
-    -   *Step 1*: Use "Generate FOFN" to scan your data folder and create a `samples.txt`.
-    -   *Step 2*: Configure parameters (FastP, Unicycler, Resources).
-    -   *Step 3*: Click "Run".
--   **BACTOPIA TOOLS**: Run specific analyses on already processed samples.
-    -   Select your Bactopia output folder.
-    -   Choose tools (e.g., `amrfinderplus`, `rgi`, `mlst`).
-    -   Click "Run Tools".
--   **MERLIN**: Specialized tools for specific species (e.g., *Klebsiella*, *Salmonella*).
-    -   Select your Bactopia output folder.
-    -   Choose tools.
-    -   Click "Run".
--   **PORT**: (Beta) Nanopore and plasmid analysis workflows.
+| Symptom | Fix |
+|---|---|
+| **Run fails instantly / red "Docker daemon not running" banner** | Start Docker: `sudo systemctl start docker`. Add your user once: `sudo usermod -aG docker "$USER"` then log out/in. |
+| **`install_bear.sh` Step 6 says Java/Nextflow FAIL** | The `bactopia` env didn't get a JDK/Nextflow. Re-run the installer, or `conda run -p ~/BEAR-HUB/envs/bactopia nextflow -version`. |
+| **Reflex won't install** | Reflex ships on **PyPI, not conda**; the installer pip-installs it. If you build the env by hand: `~/BEAR-HUB/envs/bear-hub/bin/pip install reflex==0.9.3`. |
+| **`http://localhost:3200` doesn't load** | First run is still compiling — wait for `App running at...` in the terminal. Check nothing else uses ports **3200/8200**. |
+| **Page is blank / stale after an update** | Stop `run.sh`, delete `bearhub_rx/.web/`, relaunch (it rebuilds). |
+| **`Parameter ... is not declared` / `Path string cannot be empty`** | Pipeline/Bactopia version mismatch — BEAR-HUB targets **Bactopia 4.0.0** (needs **Nextflow ≥ 26.04**). Confirm both in the **Status** page. |
+| **A Tool needs a database (e.g. `mlst_db`)** | Some `--wf` tools require an external DB. Provide its path in the tool's **db** field (Browse), or via the global *Extra args* box. |
+| **MLST scheme dropdown only shows `(auto/none)`** | Schemes load from `bearhub_rx/bearhub/data/static.py`; auto-detection still works without picking one. |
+| **A run shows "running" forever after a restart** | The **Runs** page marks orphaned runs as stale on load; click **Refresh**. |
 
----
-
-## 4. Updates
-
-A dedicated **Updates** page allows you to keep BEAR-HUB and its dependencies up to date.
-
-*   **Location**: Dashboard (Home) -> "System" -> "Updates & Status".
-*   **Features**:
-    *   View current versions of BEAR-HUB, Bactopia, Nextflow, and Docker.
-
-
-> **⚠️ Warning**: Only run updates if you have appropriate system permissions (write access to the installation folder and conda environments). This is especially important for multi-user deployments.
+Check installed versions any time on the **Status** page (Bactopia / Nextflow /
+Java / Docker).
 
 ---
+
+## Legacy (Streamlit)
+
+The previous Streamlit interface is preserved on the **`streamlit-legacy`**
+branch. `main` is the current Reflex app.
 
 ## License & Disclaimer
 
-**License**: MIT License.
-
-**Disclaimer**:
-> **BEAR-HUB** is an unofficial interface for **Bactopia** (https://github.com/bactopia).
-> Bactopia is developed and maintained by its original authors. We have no official affiliation with the Bactopia project.
-> All credit for the underlying analysis pipelines goes to the Bactopia team.
-
----
+MIT License. BEAR-HUB is an **unofficial** UI for
+[Bactopia](https://github.com/bactopia), maintained independently by its authors
+— all credit for the analysis pipelines goes to the Bactopia team.
 
 *Developed by João Pedro Stepan Wagner.*
