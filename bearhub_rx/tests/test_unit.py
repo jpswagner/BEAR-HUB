@@ -51,6 +51,25 @@ check("list_subdirs('/tmp')→ list",     isinstance(list_subdirs("/tmp"), list)
 check("discover_samples('/tmp')→ list", isinstance(discover_samples("/tmp"), list))
 check("guess_root_default()→ str",      isinstance(guess_root_default(), str))
 
+# discover_samples must be STRICT: only real Bactopia sample folders (those with
+# a main/ or tools/ subdir), never arbitrary directories (regression: pointing
+# at $HOME listed dotfiles like .ssh/.cache as "samples").
+check("discover_samples(None)→ []",     discover_samples(None) == [])
+check("discover_samples('/no/path')→ []", discover_samples("/no/such/path") == [])
+with tempfile.TemporaryDirectory() as _td:
+    os.makedirs(os.path.join(_td, "SAMPLE1", "main"))
+    os.makedirs(os.path.join(_td, "SAMPLE2", "tools"))
+    os.makedirs(os.path.join(_td, ".hidden"))        # dotfile → excluded
+    os.makedirs(os.path.join(_td, "bactopia-runs"))  # reserved → excluded
+    os.makedirs(os.path.join(_td, "RandomFolder"))   # no main/tools → excluded
+    open(os.path.join(_td, "afile.txt"), "w").close()
+    _found = discover_samples(_td)
+    check("discover_samples: only real samples", _found == ["SAMPLE1", "SAMPLE2"])
+    check("discover_samples: excludes dotfiles",  ".hidden" not in _found)
+    check("discover_samples: excludes non-sample dirs", "RandomFolder" not in _found)
+# A folder with no Bactopia samples (e.g. $HOME) yields [] — not a dir dump.
+check("discover_samples($HOME)→ []", discover_samples(str(pathlib.Path.home())) == [])
+
 # ── 3. core/fofn ───────────────────────────────────────────────────────────
 section("3. core/fofn — FOFN builder")
 from bearhub.core.fofn import build_fofn, parse_genome_size, FASTQ_PATTERNS, FA_PATTERNS

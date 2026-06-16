@@ -12,49 +12,52 @@ help:
 	@echo ""
 	@echo "Targets:"
 	@echo "  make install    Run install_bear.sh (creates conda envs, writes config)"
-	@echo "  make run        Launch the Streamlit app via run_bear.sh"
-	@echo "  make update     Pull latest code and re-run install_bear.sh"
+	@echo "  make run        Launch the Reflex app via bearhub_rx/run.sh"
+	@echo "  make update     Safely update (stash + pull + reinstall) via update_bear.sh"
 	@echo "  make uninstall  Remove BEAR-HUB conda envs and config"
 	@echo "  make test       Run the pytest test suite in the bear-hub env"
 	@echo "  make lint       Run flake8 on the Python source files"
 	@echo ""
 	@echo "Override Bactopia version:"
-	@echo "  make install BACTOPIA_VERSION=3.1.0"
+	@echo "  make install BACTOPIA_VERSION=4.0.0"
 
 # ── Install / setup ───────────────────────────────────────────────────────────
 install:
-	BACTOPIA_VERSION="$${BACTOPIA_VERSION:-3.0.0}" bash install_bear.sh
+	BACTOPIA_VERSION="$${BACTOPIA_VERSION:-4.0.0}" bash install_bear.sh
 
 # ── Run application ───────────────────────────────────────────────────────────
 run:
-	bash run_bear.sh
+	bash bearhub_rx/run.sh
 
-# ── Update (pull + reinstall) ─────────────────────────────────────────────────
+# ── Update (safe pull + reinstall via update_bear.sh) ─────────────────────────
+# Stashes local changes, fast-forwards, re-runs the installer (keeping the
+# installed Bactopia pin), and clears the stale Reflex frontend.
 update:
-	git pull --ff-only
-	BACTOPIA_VERSION="$${BACTOPIA_VERSION:-3.0.0}" bash install_bear.sh
+	bash update_bear.sh
 
 # ── Uninstall ─────────────────────────────────────────────────────────────────
 uninstall:
 	bash uninstall_bear.sh
 
 # ── Tests ─────────────────────────────────────────────────────────────────────
-# Uses conda run so that the streamlit package is available during import.
-CONDA_BIN ?= $(shell command -v conda 2>/dev/null || command -v mamba 2>/dev/null)
+# The suite lives in bearhub_rx/tests/ as standalone scripts (custom check()
+# harness, not pytest) — run them with the bear-hub env's Python.
+BEAR_PY ?= $(shell ls envs/bear-hub/bin/python 2>/dev/null || command -v python3)
 
 test:
-	@if [ -z "$(CONDA_BIN)" ]; then \
-		echo "ERROR: conda/mamba not found in PATH. Activate the environment manually:"; \
-		echo "  conda activate bear-hub && pytest tests/ -v"; \
+	@if [ -z "$(BEAR_PY)" ]; then \
+		echo "ERROR: bear-hub env Python not found. Run 'make install' first."; \
 		exit 1; \
 	fi
-	$(CONDA_BIN) run -n bear-hub pytest tests/ -v --tb=short
+	$(BEAR_PY) bearhub_rx/tests/test_unit.py
 
 # ── Lint ──────────────────────────────────────────────────────────────────────
+# flake8 is optional; skip cleanly if it isn't installed in the env.
 lint:
-	@if [ -z "$(CONDA_BIN)" ]; then \
-		flake8 utils/ constants.py pages/ BEAR-HUB.py --max-line-length=120; \
+	@if [ -x envs/bear-hub/bin/flake8 ]; then \
+		envs/bear-hub/bin/flake8 bearhub_rx/bearhub --max-line-length=120 --extend-ignore=E501; \
+	elif command -v flake8 >/dev/null 2>&1; then \
+		flake8 bearhub_rx/bearhub --max-line-length=120 --extend-ignore=E501; \
 	else \
-		$(CONDA_BIN) run -n bear-hub flake8 utils/ constants.py pages/ BEAR-HUB.py \
-			--max-line-length=120 --extend-ignore=E501; \
+		echo "flake8 not installed — skipping lint. (pip install flake8 in the bear-hub env to enable.)"; \
 	fi

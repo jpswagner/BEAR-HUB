@@ -52,7 +52,18 @@ bash bearhub_rx/run.sh
 Then open **http://localhost:3200**. The first launch compiles the frontend
 (~1–2 min); later launches are fast. Backend runs on `:8200`.
 
-## 4. Uninstall
+## 4. Update
+
+```bash
+bash update_bear.sh      # or: make update
+```
+
+This stashes any local changes, fast-forward pulls the latest code, re-runs the
+installer (keeping the Bactopia version you already installed), and clears the
+stale Reflex frontend so it rebuilds on next launch. The **Status** page shows an
+"Update available" banner when a newer release exists on GitHub.
+
+## 5. Uninstall
 
 ```bash
 bash uninstall_bear.sh
@@ -63,7 +74,7 @@ finish.
 
 ---
 
-## 5. Troubleshooting
+## 6. Troubleshooting
 
 | Symptom | Fix |
 |---|---|

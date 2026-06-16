@@ -26,10 +26,47 @@ def _version_row(label: str, key: str) -> rx.Component:
     )
 
 
+def _update_banner() -> rx.Component:
+    """Informational 'update available' callout (only when a newer tag exists)."""
+    return rx.cond(
+        StatusState.update_available,
+        rx.callout(
+            rx.text(
+                "Update available (",
+                StatusState.app_version,
+                " → ",
+                StatusState.latest_version,
+                ") — run ",
+                rx.code("bash update_bear.sh"),
+                " or ",
+                rx.code("make update"),
+                ".",
+            ),
+            icon="circle-arrow-up",
+            color_scheme="teal",
+            variant="surface",
+            width="100%",
+            margin_bottom="3",
+        ),
+    )
+
+
 def status_page() -> rx.Component:
     return shell(
         hero("activity", "System Status",
              "Versions of Bactopia and its dependencies."),
+        _update_banner(),
+        rx.card(
+            rx.hstack(
+                rx.text("BEAR-HUB", weight="bold", size="2", width="120px"),
+                rx.code(rx.cond(StatusState.app_version != "", StatusState.app_version, "unknown")),
+                spacing="3",
+                align="center",
+                width="100%",
+            ),
+            margin_bottom="3",
+            width="100%",
+        ),
         rx.card(
             rx.hstack(
                 rx.heading("External tools", size="4"),

@@ -1173,13 +1173,24 @@ class RunsState(rx.State):
 class StatusState(rx.State):
     versions: dict[str, str] = {}
     loading: bool = True
+    # App version + update-availability (filled by a best-effort GitHub check).
+    app_version: str = ""
+    latest_version: str = ""
+    update_available: bool = False
 
     @rx.event(background=True)
     async def load(self):
         from bearhub.core import versions
         async with self:
             self.loading = True
+            self.app_version = versions.get_app_version()
         data = versions.get_versions()
         async with self:
             self.versions = data
             self.loading = False
+        # Network check runs after the page already has its data, so a slow or
+        # offline GitHub never blocks the Status page.
+        info = versions.check_for_update()
+        async with self:
+            self.latest_version = info.get("latest", "")
+            self.update_available = info.get("available") == "yes"

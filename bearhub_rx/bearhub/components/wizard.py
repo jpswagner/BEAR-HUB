@@ -394,7 +394,7 @@ def samples_field(S) -> rx.Component:
                     size="2",
                     color="var(--gray-10)",
                 ),
-                rx.text("No samples found in this folder.",
+                rx.text("No Bactopia samples here — pick a Bactopia output directory.",
                         size="2", color="var(--gray-10)"),
             ),
             rx.spacer(),

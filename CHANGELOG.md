@@ -7,6 +7,38 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.0.0] — 2026-06-16
+
+First stable release on the **Reflex** UI targeting **Bactopia 4.0** — hence the
+major version bump from the 0.1.x Streamlit line.
+
+### Added
+- `update_bear.sh` — one safe command to update an existing checkout: stashes
+  local/untracked changes, fast-forward pulls, re-runs the idempotent installer
+  (keeping the Bactopia version already pinned in `~/.bear-hub/config.env`), and
+  clears the stale Reflex `.web/` so the frontend rebuilds. `make update` now
+  calls it.
+- In-app **update-available** banner on the Status page. A best-effort,
+  non-blocking GitHub check (`core/versions.py: check_for_update`) compares the
+  local `VERSION` file against the latest release tag; offline labs see no error.
+  The Status page also now shows the installed BEAR-HUB app version.
+- `GITHUB_REPO` constant in `bearhub/data/catalog.py` backing the update check.
+
+### Changed
+- `discover_samples()` (`core/bactopia.py`) is now **strict**: it returns only
+  genuine Bactopia sample folders (those containing a `main/` or `tools/`
+  subdirectory) and `[]` otherwise. Previously it fell back to listing *every*
+  subdirectory, so pointing the picker at e.g. `$HOME` showed dotfiles and
+  unrelated folders (`.ssh`, `.cache`, …) as "samples".
+- `VERSION` file is the single source of truth for the BEAR-HUB app version.
+
+### Fixed
+- `Makefile`: `install`/`update` no longer default to the stale Bactopia `3.0.0`
+  pin (now `4.0.0`, matching the installer and app); `make run` now launches the
+  Reflex app via `bearhub_rx/run.sh` instead of the non-existent `run_bear.sh`.
+
+---
+
 ## [Unreleased] — refactor/improvements branch
 
 ### Added

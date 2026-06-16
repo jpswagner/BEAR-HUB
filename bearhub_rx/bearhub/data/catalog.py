@@ -19,6 +19,9 @@ _REPO_ROOT = _HERE.parents[2]  # bearhub_rx/bearhub/data/ -> repo root (BEAR-HUB
 BACTOPIA_VERSION = "4.0.0"
 PROFILES = ["docker", "singularity", "standard"]
 
+# GitHub repo backing the in-app "update available" check (owner/name).
+GITHUB_REPO = "jpswagner/BEAR-HUB"
+
 
 # ── Static data (MLST schemes + genome-size presets) ──────────────────────────
 # Lives in-package (bearhub/data/static.py). Falls back to the legacy root-level
