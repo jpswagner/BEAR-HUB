@@ -7,6 +7,29 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.0.1] — 2026-06-26
+
+### Fixed
+- **Fresh-machine installs failing with "missing conda / reflex".** The install
+  and launch scripts were tied to one machine's layout; on any other clone path
+  or username the app couldn't find its environment:
+  - `install_bear.sh` now derives `BEAR_HUB_ROOT` from the script's own location
+    (was hardcoded to `$HOME/BEAR-HUB`), so the installer works wherever the repo
+    is cloned. An explicit `BEAR_HUB_ROOT` env var still overrides.
+  - Fixed a doubled path (`…/BEAR-HUB/BEAR-HUB/bearhub_rx`) that made the Reflex
+    pre-compile silently skip and the printed "Next steps" point at a missing dir.
+  - Both the installer and `bearhub_rx/run.sh` now launch Reflex via
+    `python -m reflex` instead of the `bin/reflex` shim, whose pip-generated
+    shebang hardcodes an absolute interpreter path and breaks when the env moves.
+  - `run.sh` resolves the env's Python by path and no longer relies on
+    `conda run -n bear-hub` (the envs are prefix envs, so the named lookup never
+    matched) or on `conda`/`reflex` being on `PATH` at runtime.
+  - The installer's verify step (Step 6) now runs `python -m reflex --version` —
+    exercising the real launch path — instead of only `import reflex`, so a broken
+    launcher fails the smoke test.
+
+---
+
 ## [2.0.0] — 2026-06-16
 
 First stable release on the **Reflex** UI targeting **Bactopia 4.0** — hence the

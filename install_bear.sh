@@ -18,7 +18,11 @@ set -euo pipefail
 BACTOPIA_VERSION="${BACTOPIA_VERSION:-4.0.0}"
 
 # ── Directories ───────────────────────────────────────────────────────────────
-BEAR_HUB_ROOT="${HOME}/BEAR-HUB"
+# Derive the repo root from this script's own location so the installer works no
+# matter where BEAR-HUB was cloned (any path, any user). An explicit
+# BEAR_HUB_ROOT env var still wins, for non-standard layouts.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BEAR_HUB_ROOT="${BEAR_HUB_ROOT:-${SCRIPT_DIR}}"
 DATA_DIR="${BEAR_HUB_ROOT}/data"
 OUT_DIR="${BEAR_HUB_ROOT}/bactopia_out"
 # New config location (read by utils/system.py → bootstrap_bear_env_from_file)
@@ -169,10 +173,13 @@ setup_bear_hub_env() {
     # The app already lives in bearhub_rx/ — no `reflex init` needed (that would
     # scaffold a new app). `reflex run` generates .web/ automatically; we just
     # warm it up here so the user's first run isn't a long compile.
-    local app_dir="${BEAR_HUB_ROOT}/BEAR-HUB/bearhub_rx"
+    # Launch reflex via `python -m reflex` rather than the bin/reflex shim: pip
+    # bakes an absolute interpreter path into the shim's shebang, which breaks if
+    # the env is ever moved/cloned to a different path. `python -m` is portable.
+    local app_dir="${BEAR_HUB_ROOT}/bearhub_rx"
     if [[ -f "${app_dir}/rxconfig.py" ]]; then
         echo "Pre-compilando frontend Reflex em ${app_dir}/.web ..."
-        ( cd "${app_dir}" && "${BEAR_PREFIX}/bin/reflex" export --frontend-only \
+        ( cd "${app_dir}" && "${BEAR_PREFIX}/bin/python" -m reflex export --frontend-only \
             --no-zip --loglevel warning 2>/dev/null ) || \
             echo "  (pre-compile skipped — will build on first run)"
     fi
@@ -339,13 +346,17 @@ verify_install() {
     local nf="${BACTOPIA_PREFIX}/bin/nextflow"
     local jv="${BACTOPIA_PREFIX}/bin/java"
 
-    # Reflex (bear-hub env). NB: reflex has no `__version__`; use importlib.metadata.
-    if "${BEAR_PREFIX}/bin/python" -c "import reflex" >/dev/null 2>&1; then
+    # Reflex (bear-hub env). Exercise the ACTUAL launch path used by run.sh —
+    # `python -m reflex` — not just `import reflex`, so a usable CLI is confirmed
+    # (the bin/reflex shim can be broken by an absolute-path shebang).
+    if "${BEAR_PREFIX}/bin/python" -m reflex --version >/dev/null 2>&1; then
         local rxver
-        rxver=$("${BEAR_PREFIX}/bin/python" -c "import importlib.metadata as m; print(m.version('reflex'))" 2>/dev/null)
-        echo "  [OK]   Reflex importable (${rxver:-unknown})"; ok=$((ok+1))
+        rxver=$("${BEAR_PREFIX}/bin/python" -m reflex --version 2>/dev/null | head -1)
+        echo "  [OK]   Reflex CLI runnable (${rxver:-unknown})"; ok=$((ok+1))
+    elif "${BEAR_PREFIX}/bin/python" -c "import reflex" >/dev/null 2>&1; then
+        echo "  [WARN] Reflex imports but 'python -m reflex' failed in ${BEAR_PREFIX}"; warn=$((warn+1))
     else
-        echo "  [FAIL] Reflex not importable in ${BEAR_PREFIX}"; fail=$((fail+1))
+        echo "  [FAIL] Reflex not runnable in ${BEAR_PREFIX}"; fail=$((fail+1))
     fi
 
     # Java (Nextflow requires a JDK — normally pulled in by the bactopia conda env)
@@ -421,12 +432,11 @@ main() {
     echo
     echo "Next steps:"
     echo "  source \"${CONFIG_FILE}\""
-    echo "  cd \"${BEAR_HUB_ROOT}/BEAR-HUB\""
-    echo "  bash \"${BEAR_HUB_ROOT}/BEAR-HUB/bearhub_rx/run.sh\""
+    echo "  bash \"${BEAR_HUB_ROOT}/bearhub_rx/run.sh\""
     echo
     echo "Or manually:"
-    echo "  cd \"${BEAR_HUB_ROOT}/BEAR-HUB/bearhub_rx\""
-    echo "  conda run -p \"${BEAR_PREFIX}\" reflex run"
+    echo "  cd \"${BEAR_HUB_ROOT}/bearhub_rx\""
+    echo "  \"${BEAR_PREFIX}/bin/python\" -m reflex run"
     echo
     echo "Bactopia will run via '-profile docker' — make sure Docker is running."
     echo
