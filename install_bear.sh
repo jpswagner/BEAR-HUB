@@ -16,6 +16,8 @@ set -euo pipefail
 # 4.0.0 is the validated version (requires Nextflow >= 26.04). Keep the conda
 # package and this pin in sync — the app runs `-r v${BACTOPIA_VERSION}`.
 BACTOPIA_VERSION="${BACTOPIA_VERSION:-4.0.0}"
+# Reflex is pinned exactly (it makes breaking changes across patch releases).
+REFLEX_VERSION="${REFLEX_VERSION:-0.9.3}"
 
 # ── Directories ───────────────────────────────────────────────────────────────
 # Derive the repo root from this script's own location so the installer works no
@@ -103,41 +105,92 @@ EOF
         echo "  Continuing installation..."
     fi
 
-    # conda / mamba
-    if command -v mamba >/dev/null 2>&1; then
-        MAMBA_BIN="$(command -v mamba)"
-        echo "mamba found: ${MAMBA_BIN}"
-    fi
-    if command -v conda >/dev/null 2>&1; then
-        CONDA_BIN="$(command -v conda)"
-        echo "conda found: ${CONDA_BIN}"
-    fi
-
+    # conda / mamba — detect (PATH or a common prefix), else auto-install Miniforge.
+    detect_conda
     if [[ -z "${MAMBA_BIN}" && -z "${CONDA_BIN}" ]]; then
-        cat <<'EOF'
-
-ERROR: neither 'mamba' nor 'conda' was found in PATH.
-BEAR-HUB uses conda environments for:
-  - 'bear-hub' (Reflex UI)
-  - 'bactopia' (pipeline + Nextflow)
-
-Quick Miniconda install (Linux x86_64):
-
-  cd "$HOME"
-  curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
-    -o miniconda.sh
-  bash miniconda.sh
-  # Follow the interactive prompts, then close and reopen your terminal.
-
-  conda --version   # verify
-
-  # Optional (recommended) — install mamba in base:
-  conda install -n base -c conda-forge mamba
-
-Miniconda docs: https://docs.conda.io/projects/miniconda/en/latest/
-EOF
+        if [[ "${BEAR_HUB_SKIP_CONDA_BOOTSTRAP:-0}" == "1" ]]; then
+            _conda_manual_help
+            exit 1
+        fi
+        bootstrap_conda || { _conda_manual_help; exit 1; }
+        detect_conda
+    fi
+    if [[ -z "${MAMBA_BIN}" && -z "${CONDA_BIN}" ]]; then
+        echo "ERROR: conda/mamba still unavailable after bootstrap." >&2
+        _conda_manual_help
         exit 1
     fi
+    [[ -n "${MAMBA_BIN}" ]] && echo "mamba: ${MAMBA_BIN}"
+    [[ -n "${CONDA_BIN}" ]] && echo "conda: ${CONDA_BIN}"
+}
+
+# Detect conda/mamba on PATH, or source one from a common install prefix.
+detect_conda() {
+    MAMBA_BIN=""; CONDA_BIN=""
+    command -v mamba >/dev/null 2>&1 && MAMBA_BIN="$(command -v mamba)"
+    command -v conda >/dev/null 2>&1 && CONDA_BIN="$(command -v conda)"
+    if [[ -z "${CONDA_BIN}" && -z "${MAMBA_BIN}" ]]; then
+        local base
+        for base in "${HOME}/miniforge3" "${HOME}/mambaforge" \
+                    "${HOME}/miniconda3" "${HOME}/anaconda3"; do
+            if [[ -f "${base}/etc/profile.d/conda.sh" ]]; then
+                # shellcheck disable=SC1090,SC1091
+                source "${base}/etc/profile.d/conda.sh"
+                [[ -f "${base}/etc/profile.d/mamba.sh" ]] && \
+                    source "${base}/etc/profile.d/mamba.sh"
+                command -v conda >/dev/null 2>&1 && CONDA_BIN="$(command -v conda)"
+                command -v mamba >/dev/null 2>&1 && MAMBA_BIN="$(command -v mamba)"
+                break
+            fi
+        done
+    fi
+}
+
+# Download + install Miniforge (conda + mamba, conda-forge default) non-interactively.
+bootstrap_conda() {
+    local prefix="${CONDA_INSTALL_PREFIX:-${HOME}/miniforge3}"
+    local arch url dl
+    arch="$(uname -m)"
+    url="https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-${arch}.sh"
+    echo
+    echo "No conda/mamba found — installing Miniforge to ${prefix} (non-interactive)..."
+    echo "  ${url}"
+    dl="$(mktemp "${TMPDIR:-/tmp}/miniforge.XXXXXX.sh")"
+    if command -v curl >/dev/null 2>&1; then
+        curl -fsSL "${url}" -o "${dl}" || { echo "ERROR: Miniforge download failed." >&2; rm -f "${dl}"; return 1; }
+    elif command -v wget >/dev/null 2>&1; then
+        wget -qO "${dl}" "${url}" || { echo "ERROR: Miniforge download failed." >&2; rm -f "${dl}"; return 1; }
+    else
+        echo "ERROR: need 'curl' or 'wget' to download Miniforge." >&2
+        rm -f "${dl}"; return 1
+    fi
+    if ! bash "${dl}" -b -p "${prefix}"; then
+        echo "ERROR: Miniforge installation failed." >&2
+        rm -f "${dl}"; return 1
+    fi
+    rm -f "${dl}"
+    # Make conda/mamba available for the rest of THIS script...
+    # shellcheck disable=SC1091
+    source "${prefix}/etc/profile.d/conda.sh"
+    [[ -f "${prefix}/etc/profile.d/mamba.sh" ]] && source "${prefix}/etc/profile.d/mamba.sh"
+    # ...and persist for the user's future shells.
+    conda init bash >/dev/null 2>&1 || true
+    echo "Miniforge installed at ${prefix}."
+    echo "  (For direct 'conda' use later, open a new terminal or 'source ~/.bashrc'.)"
+}
+
+_conda_manual_help() {
+    cat <<'EOF'
+
+Could not set up conda automatically. Install Miniforge manually, then re-run:
+
+  curl -fsSL "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh" -o miniforge.sh
+  bash miniforge.sh -b -p "$HOME/miniforge3"
+  source "$HOME/miniforge3/etc/profile.d/conda.sh"
+  bash install_bear.sh
+
+(To skip auto-bootstrap and require a pre-existing conda, set BEAR_HUB_SKIP_CONDA_BOOTSTRAP=1.)
+EOF
 }
 
 # =============================================================================
@@ -149,15 +202,12 @@ setup_bear_hub_env() {
 
     mkdir -p "${ENVS_DIR}"
 
+    # Create the Python base env if missing (Reflex is NOT on conda-forge — it
+    # ships on PyPI only — so conda provides Python + conda-available deps).
     if [[ -d "${BEAR_PREFIX}/bin" ]]; then
         echo "Ambiente 'bear-hub' ja existe em: ${BEAR_PREFIX}"
     else
         echo "Criando ambiente 'bear-hub' em ${BEAR_PREFIX}..."
-
-        # Reflex is NOT on conda-forge — it ships on PyPI only. So conda creates
-        # the Python base (+ conda-available deps) and pip installs Reflex.
-        # Pin to the validated version: Reflex makes breaking changes even
-        # across patch releases, so a lab deployment pins exactly.
         if [[ -n "${MAMBA_BIN}" ]]; then
             "${MAMBA_BIN}" create -y -p "${BEAR_PREFIX}" -c conda-forge \
                 python=3.11 websockets pyyaml
@@ -165,10 +215,18 @@ setup_bear_hub_env() {
             "${CONDA_BIN}" create -y -p "${BEAR_PREFIX}" -c conda-forge \
                 python=3.11 websockets pyyaml
         fi
-        echo "Instalando Reflex (PyPI) no ambiente 'bear-hub'..."
-        "${BEAR_PREFIX}/bin/python" -m pip install "reflex==0.9.3"
-        echo "Ambiente 'bear-hub' criado em: ${BEAR_PREFIX}"
     fi
+    # Ensure Reflex is present and pinned — ALWAYS (idempotent). This fixes
+    # partial installs where the env exists but Reflex is missing, and lets
+    # update_bear.sh bump Reflex when a release requires a new version. pip is a
+    # no-op when reflex==${REFLEX_VERSION} is already satisfied.
+    if [[ ! -x "${BEAR_PREFIX}/bin/python" ]]; then
+        echo "ERROR: bear-hub env has no python at ${BEAR_PREFIX}/bin/python." >&2
+        echo "  The conda env was not created. See errors above; re-run the installer." >&2
+        exit 1
+    fi
+    echo "Ensuring Reflex ${REFLEX_VERSION} (PyPI) in the 'bear-hub' env..."
+    "${BEAR_PREFIX}/bin/python" -m pip install "reflex==${REFLEX_VERSION}"
     # Pre-build the Reflex frontend (.web/) so the first launch is fast.
     # The app already lives in bearhub_rx/ — no `reflex init` needed (that would
     # scaffold a new app). `reflex run` generates .web/ automatically; we just
@@ -194,21 +252,21 @@ setup_bactopia_env() {
 
     mkdir -p "${ENVS_DIR}"
 
-    if [[ -d "${BACTOPIA_PREFIX}/bin" ]]; then
+    # Pin to the validated version (also pulls a compatible Nextflow + JDK,
+    # >= 26.04 for 4.x). Check for the actual binary — not just the dir — so a
+    # previous partial install (env dir created, package failed) gets repaired.
+    local solver="${MAMBA_BIN:-${CONDA_BIN}}"
+    if [[ -x "${BACTOPIA_PREFIX}/bin/bactopia" ]]; then
         echo "Ambiente 'bactopia' ja existe em: ${BACTOPIA_PREFIX}"
+    elif [[ -d "${BACTOPIA_PREFIX}" ]]; then
+        echo "Reparando ambiente 'bactopia' incompleto (bactopia=${BACTOPIA_VERSION})..."
+        "${solver}" install -y -p "${BACTOPIA_PREFIX}" \
+            -c conda-forge -c bioconda "bactopia=${BACTOPIA_VERSION}"
     else
         echo "Criando ambiente 'bactopia' em ${BACTOPIA_PREFIX} com Bactopia ${BACTOPIA_VERSION}..."
         echo "  (o pipeline sera executado com '-profile docker' pelo BEAR-HUB)"
-
-        # Pin the conda package to the validated version so installs are
-        # reproducible (it also pulls a compatible Nextflow, >= 26.04 for 4.x).
-        if [[ -n "${MAMBA_BIN}" ]]; then
-            "${MAMBA_BIN}" create -y -p "${BACTOPIA_PREFIX}" \
-                -c conda-forge -c bioconda "bactopia=${BACTOPIA_VERSION}"
-        else
-            "${CONDA_BIN}" create -y -p "${BACTOPIA_PREFIX}" \
-                -c conda-forge -c bioconda "bactopia=${BACTOPIA_VERSION}"
-        fi
+        "${solver}" create -y -p "${BACTOPIA_PREFIX}" \
+            -c conda-forge -c bioconda "bactopia=${BACTOPIA_VERSION}"
         echo "Ambiente 'bactopia' criado em: ${BACTOPIA_PREFIX}"
     fi
 

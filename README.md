@@ -21,9 +21,10 @@ parameter presets, live run monitor + history.
 Linux (Ubuntu-like). The installer sets up everything else in two local conda
 environments.
 
-- **conda** or **mamba** (Miniconda / Mambaforge)
 - **Docker** with the daemon running (Bactopia runs with `-profile docker`)
 - Internet access (conda/pip packages + container images) and free disk space
+- **conda / mamba** — *optional*: if neither is found, the installer auto-installs
+  Miniforge (set `BEAR_HUB_SKIP_CONDA_BOOTSTRAP=1` to require a pre-existing conda)
 
 > Java and Nextflow are installed automatically inside the `bactopia` env; Reflex
 > is installed into the `bear-hub` env. Nothing else is needed system-wide.
@@ -80,7 +81,7 @@ finish.
 |---|---|
 | **Run fails instantly / red "Docker daemon not running" banner** | Start Docker: `sudo systemctl start docker`. Add your user once: `sudo usermod -aG docker "$USER"` then log out/in. |
 | **`install_bear.sh` Step 6 says Java/Nextflow FAIL** | The `bactopia` env didn't get a JDK/Nextflow. Re-run the installer, or `conda run -p ~/BEAR-HUB/envs/bactopia nextflow -version`. |
-| **Reflex won't install** | Reflex ships on **PyPI, not conda**; the installer pip-installs it. If you build the env by hand: `~/BEAR-HUB/envs/bear-hub/bin/pip install reflex==0.9.3`. |
+| **Reflex won't install / "missing conda"** | The installer auto-installs Miniforge if conda is absent, then pip-installs Reflex (idempotent — re-run `bash install_bear.sh` to repair a partial install). Reflex ships on **PyPI, not conda**; by hand: `<repo>/envs/bear-hub/bin/python -m pip install reflex==0.9.3`. |
 | **`http://localhost:3200` doesn't load** | First run is still compiling — wait for `App running at...` in the terminal. Check nothing else uses ports **3200/8200**. |
 | **Page is blank / stale after an update** | Stop `run.sh`, delete `bearhub_rx/.web/`, relaunch (it rebuilds). |
 | **`Parameter ... is not declared` / `Path string cannot be empty`** | Pipeline/Bactopia version mismatch — BEAR-HUB targets **Bactopia 4.0.0** (needs **Nextflow ≥ 26.04**). Confirm both in the **Status** page. |

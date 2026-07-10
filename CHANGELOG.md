@@ -7,6 +7,26 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.0.2] — 2026-07-10
+
+### Fixed
+- **Installer did not set up conda, and Reflex was sometimes missing.** Reported
+  by users on machines without conda:
+  - `install_bear.sh` now **auto-installs Miniforge** (conda + mamba,
+    conda-forge default) when neither conda nor mamba is found — instead of
+    printing instructions and exiting. It also detects a conda living in a common
+    prefix (`~/miniforge3`, `~/miniconda3`, `~/anaconda3`, `~/mambaforge`) not on
+    `PATH`. Set `BEAR_HUB_SKIP_CONDA_BOOTSTRAP=1` to opt out.
+  - The Reflex install now runs **idempotently on every install/update** (was
+    only on first env creation), so a partial install where the env exists but
+    Reflex is missing is repaired, and `update_bear.sh` can bump Reflex when a
+    release requires it. Reflex is pinned via a single `REFLEX_VERSION` var.
+  - `setup_bactopia_env` checks for the actual `bactopia` binary (not just the
+    env dir) and **repairs** an incomplete env with `conda install` instead of
+    silently skipping.
+
+---
+
 ## [2.0.1] — 2026-06-26
 
 ### Fixed
