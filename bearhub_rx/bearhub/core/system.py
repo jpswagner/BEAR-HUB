@@ -5,7 +5,9 @@ import os
 import pathlib
 import re
 import shutil
+import signal
 import subprocess
+import sys
 
 APP_STATE_DIR: pathlib.Path = pathlib.Path.home() / ".bactopia_ui_local"
 _CONFIG_DIR: pathlib.Path = APP_STATE_DIR
@@ -103,6 +105,69 @@ def get_default_outdir() -> str:
     if base:
         return str((pathlib.Path(base).expanduser() / "bactopia_out").resolve())
     return str((pathlib.Path.home() / "BEAR_DATA" / "bactopia_out").resolve())
+
+
+def shutdown() -> None:
+    """Stop the whole BEAR-HUB app: frontend, backend and the `reflex run` parent.
+
+    BEAR-HUB is launched (run.sh → `python -m reflex run`) as a single foreground
+    process group holding the reflex launcher, the frontend (bun/node) and the
+    granian backend worker — the same group the terminal signals on Ctrl+C.
+    Closing the browser tab signals nothing, so the server keeps running; this is
+    the explicit "off switch" the UI wires to a button.
+
+    We can't just signal our own group and return: the very signal that stops the
+    frontend also stops us mid-call. So we hand the job to a *detached* watchdog
+    (`start_new_session=True` puts it in its own group, outside the one we kill)
+    that escalates SIGINT → SIGTERM → SIGKILL over the group. SIGINT first mirrors
+    Ctrl+C so reflex/granian/Nextflow shut down gracefully; the later steps are a
+    guarantee that nothing — a stubborn dev server especially — is left orphaned.
+
+    NOTE: any in-progress Nextflow/Bactopia run now lives in its OWN session
+    (runner.stream uses start_new_session=True), so killing our group no longer
+    reaches it. We therefore signal each run's process group explicitly first,
+    so the off-switch still leaves nothing orphaned.
+    """
+    pg = os.getpgrp()
+    # Gather live run process groups (best-effort — never let this block shutdown).
+    run_pgids: list[int] = []
+    try:
+        from bearhub.core import runner as _runner  # late import: avoids cycle
+        run_pgids = _runner.active_pgids()
+    except Exception:
+        run_pgids = []
+    # The watchdog only uses os/time/signal syscalls, so a plain `python -c` in a
+    # new session is enough and avoids fork-in-async-worker hazards. It stops the
+    # runs first (graceful → forced), then our own group (frontend + backend).
+    watchdog = (
+        "import os,time,signal\n"
+        f"run_pgids={run_pgids!r}\n"
+        f"pg={pg}\n"
+        "for rp in run_pgids:\n"
+        "    for s in (signal.SIGINT, signal.SIGTERM, signal.SIGKILL):\n"
+        "        try: os.killpg(rp, s)\n"
+        "        except OSError: break\n"
+        "        time.sleep(1)\n"
+        "for s in (signal.SIGINT, signal.SIGTERM, signal.SIGKILL):\n"
+        "    try: os.killpg(pg, s)\n"
+        "    except OSError: break\n"  # group already gone → nothing left to kill
+        "    time.sleep(3)\n"
+    )
+    try:
+        subprocess.Popen(
+            [sys.executable, "-c", watchdog],
+            start_new_session=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            stdin=subprocess.DEVNULL,
+        )
+        return
+    except Exception:
+        # Last resort: signal our own group directly (kills us too, which is fine).
+        try:
+            os.killpg(pg, signal.SIGINT)
+        except OSError:
+            os._exit(0)
 
 
 def bootstrap_env() -> None:

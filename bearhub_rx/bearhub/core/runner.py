@@ -7,7 +7,9 @@ import os
 import re
 import shlex
 import shutil
+import signal
 import subprocess
+import time
 
 from bearhub.core.system import (
     APP_STATE_DIR,
@@ -18,12 +20,60 @@ from bearhub.core import history as _hist
 
 MAX_LOG_LINES: int = 1500
 
+# Live-log UI throttling: coalesce stdout into at most one state update every
+# FLUSH_SECS (or once FLUSH_LINES have piled up), instead of one websocket push
+# + full-list re-serialization per line. The on-disk log stays line-immediate.
+FLUSH_LINES: int = 50
+FLUSH_SECS: float = 0.3
+
 # Per-namespace process registry (for stop()) and per-run_id registry (so any
 # page — chiefly Runs — can monitor/stop any active run, enabling parallelism).
 _PROCS: dict[str, asyncio.subprocess.Process] = {}
 _PROCS_BY_ID: dict[str, asyncio.subprocess.Process] = {}
+# run_id → pgid for runs adopted after a restart (their child handle is gone,
+# but the process group survives and can still be signalled). See adopt().
+_ORPHANS: dict[str, int] = {}
 
 _LOG_DIR = APP_STATE_DIR / "logs"
+
+
+def _group_alive(pgid: int) -> bool:
+    """True if any process in the group `pgid` still exists."""
+    try:
+        os.killpg(pgid, 0)
+        return True
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    except OSError:
+        return False
+
+
+def adopt(run_id: str, pgid: int) -> None:
+    """Re-register an orphaned run (found alive by history.reconcile_orphans)
+    so the Runs page can monitor and stop it after a backend restart."""
+    if pgid:
+        _ORPHANS[run_id] = pgid
+
+
+def active_pgids() -> list[int]:
+    """Process-group ids of every currently-live run (children + orphans).
+
+    Used by system.shutdown() to tear down runs that now live in their own
+    sessions (start_new_session=True), so the app's off-switch leaves nothing
+    orphaned."""
+    pgids: list[int] = []
+    for p in _PROCS_BY_ID.values():
+        if p.returncode is None:
+            try:
+                pgids.append(os.getpgid(p.pid))
+            except ProcessLookupError:
+                pass
+    for pgid in _ORPHANS.values():
+        if _group_alive(pgid):
+            pgids.append(pgid)
+    return list(dict.fromkeys(pgids))
 
 
 def run_log_path(run_id: str) -> str:
@@ -41,13 +91,18 @@ def tail_run_log(run_id: str, n: int = MAX_LOG_LINES) -> list[str]:
 
 
 def active_run_ids() -> list[str]:
-    """run_ids with a live (not-yet-exited) process."""
-    return [rid for rid, p in _PROCS_BY_ID.items() if p.returncode is None]
+    """run_ids with a live process — direct children plus adopted orphans."""
+    live = [rid for rid, p in _PROCS_BY_ID.items() if p.returncode is None]
+    live += [rid for rid, pgid in _ORPHANS.items() if _group_alive(pgid)]
+    return list(dict.fromkeys(live))
 
 
 def is_active(run_id: str) -> bool:
     p = _PROCS_BY_ID.get(run_id)
-    return bool(p and p.returncode is None)
+    if p and p.returncode is None:
+        return True
+    pgid = _ORPHANS.get(run_id)
+    return bool(pgid and _group_alive(pgid))
 
 # ANSI escape sequence stripper
 _ANSI = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]", re.IGNORECASE)
@@ -196,36 +251,72 @@ async def stream(
         stderr=subprocess.STDOUT,
         cwd=cwd,
         env={**os.environ, "PYTHONUNBUFFERED": "1", "NXF_ANSI_LOG": "false"},
+        # Own session/group so stop() can take down the whole tree (bash →
+        # nextflow → java → docker) with one killpg — signalling only the bash
+        # shell (the old behaviour) left Nextflow and its containers orphaned.
+        start_new_session=True,
     )
     _PROCS[ns] = proc
     _PROCS_BY_ID[run_id] = proc
+    # Persist pid/pgid so the run survives a UI reload and can be reconciled
+    # after a backend restart (history.reconcile_orphans → adopt).
+    try:
+        pgid = os.getpgid(proc.pid)
+    except ProcessLookupError:
+        pgid = proc.pid
+    _hist.set_proc_info(run_id, proc.pid, pgid)
 
     def _persist(new_lines: list[str]) -> None:
         for ln in new_lines:
             log_fh.write(ln + "\n")
 
+    # Coalesced UI updates: lines land on disk immediately (complete log) but are
+    # pushed to Reflex state in batches, so a chatty Nextflow run doesn't trigger
+    # one full-list re-serialization + websocket push per line (was O(n²)).
+    pending: list[str] = []
+    last_flush = time.monotonic()
+
+    async def _flush(force: bool = False) -> None:
+        nonlocal pending, last_flush
+        if not pending:
+            return
+        if not force and len(pending) < FLUSH_LINES and \
+                (time.monotonic() - last_flush) < FLUSH_SECS:
+            return
+        chunk, pending = pending, []
+        last_flush = time.monotonic()
+        async with state:
+            state.log = (state.log + chunk)[-MAX_LOG_LINES:]
+
     try:
         buf = b""
         while True:
-            chunk = await proc.stdout.read(4096)
+            try:
+                chunk = await asyncio.wait_for(proc.stdout.read(4096),
+                                               timeout=FLUSH_SECS)
+            except asyncio.TimeoutError:
+                # Process went quiet — push whatever is buffered so the UI never
+                # sits on an un-flushed line while waiting for the next byte.
+                await _flush(force=True)
+                continue
             if not chunk:
                 break
             buf += chunk
-            # flush on newline
             while b"\n" in buf:
                 line_bytes, buf = buf.split(b"\n", 1)
                 lines = normalize_chunk(line_bytes + b"\n")
                 if lines:
                     _persist(lines)
-                    async with state:
-                        state.log = (state.log + lines)[-MAX_LOG_LINES:]
+                    pending.extend(lines)
+            await _flush()
         if buf:
             lines = normalize_chunk(buf)
             if lines:
                 _persist(lines)
-                async with state:
-                    state.log = (state.log + lines)[-MAX_LOG_LINES:]
+                pending.extend(lines)
+        await _flush(force=True)
     except Exception as exc:
+        await _flush(force=True)
         async with state:
             state.log = state.log + [f"[runner] error: {exc}"]
 
@@ -243,15 +334,40 @@ async def stream(
         state.status = "success" if rc == 0 else "failed"
 
 
-async def _terminate(proc: asyncio.subprocess.Process) -> None:
-    try:
-        proc.terminate()
-        await asyncio.wait_for(proc.wait(), timeout=5)
-    except asyncio.TimeoutError:
+async def _kill_pgid(pgid: int) -> None:
+    """Escalate SIGINT → SIGTERM → SIGKILL over a process group until it's gone.
+
+    SIGINT first mirrors Ctrl+C so Nextflow runs its own shutdown (stopping the
+    Docker containers it launched); SIGKILL is the last-resort guarantee. Works
+    for orphans too: a reparented process can't be wait()ed, so we poll the
+    group's liveness instead of awaiting the child.
+    """
+    for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGKILL):
+        if not _group_alive(pgid):
+            return
         try:
-            proc.kill()
+            os.killpg(pgid, sig)
         except ProcessLookupError:
-            pass
+            return
+        for _ in range(16):          # up to ~8s per signal
+            await asyncio.sleep(0.5)
+            if not _group_alive(pgid):
+                return
+
+
+async def _terminate(proc: asyncio.subprocess.Process) -> None:
+    """Kill a live child run's whole process group (bash → nextflow → java → …)."""
+    if proc.returncode is not None:
+        return
+    try:
+        pgid = os.getpgid(proc.pid)
+    except ProcessLookupError:
+        return
+    await _kill_pgid(pgid)
+    try:                             # reap so it doesn't linger as a zombie
+        await asyncio.wait_for(proc.wait(), timeout=2)
+    except (asyncio.TimeoutError, ProcessLookupError):
+        pass
 
 
 async def stop(ns: str) -> None:
@@ -267,18 +383,32 @@ async def stop(ns: str) -> None:
         if r["ns"] == ns and r["status"] == "running":
             _hist.finish_record(r["id"], -1)
             _PROCS_BY_ID.pop(r["id"], None)
+            _ORPHANS.pop(r["id"], None)
             break
 
 
 async def stop_run_id(run_id: str) -> None:
-    """Terminate a specific run by id (used by the Runs monitor page)."""
+    """Terminate a specific run by id (used by the Runs monitor page).
+
+    Handles both live children and orphans adopted after a restart — the latter
+    have no child handle, so we signal their persisted process group directly.
+    """
     proc = _PROCS_BY_ID.get(run_id)
-    if proc is None or proc.returncode is not None:
+    if proc is not None and proc.returncode is None:
+        await _terminate(proc)
+        _PROCS_BY_ID.pop(run_id, None)
+        for ns, p in list(_PROCS.items()):
+            if p is proc:
+                _PROCS.pop(ns, None)
+        _ORPHANS.pop(run_id, None)
+        _hist.finish_record(run_id, -1)
         return
-    await _terminate(proc)
-    _PROCS_BY_ID.pop(run_id, None)
-    # Drop it from the ns registry too if it's the current one there.
-    for ns, p in list(_PROCS.items()):
-        if p is proc:
-            _PROCS.pop(ns, None)
+    # No live child: orphan (post-restart) — kill by persisted pgid.
+    pgid = _ORPHANS.pop(run_id, None)
+    if pgid is None:
+        rec = next((r for r in _hist.load_all() if r["id"] == run_id), None)
+        if rec:
+            pgid = rec.get("pgid") or rec.get("pid")
+    if pgid:
+        await _kill_pgid(int(pgid))
     _hist.finish_record(run_id, -1)

@@ -8,6 +8,7 @@ Records survive app restarts and are loaded on the Runs page.
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 import time
 import uuid
@@ -41,6 +42,11 @@ def new_record(
         "finished":  None,
         "duration":  None,
         "exit_code": None,
+        # OS process identity — persisted so a run can be stopped from any page
+        # and reconciled after a backend restart (see set_proc_info /
+        # reconcile_orphans). None until the process is actually spawned.
+        "pid":       None,
+        "pgid":      None,
     }
 
 
@@ -49,6 +55,22 @@ def new_record(
 def _path() -> pathlib.Path:
     APP_STATE_DIR.mkdir(parents=True, exist_ok=True)
     return _HISTORY_FILE
+
+
+def _write(records: list[dict]) -> None:
+    """Atomically rewrite the history file (write-temp-then-rename).
+
+    The rename is atomic on POSIX, so a concurrent reader never sees a
+    half-written file. (For true multi-writer safety we'd move to SQLite; this
+    keeps the JSONL format while removing the torn-write window.)
+    """
+    p = _path()
+    tmp = p.with_suffix(p.suffix + f".tmp.{os.getpid()}")
+    tmp.write_text(
+        "\n".join(json.dumps(r) for r in records) + "\n",
+        encoding="utf-8",
+    )
+    os.replace(tmp, p)
 
 
 def append_record(record: dict) -> None:
@@ -62,10 +84,7 @@ def append_record(record: dict) -> None:
     # Trim to cap
     if len(records) > _MAX_RECORDS:
         records = records[-_MAX_RECORDS:]
-    _path().write_text(
-        "\n".join(json.dumps(r) for r in records) + "\n",
-        encoding="utf-8",
-    )
+    _write(records)
 
 
 def load_all() -> list[dict]:
@@ -100,14 +119,72 @@ def finish_record(run_id: str, exit_code: int) -> None:
             r["finished"]  = time.time()
             r["duration"]  = round(r["finished"] - r["started"])
             break
-    _path().write_text(
-        "\n".join(json.dumps(r) for r in records) + "\n",
-        encoding="utf-8",
-    )
+    _write(records)
+
+
+def set_proc_info(run_id: str, pid: int, pgid: int) -> None:
+    """Record the OS pid/pgid of a run's process so it can be stopped/reconciled."""
+    records = load_all()
+    for r in records:
+        if r["id"] == run_id:
+            r["pid"], r["pgid"] = pid, pgid
+            break
+    _write(records)
+
+
+def _pid_alive(pid: Optional[int]) -> bool:
+    """True if a PID currently exists (signal 0 probes without killing)."""
+    if not pid:
+        return False
+    try:
+        os.kill(int(pid), 0)
+        return True
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True   # exists but owned by another user
+    except (ValueError, OSError):
+        return False
+
+
+def reconcile_orphans() -> list[tuple[str, Optional[int], Optional[int]]]:
+    """Reconcile 'running' records against reality on startup.
+
+    A record left 'running' after a restart is either:
+      - genuinely dead  → its OS process is gone → mark 'interrupted';
+      - a real orphan   → its process survived (reparented to init) → keep it
+        'running' and return it so the UI can re-adopt and offer to stop it.
+
+    Returns ``[(run_id, pid, pgid), ...]`` for the still-alive orphans.
+    Supersedes cancel_stale(): liveness beats the old 24h heuristic and also
+    cleans up legacy records that never recorded a pid.
+    """
+    records = load_all()
+    changed = False
+    alive: list[tuple[str, Optional[int], Optional[int]]] = []
+    for r in records:
+        if r.get("status") != "running":
+            continue
+        pid = r.get("pid")
+        if _pid_alive(pid):
+            alive.append((r["id"], pid, r.get("pgid")))
+        else:
+            r["status"]    = "interrupted"
+            r["finished"]  = time.time()
+            r["duration"]  = round(r["finished"] - r["started"]) if r.get("started") else None
+            r["exit_code"] = -1
+            changed = True
+    if changed:
+        _write(records)
+    return alive
 
 
 def cancel_stale() -> None:
-    """Mark any 'running' records older than 24h as 'interrupted' on startup."""
+    """Mark any 'running' records older than 24h as 'interrupted' on startup.
+
+    Kept for backward compatibility; reconcile_orphans() is the preferred
+    startup reconciler (it checks actual process liveness).
+    """
     cutoff = time.time() - 86400
     records = load_all()
     changed = False
@@ -117,10 +194,7 @@ def cancel_stale() -> None:
             r["finished"] = r["started"]
             changed = True
     if changed:
-        _path().write_text(
-            "\n".join(json.dumps(r) for r in records) + "\n",
-            encoding="utf-8",
-        )
+        _write(records)
 
 
 # ── Formatting helpers ─────────────────────────────────────────────────────────

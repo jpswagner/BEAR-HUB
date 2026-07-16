@@ -40,6 +40,15 @@ BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 OLD_REF="$(git rev-parse --short HEAD)"
 echo "Branch: ${BRANCH} (at ${OLD_REF})"
 
+# ── Step 0: stop any running instance ─────────────────────────────────────────
+# A running app holds the ports and serves stale code; stopping it first avoids
+# port clashes and half-updated states, and lets us safely clear .web later.
+if [[ -x "${HERE}/stop_bear.sh" ]]; then
+    echo
+    echo "Stopping any running BEAR-HUB instance before updating..."
+    bash "${HERE}/stop_bear.sh" || true
+fi
+
 # ── Step 1: guard local changes ───────────────────────────────────────────────
 if [[ -n "$(git status --porcelain)" ]]; then
     echo

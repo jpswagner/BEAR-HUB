@@ -11,6 +11,19 @@ APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${APP_DIR}/.." && pwd)"
 cd "${APP_DIR}"
 
+# ── Lifecycle: stop any previous instance, then record this one ───────────────
+# Prevents port clashes (3200/8200) and orphaned frontends — a stale dev server
+# once grew a 19 GB log. stop_bear.sh is idempotent (no-op when nothing is up).
+# $$ is preserved across the `exec` below, so the PID file points at the reflex
+# launcher, whose process subtree is the frontend + backend.
+CONFIG_DIR="${HOME}/.bear-hub"
+mkdir -p "${CONFIG_DIR}"
+if [ -x "${REPO_ROOT}/stop_bear.sh" ]; then
+  echo "Checking for a previous BEAR-HUB instance..."
+  "${REPO_ROOT}/stop_bear.sh" || true
+fi
+echo "$$" > "${CONFIG_DIR}/bear-hub.pid"
+
 # Resolve the bear-hub env's Python by path. We launch via `python -m reflex`
 # (NOT the bin/reflex shim, whose shebang pip hardcodes to an absolute path and
 # breaks if the env is moved) and avoid `conda run`, which isn't needed and may

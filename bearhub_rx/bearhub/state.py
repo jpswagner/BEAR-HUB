@@ -1095,7 +1095,11 @@ class RunsState(rx.State):
         self.records = [self._enrich(r) for r in _history.load_recent(100)]
 
     def load(self):
-        _history.cancel_stale()
+        # Reconcile any run left 'running' after a restart: dead ones become
+        # 'interrupted'; genuine orphans (process survived) are re-adopted so
+        # the Stop button keeps working.
+        for run_id, _pid, pgid in _history.reconcile_orphans():
+            runner.adopt(run_id, pgid or _pid)
         self._reload()
 
     def select(self, run_id: str):
