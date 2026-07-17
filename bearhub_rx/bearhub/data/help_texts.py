@@ -173,4 +173,66 @@ HELP: dict[str, str] = {
         "under `<outdir>/bactopia-runs/<run>/merged-results/`. The most recent run's "
         "tables are listed here."
     ),
+    # ── Step-level help (the "?" on each wizard step) ──────────────────────────
+    # Each explains what the step does AND what it contributes to the command,
+    # so building the pipeline command is legible step by step.
+    "step_input": (
+        "**Step · Input & FOFN**\n\n"
+        "Pick the output directory, then scan a reads/assemblies folder to build the "
+        "sample sheet (`samples.txt`). Each sample's runtype (paired-end, single-end, ont, "
+        "hybrid, assembly) is detected automatically; edit it in the sample-sheet table.\n\n"
+        "**Adds to the command:** `--samples samples.txt`, plus any QC-gate thresholds you set "
+        "(`--min_coverage`, `--min_basepairs`, `--min_reads`, `--min_genome_size`, `--max_genome_size`)."
+    ),
+    "step_cleaning": (
+        "**Step · Read cleaning (fastp)**\n\n"
+        "Configure fastp trimming and filtering of the raw reads. Simple mode builds the "
+        "option string for you; Advanced lets you type the full fastp line.\n\n"
+        "**Adds to the command:** `--fastp_opts '<options>'` (skipped for pure ONT runs)."
+    ),
+    "step_assembler": (
+        "**Step · Assembler**\n\n"
+        "Choose the assembler and contig filtering for your data type. Hybrid modes combine "
+        "Illumina + ONT (set per-sample via the FOFN runtype).\n\n"
+        "**Adds to the command:** `--use_unicycler` / assembler flags, `--unicycler_mode`, "
+        "`--min_contig_len`, `--min_contig_cov`, and polishing rounds."
+    ),
+    "step_typing": (
+        "**Step · Typing & annotation**\n\n"
+        "MLST, AMRFinderPlus and the annotator (Prokka or Bakta) run inside the main "
+        "pipeline. Leave fields blank to keep Bactopia's defaults.\n\n"
+        "**Adds to the command:** `--mlst_scheme`, `--amrfinderplus_organism`, `--prokka_*` or "
+        "`--use_bakta --bakta_db`; float thresholds go via `-params-file`."
+    ),
+    "step_extras": (
+        "**Step · Extras**\n\n"
+        "Execution resources, Nextflow reports and any raw extra flags.\n\n"
+        "**Adds to the command:** `--max_cpus`, `--max_memory`, `-resume`, "
+        "`-with-report` / `-with-timeline` / `-with-trace`, plus your extra parameters."
+    ),
+    "step_run": (
+        "**Step · Run**\n\n"
+        "Review the assembled command (shown above) and launch. Nextflow streams its log "
+        "here; progress and any failure are summarised as it runs."
+    ),
+    "step_data": (
+        "**Step · Data**\n\n"
+        "Choose a Bactopia output directory — its subfolders are the samples. An "
+        "`--include` file with your selection is generated for the run."
+    ),
+    "step_tools": (
+        "**Step · Tools**\n\n"
+        "Pick one or more Bactopia Tools. Each runs as its own `--wf` workflow, one after "
+        "another, over the selected samples."
+    ),
+    "step_params": (
+        "**Step · Parameters**\n\n"
+        "General Nextflow settings (profile, CPUs, memory, resume) plus per-tool options for "
+        "the tools you picked. Empty fields keep each tool's defaults."
+    ),
+    "step_merlin_species": (
+        "**Step · Species tools**\n\n"
+        "Pick the species-specific workflows to run. Each launches as its own "
+        "`nextflow run bactopia/bactopia --wf <tool>` over the selected samples."
+    ),
 }

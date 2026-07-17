@@ -23,7 +23,7 @@ def _field(field: dict) -> rx.Component:
         return rx.checkbox(
             label,
             checked=ToolsState.flags[key],
-            color_scheme="teal",
+            color_scheme="indigo",
             on_change=lambda v: ToolsState.set_flag(key, v),
         )
     if kind == "select":
@@ -105,13 +105,13 @@ def _tool_card(tool: dict) -> rx.Component:
     ]
     if tool["detailed"]:
         head.append(
-            rx.badge("options", size="1", color_scheme="teal", variant="soft")
+            rx.badge("options", size="1", color_scheme="indigo", variant="soft")
         )
     return rx.card(
         rx.hstack(
             rx.checkbox(
                 checked=checked,
-                color_scheme="teal",
+                color_scheme="indigo",
                 size="3",
                 style={"pointerEvents": "none"},
             ),
@@ -128,8 +128,8 @@ def _tool_card(tool: dict) -> rx.Component:
         on_click=ToolsState.toggle(tid),
         cursor="pointer",
         style={
-            "borderColor": rx.cond(checked, "var(--teal-8)", "var(--gray-5)"),
-            "background":  rx.cond(checked, "var(--teal-2)", "transparent"),
+            "borderColor": rx.cond(checked, "var(--accent-8)", "var(--gray-5)"),
+            "background":  rx.cond(checked, "var(--accent-2)", "transparent"),
         },
         width="100%",
     )
@@ -141,7 +141,7 @@ def _category_block(cat: str) -> rx.Component:
         return rx.fragment()
     return rx.vstack(
         rx.hstack(
-            rx.heading(cat, size="3", color="var(--teal-11)"),
+            rx.heading(cat, size="3", color="var(--accent-11)"),
             rx.badge(
                 str(len(items)), color_scheme="gray",
                 variant="soft",
@@ -181,7 +181,7 @@ def _step_tools() -> rx.Component:
             rx.spacer(),
             rx.badge(
                 ToolsState.n_picked.to_string() + " selected",
-                color_scheme="teal",
+                color_scheme="indigo",
                 size="2",
             ),
             width="100%", align="center",
@@ -234,7 +234,7 @@ def _step_run() -> rx.Component:
                 rx.text("Tools", size="1", color="var(--gray-10)"),
                 rx.foreach(
                     ToolsState.picked_ids,
-                    lambda t: rx.badge(t, color_scheme="teal"),
+                    lambda t: rx.badge(t, color_scheme="indigo"),
                 ),
                 wrap="wrap", spacing="2", align="center",
             ),
@@ -245,7 +245,7 @@ def _step_run() -> rx.Component:
                 size="2", color="var(--gray-11)", margin_top="6px",
             ),
             width="100%",
-            style={"background": "var(--teal-2)", "borderColor": "var(--teal-6)"},
+            style={"background": "var(--accent-2)", "borderColor": "var(--accent-6)"},
         ),
         wz.docker_banner(ToolsState),
         rx.hstack(
@@ -270,7 +270,8 @@ def tools_page() -> rx.Component:
     return shell(
         wz.hero("wrench", "Bactopia Tools",
                 "Run official --wf workflows over already-processed samples."),
-        wz.step_indicator(STEPS, ToolsState.step, ToolsState.goto),
+        wz.step_indicator(STEPS, ToolsState.step, ToolsState.goto,
+                          help_keys=["step_data", "step_tools", "step_params", "step_run"]),
         rx.divider(),
         rx.match(
             ToolsState.step,

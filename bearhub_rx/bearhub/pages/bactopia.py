@@ -47,7 +47,7 @@ def flag_cb(label, key):
     return rx.checkbox(
         label,
         checked=S.bflags[key],
-        color_scheme="teal",
+        color_scheme="indigo",
         size="3",
         on_change=lambda v: S.set_bflag(key, v),
     )
@@ -185,7 +185,7 @@ def _fofn_editor() -> rx.Component:
                     S.fofn_editor_open,
                     rx.button(
                         rx.icon("save", size=14), "Save sample sheet",
-                        on_click=S.save_fofn, color_scheme="teal", size="1",
+                        on_click=S.save_fofn, color_scheme="indigo", size="1",
                     ),
                 ),
                 width="100%", align="center",
@@ -229,7 +229,7 @@ def _presets_bar() -> rx.Component:
     return rx.card(
         rx.flex(
             rx.hstack(
-                rx.icon("bookmark", size=16, color="var(--teal-9)"),
+                rx.icon("bookmark", size=16, color="var(--accent-9)"),
                 rx.text("Presets", size="2", weight="bold"),
                 spacing="2", align="center",
             ),
@@ -248,7 +248,7 @@ def _presets_bar() -> rx.Component:
             ),
             rx.button(
                 rx.icon("save", size=14), "Save",
-                on_click=S.save_preset, color_scheme="teal", size="2",
+                on_click=S.save_preset, color_scheme="indigo", size="2",
             ),
             rx.cond(
                 S.presets.contains(S.preset_name),
@@ -314,7 +314,7 @@ def _step_input():
                     rx.icon("search", size=16),
                     "Scan & build FOFN",
                     on_click=S.scan_fofn,
-                    color_scheme="teal",
+                    color_scheme="indigo",
                     size="2",
                 ),
                 rx.cond(
@@ -515,7 +515,7 @@ def _step_assembler():
                     flag_cb("--no_corr", "no_corr"),
                     wrap="wrap", spacing="3", align="end",
                 ),
-                width="100%", style={"borderColor": "var(--teal-6)"},
+                width="100%", style={"borderColor": "var(--accent-6)"},
             ),
         ),
         rx.cond(
@@ -530,7 +530,7 @@ def _step_assembler():
                     flag_cb("--no_miniasm", "no_miniasm"),
                     wrap="wrap", spacing="3", align="end",
                 ),
-                width="100%", style={"borderColor": "var(--teal-6)"},
+                width="100%", style={"borderColor": "var(--accent-6)"},
             ),
         ),
         rx.cond(
@@ -554,7 +554,7 @@ def _step_assembler():
                     ),
                     spacing="2", align="start", width="100%",
                 ),
-                width="100%", style={"borderColor": "var(--teal-6)"},
+                width="100%", style={"borderColor": "var(--accent-6)"},
             ),
         ),
         rx.card(
@@ -737,17 +737,85 @@ def _step_extras():
     )
 
 
+# ── Command builder (decomposes the command by wizard step) ────────────────────
+def _cmd_segment(g) -> rx.Component:
+    """One colored chunk of the command, tagged with the step number that set it."""
+    return rx.hstack(
+        rx.cond(
+            g["num"] != "",
+            rx.box(
+                g["num"],
+                style={
+                    "background": g["tag_bg"], "color": "white",
+                    "fontSize": "10px", "fontWeight": "700", "fontFamily": "monospace",
+                    "minWidth": "16px", "height": "16px", "borderRadius": "5px",
+                    "display": "flex", "alignItems": "center",
+                    "justifyContent": "center", "flexShrink": "0",
+                },
+            ),
+        ),
+        rx.text(
+            g["text"], size="1",
+            style={"fontFamily": "monospace", "color": g["fg"],
+                   "whiteSpace": "pre-wrap", "wordBreak": "break-word"},
+        ),
+        style={"background": g["bg"], "borderRadius": "8px", "padding": "5px 9px"},
+        spacing="2", align="center",
+    )
+
+
+def _legend_item(num: str, label: str, color: str) -> rx.Component:
+    return rx.hstack(
+        rx.box(
+            num,
+            style={"background": f"var(--{color}-9)", "color": "white",
+                   "fontSize": "10px", "fontWeight": "700", "fontFamily": "monospace",
+                   "minWidth": "16px", "height": "16px", "borderRadius": "5px",
+                   "display": "flex", "alignItems": "center", "justifyContent": "center"},
+        ),
+        rx.text(label, size="1", color="var(--gray-11)"),
+        spacing="1", align="center",
+    )
+
+
+def _command_builder() -> rx.Component:
+    return rx.card(
+        rx.hstack(
+            helpmod.section("Command builder", "step_run", size="3"),
+            rx.text("each step becomes a piece of the command",
+                    size="1", color="var(--gray-10)",
+                    display=rx.breakpoints(initial="none", sm="block")),
+            rx.spacer(),
+            wz.copy_button(S.preview, "Copy command"),
+            width="100%", align="center", wrap="wrap",
+        ),
+        rx.cond(
+            S.preview_groups.length() > 0,
+            rx.flex(
+                rx.foreach(S.preview_groups, _cmd_segment),
+                wrap="wrap", spacing="2", width="100%", margin_top="12px",
+            ),
+            rx.text("Configure the steps to assemble the command.",
+                    size="1", color="var(--gray-9)", margin_top="8px"),
+        ),
+        rx.divider(margin_y="12px"),
+        rx.flex(
+            _legend_item("1", "Input", "indigo"),
+            _legend_item("2", "Cleaning", "cyan"),
+            _legend_item("3", "Assembler", "amber"),
+            _legend_item("4", "Typing", "crimson"),
+            _legend_item("5", "Extras", "gray"),
+            wrap="wrap", spacing="4",
+        ),
+        width="100%",
+    )
+
+
 # ── Step 6: run ────────────────────────────────────────────────────────────────
 def _step_run():
     return rx.vstack(
         wz.docker_banner(S),
-        rx.hstack(
-            rx.heading("Command preview", size="3"),
-            rx.spacer(),
-            wz.copy_button(S.preview, "Copy command"),
-            width="100%", align="center",
-        ),
-        rx.code_block(S.preview, language="bash", width="100%", wrap_long_lines=True),
+        _command_builder(),
         rx.cond(
             ~S.fofn_built,
             rx.callout(
@@ -768,7 +836,9 @@ def bactopia_page():
     return shell(
         wz.hero("dna", "Bactopia",
                 "Main pipeline: QC, assembly, annotation and typing from raw reads."),
-        wz.step_indicator(STEPS, S.step, S.goto),
+        wz.step_indicator(STEPS, S.step, S.goto,
+                          help_keys=["step_input", "step_cleaning", "step_assembler",
+                                     "step_typing", "step_extras", "step_run"]),
         _presets_bar(),
         rx.divider(),
         rx.match(

@@ -73,11 +73,11 @@ def _run_row(r) -> rx.Component:
                 on_click=RunsState.select(rid),
                 size="1",
                 variant="soft",
-                color_scheme="teal",
+                color_scheme="indigo",
             ),
         ),
         style={
-            "background": rx.cond(is_sel, "var(--teal-2)", "transparent"),
+            "background": rx.cond(is_sel, "var(--accent-2)", "transparent"),
             "cursor": "pointer",
         },
         on_click=RunsState.select(rid),

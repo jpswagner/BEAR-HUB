@@ -27,7 +27,7 @@ def _card(title: str, href: str, icon: str, desc: str) -> rx.Component:
                     rx.icon(icon, size=26, color="white"),
                     padding="12px",
                     border_radius="12px",
-                    background="linear-gradient(135deg,#0f766e,#134e4a)",
+                    background="var(--accent-9)",
                 ),
                 rx.vstack(
                     rx.heading(title, size="4"),
@@ -41,7 +41,7 @@ def _card(title: str, href: str, icon: str, desc: str) -> rx.Component:
             ),
             width="100%",
             height="100%",
-            _hover={"border_color": "var(--teal-8)"},
+            _hover={"border_color": "var(--accent-8)"},
         ),
         href=href,
         underline="none",
@@ -69,7 +69,7 @@ def hub_page() -> rx.Component:
                 rx.spacer(),
                 rx.badge(
                     f"Bactopia v{BACTOPIA_VERSION}",
-                    color_scheme="teal",
+                    color_scheme="indigo",
                     variant="surface",
                     size="2",
                 ),
@@ -78,10 +78,10 @@ def hub_page() -> rx.Component:
                 width="100%",
             ),
             padding="28px",
-            border_radius="18px",
+            border_radius="16px",
             width="100%",
-            background="linear-gradient(135deg,#0f766e 0%,#115e59 55%,#134e4a 100%)",
-            box_shadow="0 10px 30px rgba(15,118,110,.3)",
+            background="linear-gradient(135deg, var(--accent-9) 0%, var(--accent-11) 100%)",
+            box_shadow="0 10px 30px rgba(20,30,55,.22)",
         ),
         # Equal-size cards: 2 equal columns + equal row heights (gridAutoRows: 1fr)
         # combined with height="100%" on each card.

@@ -43,7 +43,7 @@ def _update_banner() -> rx.Component:
                 ".",
             ),
             icon="circle-arrow-up",
-            color_scheme="teal",
+            color_scheme="indigo",
             variant="surface",
             width="100%",
             margin_bottom="3",

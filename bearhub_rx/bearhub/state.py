@@ -804,25 +804,47 @@ def _json_params(o: dict) -> dict:
     return jp
 
 
-def _main_cmd(outdir: str, fofn_path: str, o: dict, f: dict,
-               threads: int, memory: int, resume: bool,
-               preview: bool = False, profile: str = "docker") -> str:
-    """Build the full Nextflow command for the main Bactopia pipeline."""
+# Command builder groups — one per wizard step. Flattening the tokens in this
+# order yields exactly the run command, so the "command builder" UI can colour
+# each flag by the step that produced it without the display ever drifting from
+# what actually runs. (key, human label.)
+_CMD_GROUP_LABELS: list[tuple[str, str]] = [
+    ("base",           "Base"),
+    ("step_input",     "Input & FOFN"),
+    ("step_cleaning",  "Read cleaning"),
+    ("step_assembler", "Assembler"),
+    ("step_typing",    "Typing"),
+    ("step_extras",    "Extras"),
+]
+
+
+def main_cmd_groups(outdir: str, fofn_path: str, o: dict, f: dict,
+                    threads: int, memory: int, resume: bool,
+                    profile: str = "docker") -> list[tuple[str, str, list[str]]]:
+    """Decompose the main Bactopia command into ordered per-step token groups.
+
+    Returns ``[(key, label, tokens), …]`` with empty groups dropped. Concatenating
+    the tokens in order (and shell-quoting) reproduces the exact command that
+    ``_main_cmd`` runs — this function is the single source of truth for both.
+    """
     nf = system.get_nextflow_bin()
-    base: list[str] = [nf, "run", "bactopia/bactopia"]
     ver = system.get_bactopia_version()
+    outp = str(_pathlib.Path(outdir).expanduser().resolve())
+    jp = _json_params(o)
+
+    base: list[str] = [nf, "run", "bactopia/bactopia"]
     if ver:
         base += ["-r", f"v{ver}"]
-    base += ["-profile", profile or "docker",
-             "--outdir", str(_pathlib.Path(outdir).expanduser().resolve())]
-    # Float params (e.g. AMRFinder ident_min/coverage_min) via -params-file.
-    jp = _json_params(o)
+    base += ["-profile", profile or "docker", "--outdir", outp]
+    # Float params (AMRFinder ident_min/coverage_min, screen_i, …) via -params-file.
     if jp:
         base += ["-params-file", str(_pathlib.Path(outdir) / _PARAMS_FILE)]
+
+    inp: list[str] = ["--samples", str(fofn_path)]
     datasets = o.get("datasets", "").strip()
     if datasets:
-        base += ["--datasets", datasets]
-    # QC gate thresholds — only emit when user overrides the Bactopia default.
+        inp += ["--datasets", datasets]
+    # QC gate thresholds — only emit when the user overrides the Bactopia default.
     for key, flag in [
         ("min_coverage",    "--min_coverage"),
         ("min_basepairs",   "--min_basepairs"),
@@ -832,39 +854,57 @@ def _main_cmd(outdir: str, fofn_path: str, o: dict, f: dict,
     ]:
         v = o.get(key, "").strip()
         if v:
-            base += [flag, v]
-    if f.get("with_report"):
-        base += ["-with-report", str(_pathlib.Path(outdir) / "nf-report.html")]
-    if f.get("with_timeline"):
-        base += ["-with-timeline", str(_pathlib.Path(outdir) / "nf-timeline.html")]
-    if f.get("with_trace"):
-        base += ["-with-trace", str(_pathlib.Path(outdir) / "nf-trace.txt")]
-    # --fastp_opts only applies to Illumina reads. Omit it for pure ONT runs
-    # (Dragonflye long-read QC uses nanoq/filtlong, not fastp). Hybrid modes keep
-    # it because they include Illumina R1/R2.
-    mode = o.get("assembly_mode", "")
-    if mode != "ONT (Dragonflye)":
+            inp += [flag, v]
+
+    # --fastp_opts only applies to Illumina reads. Omit for pure ONT runs
+    # (Dragonflye long-read QC uses nanoq/filtlong). Hybrid keeps it (has R1/R2).
+    clean: list[str] = []
+    if o.get("assembly_mode", "") != "ONT (Dragonflye)":
         fp = _fastp_opts(o, f).strip()
         if fp:
-            base += ["--fastp_opts", fp]
-    # Assembler-specific flags (unicycler_mode, skip_qc_plots, etc.)
-    base += _assembler_flags(o, f)
-    # Typing & annotation flags (amrfinderplus_*, mlst_*, prokka_*, bakta_*)
-    base += _typing_flags(o, f)
+            clean += ["--fastp_opts", fp]
+
+    asm = _assembler_flags(o, f)            # unicycler_mode, skip_qc_plots, …
+    typ = _typing_flags(o, f)               # amrfinderplus_*, mlst_*, prokka_*, bakta_*
+
+    extras: list[str] = []
+    if f.get("with_report"):
+        extras += ["-with-report", str(_pathlib.Path(outdir) / "nf-report.html")]
+    if f.get("with_timeline"):
+        extras += ["-with-timeline", str(_pathlib.Path(outdir) / "nf-timeline.html")]
+    if f.get("with_trace"):
+        extras += ["-with-trace", str(_pathlib.Path(outdir) / "nf-trace.txt")]
     if threads > 0:
-        base += ["--max_cpus", str(threads)]
+        extras += ["--max_cpus", str(threads)]
     if memory > 0:
         # Bactopia / Nextflow accepts dotted notation without space: 16.GB
-        base += ["--max_memory", f"{memory}.GB"]
+        extras += ["--max_memory", f"{memory}.GB"]
     if resume:
-        base += ["-resume"]
-    base += ["--samples", str(fofn_path)]
+        extras += ["-resume"]
     extra = o.get("extra_params", "").strip()
     if extra:
-        base += _split(extra)
-    nf_cmd = " ".join(_q(x) for x in base)
+        extras += _split(extra)
+
+    by_key = {"base": base, "step_input": inp, "step_cleaning": clean,
+              "step_assembler": asm, "step_typing": typ, "step_extras": extras}
+    return [(k, lbl, by_key[k]) for k, lbl in _CMD_GROUP_LABELS if by_key[k]]
+
+
+def _main_cmd(outdir: str, fofn_path: str, o: dict, f: dict,
+               threads: int, memory: int, resume: bool,
+               preview: bool = False, profile: str = "docker") -> str:
+    """Build the full Nextflow command for the main Bactopia pipeline.
+
+    Assembled from main_cmd_groups() so the preview/builder can never drift from
+    the executed command.
+    """
+    tokens = [t for _k, _l, toks in
+              main_cmd_groups(outdir, fofn_path, o, f, threads, memory, resume, profile)
+              for t in toks]
+    nf_cmd = " ".join(_q(x) for x in tokens)
     if preview:
         # Show the params-file contents inline so the preview stays transparent.
+        jp = _json_params(o)
         if jp:
             kv = ", ".join(f"{k}={v}" for k, v in jp.items())
             return f"# {_PARAMS_FILE}: {{{kv}}}\n{nf_cmd}"
@@ -1021,6 +1061,40 @@ class BactopiaState(WizardMixin, rx.State):
             int(self.threads or 0), int(self.memory or 0),
             bool(self.resume), preview=True, profile=self.profile,
         )
+
+    @rx.var
+    def preview_groups(self) -> list[dict]:
+        """The command decomposed by wizard step, with per-step colours, for the
+        command builder. Same source of truth as `preview` (main_cmd_groups)."""
+        outdir = self.outdir or "<outdir>"
+        fofn = self.fofn_path or str(_pathlib.Path(outdir) / "samples.txt")
+        groups = main_cmd_groups(
+            outdir, fofn, self.bopts, self.bflags,
+            int(self.threads or 0), int(self.memory or 0),
+            bool(self.resume), self.profile,
+        )
+        # (radix color scale, step number shown in the segment tag)
+        style = {
+            "base":           ("gray",    ""),
+            "step_input":     ("indigo",  "1"),
+            "step_cleaning":  ("cyan",     "2"),
+            "step_assembler": ("amber",   "3"),
+            "step_typing":    ("crimson", "4"),
+            "step_extras":    ("gray",    "5"),
+        }
+        out: list[dict] = []
+        for key, label, toks in groups:
+            color, num = style.get(key, ("gray", ""))
+            out.append({
+                "key": key,
+                "label": label,
+                "num": num,
+                "text": " ".join(shlex.quote(t) for t in toks),
+                "bg": f"var(--{color}-3)",
+                "fg": f"var(--{color}-11)",
+                "tag_bg": f"var(--{color}-9)",
+            })
+        return out
 
     def _build(self):
         if not system.nextflow_available():

@@ -20,7 +20,7 @@ def _inline(text: str) -> list[rx.Component]:
             spans.append(rx.text.span(text[last:m.start()]))
         spans.append(rx.text.span(
             m.group(1),
-            style={"color": "var(--teal-11)", "fontFamily": "monospace", "fontWeight": "600"},
+            style={"color": "var(--accent-11)", "fontFamily": "monospace", "fontWeight": "600"},
         ))
         last = m.end()
     if last < len(text):
@@ -44,7 +44,7 @@ def render_help(md: str) -> rx.Component:
                 heading_m.group(1),
                 weight="bold",
                 size="3",
-                style={"color": "var(--teal-11)"},
+                style={"color": "var(--accent-11)"},
             ))
             continue
         # Bullet list item
@@ -71,7 +71,7 @@ def help_button(key: str | None) -> rx.Component:
         return rx.fragment()
     return rx.popover.root(
         rx.popover.trigger(
-            rx.icon("circle-help", size=15, color="var(--teal-9)",
+            rx.icon("circle-help", size=15, color="var(--accent-9)",
                     style={"cursor": "pointer"}),
         ),
         rx.popover.content(

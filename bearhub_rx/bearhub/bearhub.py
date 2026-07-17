@@ -16,7 +16,7 @@ from bearhub.pages.tools import tools_page
 from bearhub.state import BactopiaState, MerlinState, RunsState, StatusState, ToolsState
 
 app = rx.App(
-    theme=rx.theme(accent_color="teal", gray_color="slate", radius="large", appearance="light")
+    theme=rx.theme(accent_color="indigo", gray_color="slate", radius="medium", appearance="light")
 )
 app.add_page(hub_page, route="/", title="BEAR-HUB")
 app.add_page(

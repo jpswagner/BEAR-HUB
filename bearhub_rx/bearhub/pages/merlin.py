@@ -18,7 +18,7 @@ def _species_chip(label: str, wf: str) -> rx.Component:
         rx.hstack(
             rx.checkbox(
                 checked=checked,
-                color_scheme="teal",
+                color_scheme="indigo",
                 size="2",
                 style={"pointerEvents": "none"},
             ),
@@ -31,15 +31,15 @@ def _species_chip(label: str, wf: str) -> rx.Component:
         cursor="pointer",
         padding="8px 12px",
         style={
-            "borderColor": rx.cond(checked, "var(--teal-8)", "var(--gray-5)"),
-            "background":  rx.cond(checked, "var(--teal-2)", "transparent"),
+            "borderColor": rx.cond(checked, "var(--accent-8)", "var(--gray-5)"),
+            "background":  rx.cond(checked, "var(--accent-2)", "transparent"),
         },
     )
 
 
 def _genus_block(genus: str, tools: list) -> rx.Component:
     return rx.vstack(
-        rx.heading(genus, size="3", color="var(--teal-11)"),
+        rx.heading(genus, size="3", color="var(--accent-11)"),
         rx.flex(
             *[_species_chip(label, wf) for label, wf in tools],
             wrap="wrap",
@@ -71,7 +71,7 @@ def _step_tools() -> rx.Component:
             rx.spacer(),
             rx.badge(
                 MerlinState.n_picked.to_string() + " selected",
-                color_scheme="teal",
+                color_scheme="indigo",
                 size="2",
             ),
             width="100%", align="center",
@@ -118,7 +118,7 @@ def _step_run() -> rx.Component:
                 rx.text("Workflows", size="1", color="var(--gray-10)"),
                 rx.foreach(
                     MerlinState.picked_ids,
-                    lambda t: rx.badge(t, color_scheme="teal"),
+                    lambda t: rx.badge(t, color_scheme="indigo"),
                 ),
                 wrap="wrap", spacing="2", align="center",
             ),
@@ -129,7 +129,7 @@ def _step_run() -> rx.Component:
                 size="2", color="var(--gray-11)", margin_top="6px",
             ),
             width="100%",
-            style={"background": "var(--teal-2)", "borderColor": "var(--teal-6)"},
+            style={"background": "var(--accent-2)", "borderColor": "var(--accent-6)"},
         ),
         wz.docker_banner(MerlinState),
         rx.hstack(
@@ -154,7 +154,8 @@ def merlin_page() -> rx.Component:
     return shell(
         wz.hero("wand-sparkles", "MERLIN",
                 "Species-specific typing workflows for completed samples."),
-        wz.step_indicator(STEPS, MerlinState.step, MerlinState.goto),
+        wz.step_indicator(STEPS, MerlinState.step, MerlinState.goto,
+                          help_keys=["step_data", "step_merlin_species", "step_params", "step_run"]),
         rx.divider(),
         rx.match(
             MerlinState.step,

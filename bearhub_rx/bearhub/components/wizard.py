@@ -5,34 +5,50 @@ import os
 
 import reflex as rx
 
-from bearhub.components.help import section as help_section
+from bearhub.components.help import help_button, section as help_section
 
 _MAX_CPUS = min(os.cpu_count() or 4, 64)
 
 
 def hero(icon: str, title: str, subtitle: str) -> rx.Component:
+    """Professional light hero: a surface panel with an accent icon tile (no
+    saturated gradient), matching the v3 design direction."""
     return rx.box(
         rx.hstack(
-            rx.icon(icon, size=32, color="white"),
+            rx.box(
+                rx.icon(icon, size=24, color="white"),
+                padding="11px",
+                border_radius="12px",
+                background="var(--accent-9)",
+                flex_shrink="0",
+                style={"display": "flex"},
+            ),
             rx.vstack(
-                rx.heading(title, size="6", color="white"),
-                rx.text(subtitle, size="2", color="white", opacity="0.85"),
+                rx.heading(title, size="6"),
+                rx.text(subtitle, size="2", color="var(--gray-10)"),
                 spacing="0",
                 align="start",
             ),
             spacing="4",
             align="center",
         ),
-        padding="20px 24px",
-        border_radius="16px",
+        padding="16px 20px",
+        border_radius="14px",
         width="100%",
-        background="linear-gradient(135deg, #0f766e 0%, #115e59 55%, #134e4a 100%)",
-        box_shadow="0 8px 24px rgba(15,118,110,.25)",
+        background="var(--gray-2)",
+        border="1px solid var(--gray-4)",
     )
 
 
-def step_indicator(steps: list[str], current, goto) -> rx.Component:
-    """`current` is a state int Var; `goto` is an event handler taking the index."""
+def step_indicator(steps: list[str], current, goto,
+                   help_keys: list[str] | None = None) -> rx.Component:
+    """`current` is a state int Var; `goto` is an event handler taking the index.
+
+    `help_keys` (optional) maps each step to a key in data/help_texts.HELP; when
+    present, a "?" popover is shown next to that step explaining what it does and
+    what it adds to the command. The "?" is a sibling of the clickable label so
+    opening help never also navigates.
+    """
     nodes: list[rx.Component] = []
     for idx, label in enumerate(steps):
         active = current == idx
@@ -49,32 +65,34 @@ def step_indicator(steps: list[str], current, goto) -> rx.Component:
             display="flex",
             align_items="center",
             justify_content="center",
-            background=rx.cond(active | done, "var(--teal-9)", "var(--gray-6)"),
-            box_shadow=rx.cond(active, "0 0 0 4px var(--teal-4)", "none"),
+            background=rx.cond(active | done, "var(--accent-9)", "var(--gray-6)"),
+            box_shadow=rx.cond(active, "0 0 0 4px var(--accent-4)", "none"),
             transition="all .15s ease",
         )
-        nodes.append(
-            rx.hstack(
-                circle,
-                rx.text(
-                    label,
-                    size="2",
-                    weight=rx.cond(active, "bold", "regular"),
-                    color=rx.cond(active | done, "var(--teal-11)", "var(--gray-10)"),
-                ),
-                spacing="2",
-                align="center",
-                cursor="pointer",
-                on_click=goto(idx),
-            )
+        clickable = rx.hstack(
+            circle,
+            rx.text(
+                label,
+                size="2",
+                weight=rx.cond(active, "bold", "regular"),
+                color=rx.cond(active | done, "var(--accent-11)", "var(--gray-10)"),
+            ),
+            spacing="2",
+            align="center",
+            cursor="pointer",
+            on_click=goto(idx),
         )
+        hk = help_keys[idx] if (help_keys and idx < len(help_keys)) else None
+        node = rx.hstack(clickable, help_button(hk), spacing="1", align="center") if hk \
+            else clickable
+        nodes.append(node)
         if idx < len(steps) - 1:
             nodes.append(
                 rx.box(
                     width="32px",
                     height="2px",
                     border_radius="2px",
-                    background=rx.cond(done, "var(--teal-9)", "var(--gray-6)"),
+                    background=rx.cond(done, "var(--accent-9)", "var(--gray-6)"),
                 )
             )
     return rx.flex(*nodes, wrap="wrap", spacing="2", align="center", width="100%")
@@ -101,7 +119,7 @@ def nav_buttons(
             next_label,
             rx.icon(next_icon, size=16),
             on_click=handler,
-            color_scheme="teal",
+            color_scheme="indigo",
             size="3",
         )
     )
@@ -180,14 +198,14 @@ def progress_strip(S) -> rx.Component:
                 rx.spacer(),
                 rx.cond(
                     S.prog_summary != "",
-                    rx.badge(S.prog_summary, color_scheme="teal", variant="soft", size="2"),
+                    rx.badge(S.prog_summary, color_scheme="indigo", variant="soft", size="2"),
                 ),
                 width="100%", align="center",
             ),
             rx.flex(
                 rx.foreach(
                     S.prog_stages,
-                    lambda s: rx.badge(s, color_scheme="teal", variant="soft", size="1"),
+                    lambda s: rx.badge(s, color_scheme="indigo", variant="soft", size="1"),
                 ),
                 wrap="wrap", spacing="2", margin_top="8px",
             ),
@@ -230,7 +248,7 @@ def run_panel(S, can_run=None) -> rx.Component:
                 rx.icon("play", size=18),
                 "Run",
                 on_click=S.run,
-                color_scheme="teal",
+                color_scheme="indigo",
                 size="4",
                 disabled=run_disabled,
                 loading=S.running,
@@ -330,7 +348,7 @@ def dir_picker(S) -> rx.Component:
                     "Select this folder",
                     rx.icon("check", size=16),
                     on_click=S.picker_select,
-                    color_scheme="teal",
+                    color_scheme="indigo",
                 ),
                 justify="end",
                 spacing="2",
@@ -359,7 +377,7 @@ def dir_input(S, target: str, value=None, with_rescan: bool = True) -> rx.Compon
             rx.icon("folder-open", size=16),
             "Browse…",
             on_click=S.open_picker_for(target),
-            color_scheme="teal",
+            color_scheme="indigo",
             size="3",
         ),
     ]
@@ -422,7 +440,7 @@ def samples_field(S) -> rx.Component:
                     S.filtered_samples,
                     lambda s: rx.badge(
                         s,
-                        color_scheme=rx.cond(S.selected.contains(s), "teal", "gray"),
+                        color_scheme=rx.cond(S.selected.contains(s), "indigo", "gray"),
                         variant=rx.cond(S.selected.contains(s), "solid", "soft"),
                         size="2",
                         cursor="pointer",
@@ -465,7 +483,7 @@ def merged_panel(S) -> rx.Component:
                 rx.foreach(
                     S.merged,
                     lambda f: rx.hstack(
-                        rx.icon("file-text", size=16, color="var(--teal-9)"),
+                        rx.icon("file-text", size=16, color="var(--accent-9)"),
                         rx.text(f, font_family="monospace", size="2"),
                         spacing="2",
                         align="center",
@@ -491,7 +509,7 @@ def _slider_field(label: str, value_var, handler, lo: int, hi: int,
             rx.text(label, size="1", color="var(--gray-10)"),
             rx.badge(
                 rx.cond(value_var == 0, "∞", value_var.to_string() + suffix),
-                color_scheme="teal",
+                color_scheme="indigo",
                 variant="soft",
             ),
             spacing="2",
@@ -503,7 +521,7 @@ def _slider_field(label: str, value_var, handler, lo: int, hi: int,
             max=hi,
             step=1,
             on_change=handler,
-            color_scheme="teal",
+            color_scheme="indigo",
             width="240px",
         ),
         spacing="2",
@@ -527,7 +545,7 @@ def general_params(S) -> rx.Component:
         _slider_field("--max_memory (0 = ∞)", S.memory, S.set_memory, 0, 256, " GB"),
         labeled(
             "-resume",
-            rx.switch(S.resume, on_change=S.set_resume, color_scheme="teal"),
+            rx.switch(S.resume, on_change=S.set_resume, color_scheme="indigo"),
         ),
         wrap="wrap",
         spacing="5",
