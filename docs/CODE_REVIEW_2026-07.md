@@ -374,3 +374,44 @@ linha selecionada expande para cmd + live log — em vez do painel único atual 
 Separação core/pages/components; `WizardMixin`; disciplina de `shlex.quote`; parser de progresso/falha;
 pré-check de daemon Docker; FOFN editável + presets; verificador de update; installer idempotente com
 smoke test. A base é boa — o trabalho é endurecer o ciclo de vida dos processos e o streaming.
+
+---
+
+## 8. Auditoria de parâmetros (2026-07-17)
+
+**Método:** validação de cada flag emitido contra o **Bactopia 4.0.0 realmente instalado**
+(`envs/bactopia/share/bactopia-4.0.0/`), reconstruindo o conjunto autoritativo de parâmetros do
+pipeline principal a partir da cadeia real de `includeConfig` do `nextflow.config` (266 params) e dos
+schemas por-tool (`workflows/bactopia-tools/<tool>/nextflow_schema.json`). **Não** foi usado o
+`docs/bactopia/bactopia_params_v4.0.0.json` — verificou-se que **esse JSON é incompleto** (não lista os
+params prefixados dos módulos), o que geraria falsos positivos.
+
+**Veredito: a camada de parâmetros está correta.** Todos os flags emitidos existem, com o tipo certo, e
+são passados pela via correta.
+
+### Verificado correto ✓
+- **Pipeline principal — 0 flags inválidos.** Montador (`use_unicycler`, `unicycler_mode`,
+  `min_component_size/dead_end_size`, `min_contig_len/cov`, `skip_qc_plots`, `no_polish`, `shovill_*`,
+  `dragonflye_*`, rounds de polimento), tipagem/anotação (`amrfinderplus_organism/noplus`, `mlst_scheme/
+  minid/mincov/minscore/nopath`, `prokka_proteins/opts/compliant`, `use_bakta`, `bakta_db/opts`), QC gates
+  (`min_coverage/basepairs/reads/genome_size`), input (`samples`), recursos (`max_cpus`, `max_memory`).
+- **Nomes prefixados de tipagem são válidos no pipeline principal** — o `nextflow.config` faz
+  `includeConfig` de `modules/amrfinderplus/run`, `modules/mlst`, `modules/prokka`, `modules/bactopia/qc`,
+  então `--amrfinderplus_*`, `--mlst_*`, `--prokka_*`, `--skip_qc_plots` são aceitos ali.
+- **Roteamento de floats correto** — `amrfinderplus_ident_min`, `amrfinderplus_coverage_min`,
+  `min_proportion`, `screen_i` são genuinamente `number` no schema → corretamente enviados via
+  `-params-file` (nf-schema rejeita float na CLI). Idem para os floats dos tools.
+- **`--max_memory 16.GB`** casa com o pattern `^\d+(\.\d+)?\.?\s*(K|M|G|T)?B$` do schema. `--max_cpus`
+  inteiro. ✓
+- **Híbrido via runtype do FOFN é correto** — o gather/assembler/qc do Bactopia 4.0 ramificam em
+  `runtype == "hybrid"`/`"short_polish"` (verificado no código dos módulos). Escrever isso no FOFN (em vez
+  de `--hybrid`/`--short_polish` na CLI) é exatamente o mecanismo real.
+- **Bactopia Tools — 0 flags inválidos** contra os schemas por-tool (amrfinderplus, rgi, mlst,
+  plasmidfinder, mashtree, pangenome). Roteamento de floats e null de `Path?` (`TOOL_NULL_PATHS`) válidos.
+
+### Achados reais (menores)
+| # | Sev. | Achado | Arquivo |
+|---|------|--------|---------|
+| P1 | Baixo | **`--datasets` é no-op.** `datasets` está no schema (não quebra o run), mas `params.datasets` **não é consumido em lugar nenhum** do Bactopia 4.0 — o campo "datasets/ (optional path)" na etapa Typing não faz nada. Remover o campo ou religá-lo ao mecanismo real de datasets do 4.0. | `state.py:822-824`, `pages/bactopia.py:701` |
+| P2 | Baixo | **Duplo aspeamento do adaptador fastp.** `_fastp_opts` envolve o adaptador em `_q()` (`state.py:624-625`), mas a string `--fastp_opts` inteira é requotada como um único arg depois → um adaptador custom chega ao fastp com aspas literais espúrias. Só dispara se o usuário digitar um adaptador custom. Correção: anexar o valor cru sem o `_q` interno. | `state.py:624-625` |
+| P3 | Doc | **Comentário obsoleto.** `_assembler_flags` (`state.py:703-708`) ainda diz que os params de AMRFinder/MLST "NÃO são declarados no pipeline principal … fazem o Nextflow abortar" — desatualizado; `_typing_flags` os passa corretamente (verificado válido). Atualizar o comentário para um mantenedor futuro não "consertar" código que funciona. | `state.py:703-708` |
