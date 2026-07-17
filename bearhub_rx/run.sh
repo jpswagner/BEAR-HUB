@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 # Run the BEAR-HUB Reflex app.
 # Usage:  bash bearhub_rx/run.sh [reflex run args...]
-# Default: dev mode (frontend :3200, backend :8200).
+#
+# Default: PRODUCTION single-port mode on :3200 (set BEAR_HUB_PORT to change).
+# Why not dev mode? The Reflex dev frontend (`react-router dev`) crashes with the
+# current toolchain (react-router 7 / vite 8): "jsxDEV is not a function" /
+# "Cannot access 'abort' before initialization". The production build is
+# unaffected, so we serve it. --single-port keeps frontend + backend on one port
+# (which prod requires). Pass your own args to override (e.g. `--env dev` once the
+# frontend toolchain is fixed / Node upgraded).
 # The bear-hub conda environment must be installed (see install_bear.sh).
 set -euo pipefail
 
@@ -24,6 +31,15 @@ if [ -x "${REPO_ROOT}/stop_bear.sh" ]; then
 fi
 echo "$$" > "${CONFIG_DIR}/bear-hub.pid"
 
+# ── Run arguments ─────────────────────────────────────────────────────────────
+# No args → production single-port on ${BEAR_HUB_PORT:-3200}. Caller args win.
+PORT="${BEAR_HUB_PORT:-3200}"
+if [ "$#" -gt 0 ]; then
+  RUN_ARGS=("$@")
+else
+  RUN_ARGS=(--env prod --single-port --frontend-port "${PORT}" --backend-port "${PORT}")
+fi
+
 # Resolve the bear-hub env's Python by path. We launch via `python -m reflex`
 # (NOT the bin/reflex shim, whose shebang pip hardcodes to an absolute path and
 # breaks if the env is moved) and avoid `conda run`, which isn't needed and may
@@ -41,7 +57,7 @@ done
 if [ -z "$PY" ]; then
   if command -v reflex >/dev/null 2>&1; then
     echo "BEAR-HUB Reflex — launching with: reflex (PATH)"
-    exec reflex run "$@"
+    exec reflex run "${RUN_ARGS[@]}"
   fi
   PY="$(command -v python3 || command -v python || true)"
 fi
@@ -54,4 +70,4 @@ if [ -z "$PY" ] || ! "$PY" -c "import reflex" >/dev/null 2>&1; then
 fi
 
 echo "BEAR-HUB Reflex — launching with: ${PY} -m reflex"
-exec "$PY" -m reflex run "$@"
+exec "$PY" -m reflex run "${RUN_ARGS[@]}"

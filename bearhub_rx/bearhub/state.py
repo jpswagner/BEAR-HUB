@@ -319,6 +319,26 @@ class ToolsState(WizardMixin, rx.State):
             ))
         return "\n\n".join(lines) if lines else "# select at least one tool"
 
+    @rx.var
+    def preview_groups(self) -> list[dict]:
+        """One colored segment per picked tool (each is its own nextflow --wf)."""
+        colors = ["indigo", "cyan", "amber", "crimson", "grass", "plum", "orange"]
+        out: list[dict] = []
+        for i, tid in enumerate(self.picked_ids):
+            args, jp = catalog.build_tool_args(tid, self.opts, self.flags)
+            pf = f"<tool-params-{tid}.json>" if jp else ""
+            cmd = runner.nextflow_wf_cmd(
+                tid, "<outdir>", "<include-file>",
+                self.profile, int(self.threads or 0), int(self.memory or 0),
+                bool(self.resume), args, self.extra, pf,
+            )
+            c = colors[i % len(colors)]
+            out.append({
+                "label": tid, "num": str(i + 1), "text": cmd,
+                "bg": f"var(--{c}-3)", "fg": f"var(--{c}-11)", "tag_bg": f"var(--{c}-9)",
+            })
+        return out
+
     def _build(self):
         if not system.nextflow_available():
             return ("", "Nextflow not found (PATH / BACTOPIA_ENV_PREFIX / NEXTFLOW_BIN).")
@@ -398,6 +418,24 @@ class MerlinState(WizardMixin, rx.State):
                 bool(self.resume), [], self.extra,
             ))
         return "\n\n".join(lines) if lines else "# select at least one species tool"
+
+    @rx.var
+    def preview_groups(self) -> list[dict]:
+        """One colored segment per picked species workflow (each its own --wf)."""
+        colors = ["indigo", "cyan", "amber", "crimson", "grass", "plum", "orange"]
+        out: list[dict] = []
+        for i, wf in enumerate(self.picked_ids):
+            cmd = runner.nextflow_wf_cmd(
+                wf, "<outdir>", "<include-file>",
+                self.profile, int(self.threads or 0), int(self.memory or 0),
+                bool(self.resume), [], self.extra,
+            )
+            c = colors[i % len(colors)]
+            out.append({
+                "label": wf, "num": str(i + 1), "text": cmd,
+                "bg": f"var(--{c}-3)", "fg": f"var(--{c}-11)", "tag_bg": f"var(--{c}-9)",
+            })
+        return out
 
     def _build(self):
         if not system.nextflow_available():
@@ -621,8 +659,11 @@ def _fastp_opts(o: dict, f: dict) -> str:
         p.append("--detect_adapter_for_pe")
     r1 = o.get("fastp_adapter_r1", "").strip()
     r2 = o.get("fastp_adapter_r2", "").strip()
-    if r1: p.append(f"-a {_q(r1)}")
-    if r2: p.append(f"--adapter_sequence_r2 {_q(r2)}")
+    # No inner _q here: the whole --fastp_opts value is shell-quoted as one arg
+    # downstream, so quoting the adapter here would reach fastp as a literal
+    # quoted string. Adapter sequences are bare nucleotides (no spaces/metachars).
+    if r1: p.append(f"-a {r1}")
+    if r2: p.append(f"--adapter_sequence_r2 {r2}")
     if f.get("fastp_overrep"): p.append("-p")
     if f.get("fastp_umi"):
         p.append("-U")
@@ -700,12 +741,13 @@ def _assembler_flags(o: dict, f: dict) -> list[str]:
     mcc = o.get("min_contig_cov", "10")
     if mcc and mcc != "2":
         af += ["--min_contig_cov", str(mcc)]
-    # NOTE: AMRFinder+ (--ident_min/--coverage_min/--organism) and MLST
-    # (--scheme/--minscore/--nopath) are NOT declared in the MAIN Bactopia
-    # pipeline — they are Bactopia *Tools* params (--wf amrfinderplus / --wf mlst).
-    # In the main pipeline these tools run with defaults. Passing them here
-    # makes Nextflow abort ("Parameter X is not declared"). To configure them,
-    # use the Bactopia Tools page. See docs/bactopia/PARAM_AUDIT.md.
+    # AMRFinder+ / MLST typing params (--amrfinderplus_*, --mlst_*) ARE valid in
+    # the main pipeline — nextflow.config includeConfig's modules/amrfinderplus/run
+    # and modules/mlst (verified against Bactopia 4.0.0; see §8 of the code review).
+    # They are emitted with the prefixed names by _typing_flags() below; the
+    # unprefixed CLI forms (--ident_min/--scheme/…) are what the Tools subworkflows
+    # accept and would be rejected here. Floats (ident_min/coverage_min) go via the
+    # -params-file (nf-schema rejects numbers from the CLI).
     # Polishing
     for key, flag, default in [
         ("polypolish_rounds", "--polypolish_rounds", "1"),
@@ -841,9 +883,10 @@ def main_cmd_groups(outdir: str, fofn_path: str, o: dict, f: dict,
         base += ["-params-file", str(_pathlib.Path(outdir) / _PARAMS_FILE)]
 
     inp: list[str] = ["--samples", str(fofn_path)]
-    datasets = o.get("datasets", "").strip()
-    if datasets:
-        inp += ["--datasets", datasets]
+    # NOTE: --datasets is intentionally NOT emitted. `params.datasets` is declared
+    # in the schema but never consumed by the Bactopia 4.0 pipeline (verified: no
+    # params.datasets usage anywhere), so it was a no-op field. See §8 of the
+    # code review. Re-add here if Bactopia's dataset mechanism returns.
     # QC gate thresholds — only emit when the user overrides the Bactopia default.
     for key, flag in [
         ("min_coverage",    "--min_coverage"),

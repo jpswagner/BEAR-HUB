@@ -697,8 +697,7 @@ def _step_typing():
             ),
             width="100%",
         ),
-        # Datasets
-        opt_in("datasets/ (optional path)", "datasets", width="100%"),
+        # (Removed: --datasets field — a no-op in Bactopia 4.0; see §8 of the review.)
         wz.nav_buttons(S.prev_step, S.next_step),
         spacing="6",
         width="100%",

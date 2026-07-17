@@ -552,3 +552,57 @@ def general_params(S) -> rx.Component:
         align="end",
         width="100%",
     )
+
+
+# ── Command builder for tool pages (one colored block per --wf tool) ────────────
+def _tool_cmd_block(g) -> rx.Component:
+    """A single tool's command, tagged with its index + name in the tool's colour."""
+    return rx.box(
+        rx.hstack(
+            rx.box(
+                g["num"],
+                style={"background": g["tag_bg"], "color": "white", "fontSize": "10px",
+                       "fontWeight": "700", "fontFamily": "monospace", "minWidth": "16px",
+                       "height": "16px", "borderRadius": "5px", "display": "flex",
+                       "alignItems": "center", "justifyContent": "center", "flexShrink": "0"},
+            ),
+            rx.text(g["label"], size="1", weight="bold", style={"color": g["fg"]}),
+            spacing="2", align="center",
+        ),
+        rx.text(
+            g["text"], size="1",
+            style={"fontFamily": "monospace", "color": g["fg"], "whiteSpace": "pre-wrap",
+                   "wordBreak": "break-word", "marginTop": "5px"},
+        ),
+        style={"background": g["bg"], "borderRadius": "9px", "padding": "9px 11px"},
+        width="100%",
+    )
+
+
+def tool_command_builder(S, copy_var) -> rx.Component:
+    """Command builder for Tools/MERLIN: one colored block per selected --wf tool.
+
+    `S` is a page state exposing `preview_groups`; `copy_var` is the full-command
+    string Var copied by the button.
+    """
+    return rx.card(
+        rx.hstack(
+            help_section("Command builder", "step_run", size="3"),
+            rx.text("one nextflow --wf per tool, run in sequence",
+                    size="1", color="var(--gray-10)",
+                    display=rx.breakpoints(initial="none", sm="block")),
+            rx.spacer(),
+            copy_button(copy_var, "Copy command"),
+            width="100%", align="center", wrap="wrap",
+        ),
+        rx.cond(
+            S.preview_groups.length() > 0,
+            rx.vstack(
+                rx.foreach(S.preview_groups, _tool_cmd_block),
+                spacing="2", width="100%", margin_top="10px",
+            ),
+            rx.text("Select at least one tool to assemble the command.",
+                    size="1", color="var(--gray-9)", margin_top="8px"),
+        ),
+        width="100%",
+    )
