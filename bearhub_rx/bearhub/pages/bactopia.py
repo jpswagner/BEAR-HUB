@@ -213,7 +213,10 @@ def _fofn_editor() -> rx.Component:
                             rx.table.body(rx.foreach(S.fofn_rows, _fofn_row)),
                             size="1", width="100%",
                         ),
-                        type="auto", scrollbars="horizontal", max_height="360px",
+                        # scrollbars="both": the table can have many rows (scroll
+                        # vertically to reach them all) and can be wide (scroll
+                        # horizontally). "horizontal" alone clipped extra rows.
+                        type="always", scrollbars="both", max_height="460px",
                         width="100%",
                     ),
                     spacing="2", width="100%", align="start",
@@ -664,17 +667,18 @@ def _step_typing():
                 helpmod.section("AMRFinderPlus", "amrfinder", size="3"),
                 rx.flex(
                     opt_in("--ident_min (0–1)", "amrfinderplus_ident_min",
-                           typ="number", width="140px"),
+                           typ="number", width="150px", placeholder="default: -1 (curated)"),
                     opt_in("--coverage_min (0–1)", "amrfinderplus_coverage_min",
-                           typ="number", width="150px"),
-                    opt_in("--organism", "amrfinderplus_organism", width="200px",
-                           placeholder="e.g. Streptococcus_pyogenes"),
-                    flag_cb("--noplus", "amrfinderplus_noplus"),
+                           typ="number", width="150px", placeholder="default: 0.5"),
+                    opt_in("--organism", "amrfinderplus_organism", width="230px",
+                           placeholder="default: none · e.g. Escherichia"),
+                    flag_cb("--noplus (default: off → uses --plus)", "amrfinderplus_noplus"),
                     wrap="wrap", spacing="3", align="end",
                 ),
                 rx.text(
-                    "ident_min / coverage_min are passed via a params-file "
-                    "(bactopia-params.json) so their float values are preserved.",
+                    "Blank fields use Bactopia's defaults (shown as the field hint). "
+                    "ident_min / coverage_min are floats, passed via a params-file "
+                    "(bactopia-params.json) so their values are preserved.",
                     size="1", color="var(--gray-9)",
                 ),
                 spacing="3", align="start", width="100%",
@@ -687,11 +691,16 @@ def _step_typing():
                 helpmod.section("MLST", "mlst", size="3"),
                 rx.flex(
                     opt_sel("Scheme", "mlst_scheme", MLST_OPTS, width="220px"),
-                    opt_in("--minid", "mlst_minid", typ="number", width="120px"),
-                    opt_in("--mincov", "mlst_mincov", typ="number", width="120px"),
-                    opt_in("--minscore", "mlst_minscore", typ="number", width="120px"),
+                    opt_in("--minid", "mlst_minid", typ="number", width="130px", placeholder="default: 95"),
+                    opt_in("--mincov", "mlst_mincov", typ="number", width="130px", placeholder="default: 10"),
+                    opt_in("--minscore", "mlst_minscore", typ="number", width="140px", placeholder="default: 50"),
                     flag_cb("--nopath", "mlst_nopath"),
                     wrap="wrap", spacing="3", align="end",
+                ),
+                rx.text(
+                    "Blank fields use Bactopia's defaults (shown as the field hint). "
+                    "Scheme '(auto/none)' lets mlst autodetect.",
+                    size="1", color="var(--gray-9)",
                 ),
                 spacing="3", align="start", width="100%",
             ),
