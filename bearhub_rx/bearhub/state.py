@@ -1299,19 +1299,71 @@ class StatusState(rx.State):
     latest_version: str = ""
     update_available: bool = False
 
+    # ── In-app updater ─────────────────────────────────────────────────────────
+    git_is_repo: bool = True
+    git_branch: str = ""
+    git_ref: str = ""
+    git_dirty: bool = False
+    update_confirm_open: bool = False
+    updating: bool = False          # set once the detached updater is launched
+    active_runs: int = 0            # snapshot when the dialog opens (warn the user)
+    update_log: list[str] = []
+
     @rx.event(background=True)
     async def load(self):
-        from bearhub.core import versions
+        from bearhub.core import versions, updater
         async with self:
             self.loading = True
             self.app_version = versions.get_app_version()
         data = versions.get_versions()
+        gi = updater.git_info()
+        log = updater.tail_log(400)
         async with self:
             self.versions = data
             self.loading = False
+            self.git_is_repo = gi.get("is_git") == "yes"
+            self.git_branch = gi.get("branch", "")
+            self.git_ref = gi.get("ref", "")
+            self.git_dirty = gi.get("dirty") == "yes"
+            self.update_log = log
         # Network check runs after the page already has its data, so a slow or
         # offline GitHub never blocks the Status page.
         info = versions.check_for_update()
         async with self:
             self.latest_version = info.get("latest", "")
             self.update_available = info.get("available") == "yes"
+
+    @rx.var
+    def has_update_log(self) -> bool:
+        return len(self.update_log) > 0
+
+    @rx.var
+    def update_log_text(self) -> str:
+        return "\n".join(self.update_log)
+
+    @rx.event
+    def open_update_confirm(self):
+        """Snapshot live runs so the dialog can warn they'd be interrupted."""
+        from bearhub.core import runner
+        self.active_runs = len(runner.active_run_ids())
+        self.update_confirm_open = True
+
+    @rx.event
+    def set_update_confirm(self, value: bool):
+        self.update_confirm_open = value
+
+    @rx.event(background=True)
+    async def start_update(self):
+        """Launch the detached updater, then show the 'restarting' overlay.
+
+        The updater stops this app, pulls, re-runs the idempotent installer
+        (which re-verifies every dependency) and relaunches — so this page goes
+        down on purpose. Run history, results and presets are untouched.
+        """
+        from bearhub.core import updater
+        async with self:
+            self.update_confirm_open = False
+            self.updating = True
+        # Give the browser a moment to paint the overlay before we go down.
+        await asyncio.sleep(1.0)
+        updater.start_update(relaunch=True)
