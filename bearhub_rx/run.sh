@@ -69,5 +69,30 @@ if [ -z "$PY" ] || ! "$PY" -c "import reflex" >/dev/null 2>&1; then
   exit 1
 fi
 
+# ── Self-heal: make sure the frontend dependencies are present ────────────────
+# `reflex run` compiles the frontend but never installs node_modules, and
+# `reflex init` only scaffolds .web. If node_modules is missing (a wiped .web, an
+# interrupted install), the production build dies with
+# "react-router: command not found" and the app never comes up. Install them here
+# so a launch always recovers on its own.
+if [ ! -x ".web/node_modules/.bin/react-router" ]; then
+  echo "Frontend dependencies missing — installing (one-time, ~1 min)..."
+  [ -f ".web/package.json" ] || "$PY" -m reflex init
+  BUN=""
+  for cand in \
+      "${HOME}/.local/share/reflex/bun/bin/bun" \
+      "${HOME}/.bun/bin/bun"; do
+    if [ -x "$cand" ]; then BUN="$cand"; break; fi
+  done
+  [ -n "$BUN" ] || BUN="$(command -v bun || true)"
+  if [ -n "$BUN" ]; then
+    ( cd .web && "$BUN" install ) || true
+  fi
+  if [ ! -x ".web/node_modules/.bin/react-router" ]; then
+    echo "WARNING: could not install the frontend dependencies automatically." >&2
+    echo "  Try:  cd \"${APP_DIR}/.web\" && bun install" >&2
+  fi
+fi
+
 echo "BEAR-HUB Reflex — launching with: ${PY} -m reflex"
 exec "$PY" -m reflex run "${RUN_ARGS[@]}"

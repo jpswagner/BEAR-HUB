@@ -106,12 +106,18 @@ echo
 echo "Re-running installer (idempotent)..."
 bash "${HERE}/install_bear.sh"
 
-# ── Step 4: clear stale Reflex frontend so it rebuilds ───────────────────────
+# ── Step 4: clear the stale Reflex frontend BUILD so it rebuilds ─────────────
+# Do NOT delete the whole .web: it contains node_modules, and Reflex does not
+# reinstall frontend dependencies on the next launch (`reflex init` only
+# scaffolds the directory). Wiping it leaves .web without react-router, the
+# production build dies with "react-router: command not found", and the app
+# never comes back up after an update. Removing the compiled/built output is
+# enough — Reflex recompiles the pages and rebuilds the frontend every launch.
 WEB_DIR="${HERE}/bearhub_rx/.web"
 if [[ -d "${WEB_DIR}" ]]; then
     echo
-    echo "Clearing stale frontend (${WEB_DIR}) — it rebuilds on next launch..."
-    rm -rf "${WEB_DIR}"
+    echo "Clearing stale frontend build (keeping node_modules) — rebuilds on next launch..."
+    rm -rf "${WEB_DIR}/build" "${WEB_DIR}/.states"
 fi
 
 echo
