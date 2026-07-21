@@ -149,12 +149,23 @@ HELP: dict[str, str] = {
     ),
     "pangenome": (
         "**Pangenome**\n\n"
-        "- **Engine** — Panaroo (default, graph-based), PIRATE (multi-threshold), Roary (classic).\n"
-        "- Anchor on references with **`--species`** or **`--accessions`**.\n"
-        "- Phylogeny via **IQ-TREE** (`--iqtree_model`, `--iqtree_bb` ultrafast bootstrap, `--iqtree_alrt`).\n"
-        "- **Scoary** gene–phenotype association via **`--scoary_traits`** (CSV/TSV).\n"
-        "- **`--skip_recombination`** skips ClonalFrameML. Float thresholds "
-        "(`--panaroo_threshold`, `--scoary_p_value_cutoff`) go via `-params-file`."
+        "- **Engine** — Panaroo (default, graph-based), PIRATE (multi-threshold), Roary (classic). "
+        "Only the selected engine's options are sent.\n"
+        "- **Panaroo** — `--panaroo_mode` trades sensitivity for stringency "
+        "(strict/moderate/sensitive); `--panaroo_alignment` picks core vs pan alignment and "
+        "`--panaroo_aligner` the aligner (mafft/prank/clustal). `--panaroo_threshold` (0.98) is "
+        "the sequence-identity cutoff, `--panaroo_family_threshold` (0.7) the protein-family "
+        "cutoff, and `--panaroo_core_threshold` (0.95) how prevalent a gene must be to count as core.\n"
+        "- Supplement with RefSeq genomes via **`--species`**, **`--accession`** or "
+        "**`--accessions`**; these are annotated by **Prokka** before being merged.\n"
+        "- Phylogeny via **IQ-TREE** (`--iqtree_model`, `--iqtree_bb` ultrafast bootstrap, "
+        "`--iqtree_alrt`), skippable with `--skip_phylogeny`.\n"
+        "- **`--skip_recombination`** skips ClonalFrameML masking.\n"
+        "- **Scoary** gene–phenotype association needs **`--scoary_traits`** (CSV/TSV); its other "
+        "options only apply when that file is set. `--scoary_correction` takes a code, not a name: "
+        "`I` individual (default), `B` Bonferroni, `BH` Benjamini-Hochberg, `PW`/`EPW`/`P`.\n"
+        "- Number-typed thresholds (`--panaroo_threshold`, `--panaroo_family_threshold`, "
+        "`--panaroo_len_dif_percent`, `--roary_iv`, `--scoary_p_value_cutoff`) go via `-params-file`."
     ),
     # ── MERLIN ──
     "merlin": (

@@ -623,23 +623,60 @@ def _annotation_card():
                 S.bopts["annotator"] == "Prokka",
                 rx.flex(
                     opt_in("--prokka_proteins (FASTA)", "prokka_proteins", width="240px"),
+                    opt_in("--prokka_prodigal_tf", "prokka_prodigal_tf", width="240px"),
                     opt_in("--prokka_opts", "prokka_opts", width="200px"),
                     flag_cb("--prokka_compliant", "prokka_compliant"),
+                    flag_cb("--prokka_debug", "prokka_debug"),
                     wrap="wrap", spacing="3", align="end",
                 ),
             ),
-            # Bakta fields (requires DB)
+            # Bakta fields (needs a DB: local --bakta_db or --download_bakta)
             rx.cond(
                 S.bopts["annotator"] == "Bakta",
                 rx.vstack(
                     rx.callout(
-                        "Bakta requires a database. Set --bakta_db to the path of a "
-                        "downloaded Bakta DB, or it will be skipped.",
+                        "--bakta_db is always required with Bakta. Point it at a directory "
+                        "holding bakta.db, or set it to a destination path and tick "
+                        "--download_bakta to fetch the DB there. Without it Bactopia "
+                        "silently annotates with Prokka instead.",
                         icon="triangle_alert", color_scheme="amber", size="1",
                     ),
                     rx.flex(
                         opt_in("--bakta_db (required)", "bakta_db", width="280px"),
+                        flag_cb("--download_bakta", "download_bakta"),
+                        wz.labeled(
+                            "--bakta_db_type",
+                            rx.select(
+                                ["(default)", "full", "light"],
+                                value=S.bopts["bakta_db_type"],
+                                size="2",
+                                on_change=lambda v: S.set_bopt("bakta_db_type", v),
+                            ),
+                        ),
+                        flag_cb("--bakta_save_as_tarball", "bakta_save_as_tarball"),
+                        wrap="wrap", spacing="3", align="end",
+                    ),
+                    rx.flex(
+                        opt_in("--bakta_proteins (FASTA)", "bakta_proteins", width="240px"),
+                        opt_in("--bakta_prodigal_tf", "bakta_prodigal_tf", width="240px"),
+                        opt_in("--bakta_replicons", "bakta_replicons", width="240px"),
+                        opt_in("--bakta_min_contig_length", "bakta_min_contig_length", width="180px"),
                         opt_in("--bakta_opts", "bakta_opts", width="200px"),
+                        wrap="wrap", spacing="3", align="end",
+                    ),
+                    rx.flex(
+                        flag_cb("--bakta_keep_contig_headers", "bakta_keep_contig_headers"),
+                        flag_cb("--bakta_compliant", "bakta_compliant"),
+                        flag_cb("--bakta_skip_trna", "bakta_skip_trna"),
+                        flag_cb("--bakta_skip_tmrna", "bakta_skip_tmrna"),
+                        flag_cb("--bakta_skip_rrna", "bakta_skip_rrna"),
+                        flag_cb("--bakta_skip_ncrna", "bakta_skip_ncrna"),
+                        flag_cb("--bakta_skip_ncrna_region", "bakta_skip_ncrna_region"),
+                        flag_cb("--bakta_skip_crispr", "bakta_skip_crispr"),
+                        flag_cb("--bakta_skip_cds", "bakta_skip_cds"),
+                        flag_cb("--bakta_skip_sorf", "bakta_skip_sorf"),
+                        flag_cb("--bakta_skip_gap", "bakta_skip_gap"),
+                        flag_cb("--bakta_skip_ori", "bakta_skip_ori"),
                         wrap="wrap", spacing="3", align="end",
                     ),
                     spacing="2", align="start", width="100%",

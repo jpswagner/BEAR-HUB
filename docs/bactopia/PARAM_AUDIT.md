@@ -31,6 +31,28 @@ run with *"Parameter X ... is not declared in the script or config"*. Three were
 > aborts with *"Parameter ident_min is not declared"*. The main-pipeline param set
 > = top `nextflow_schema.json` + `modules/local/**/params.config` (NOT bactopia-tools).
 
+### 2026-07 round: Pangenome / Panaroo + Bakta
+
+All verified by running Bactopia 4.0.0's own param validation (nf-bactopia 2.1.1,
+Nextflow 26.04.4) until it printed *"Validation complete."*
+
+| Issue | Finding | Status |
+|---|---|---|
+| `--panaroo_opts --remove-invalid-genes` | Nextflow parses the value as a **separate param** (`removeInvalidGenes` → "not declared", run aborts). Any `*_opts` value starting with `-` was affected: panaroo/iqtree/prokka/bakta/shovill/dragonflye/fastp/clonalframeml. | **fixed** — `catalog.emit_param()` emits `--flag=value` when the value starts with `-` |
+| `--scoary_correction` | Help said *"e.g. BH, bonferroni"*; real enum is `[I, B, BH, PW, EPW, P]`. `bonferroni` is `B` and the spelled-out form **fails schema validation**. | **fixed** — now a select |
+| `--panaroo_mode` | Was free text; real enum `[strict, moderate, sensitive]`. | **fixed** — now a select |
+| Bakta without `--bakta_db` | BEAR-HUB emitted **no** annotation flags, so Bactopia silently ran **Prokka** while the UI claimed Bakta. Scientifically wrong output, no warning. | **fixed** — `bakta_ready()` blocks the run |
+| `--download_bakta` as a `--bakta_db` substitute | It is **not**. nf-bactopia enforces *"requires --bakta_db to be set when using --use_bakta"* unconditionally. With `--download_bakta` the path is the **download destination** (existence unchecked); without it, it must already contain `bakta.db`. | documented + enforced |
+| `bakta_db: null` in the tool params-file | The `bakta` tool types it `Path` (not `Path?`) → *"Required parameters are missing: --bakta_db"*. It can never be nulled. | **fixed** — removed from `TOOL_NULL_PATHS` |
+| `replicons` vs `bakta_replicons` | **Bactopia bug**: the two entry points are *inverted*. Main pipeline accepts only `--bakta_replicons`; the `--wf bakta` tool declares `bakta_replicons` in its schema but only `--replicons` works (the prefixed form is rejected as undeclared). | both handled per entry point |
+
+Coverage after this round: pangenome **25 → 56** fields (all 9 Panaroo params, incl. the
+4 that were missing: `panaroo_alignment`, `panaroo_aligner`, `panaroo_family_threshold`,
+`panaroo_len_dif_percent`); main-pipeline Bakta **2 → 21**; `bakta` promoted to a
+`DETAILED` tool panel. The `number`-typed params (`panaroo_family_threshold`,
+`panaroo_len_dif_percent`, `roary_iv`) were added to `FLOAT_TOOL_PARAMS` so they route
+through `-params-file` — nf-schema rejects them from the CLI.
+
 ### The `--hybrid` / `--short_polish` design issue (needs the restructure)
 
 `--hybrid` and `--ont` are **single-sample input modifiers** (used with `--sample/--r1/--r2/--se`).

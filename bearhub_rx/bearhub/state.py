@@ -569,11 +569,18 @@ DEFAULT_BOPTS: dict[str, str] = {
     "mlst_minid":                 "",
     "mlst_mincov":                "",
     "mlst_minscore":              "",
-    # Annotation — Prokka (default, no DB) or Bakta (requires bakta_db)
+    # Annotation — Prokka (default, no DB) or Bakta (needs a DB: --bakta_db
+    # pointing at a local copy, or --download_bakta to fetch one at runtime)
     "annotator":                  "Prokka",
     "prokka_proteins":            "",
+    "prokka_prodigal_tf":         "",
     "prokka_opts":                "",
     "bakta_db":                   "",
+    "bakta_db_type":              "(default)",   # full | light
+    "bakta_proteins":             "",
+    "bakta_prodigal_tf":          "",
+    "bakta_replicons":            "",
+    "bakta_min_contig_length":    "",            # Bactopia default: 1
     "bakta_opts":                 "",
     # extras
     "extra_params":         "",
@@ -615,6 +622,23 @@ DEFAULT_BFLAGS: dict[str, bool] = {
     "amrfinderplus_noplus":  False,   # --amrfinderplus_noplus (disable --plus)
     "mlst_nopath":           False,   # --mlst_nopath
     "prokka_compliant":      False,   # --prokka_compliant
+    "prokka_debug":          False,   # --prokka_debug
+    # Bakta — DB acquisition
+    "download_bakta":            False,  # --download_bakta (fetch DB at runtime)
+    "bakta_save_as_tarball":     False,  # --bakta_save_as_tarball
+    # Bakta — annotation behaviour
+    "bakta_keep_contig_headers": False,
+    "bakta_compliant":           False,
+    "bakta_skip_trna":           False,
+    "bakta_skip_tmrna":          False,
+    "bakta_skip_rrna":           False,
+    "bakta_skip_ncrna":          False,
+    "bakta_skip_ncrna_region":   False,
+    "bakta_skip_crispr":         False,
+    "bakta_skip_cds":            False,
+    "bakta_skip_sorf":           False,
+    "bakta_skip_gap":            False,
+    "bakta_skip_ori":            False,
     # Nextflow reports
     "with_report":   True,
     "with_timeline": True,
@@ -723,7 +747,7 @@ def _assembler_flags(o: dict, f: dict) -> list[str]:
                       ("dragonflye_opts", "--dragonflye_opts")]:
         v = o.get(key, "").strip()
         if v:
-            af += [flag, v]
+            catalog.emit_param(af, flag, v)
     # Boolean assembly flags
     for key in ("trim", "no_stitch", "no_corr", "nanohq", "no_miniasm",
                 "reassemble", "no_rotate"):
@@ -805,22 +829,65 @@ def _typing_flags(o: dict, f: dict) -> list[str]:
     # Annotation — Prokka (default) or Bakta
     annotator = o.get("annotator", "Prokka")
     if annotator == "Bakta":
+        # nf-bactopia enforces "--use_bakta requires --bakta_db" unconditionally —
+        # --download_bakta does NOT relax it (verified against nf-bactopia 2.1.1).
+        # With --download_bakta the path is the download destination and is not
+        # checked for existence; without it, bakta_db must already hold bakta.db.
+        # bakta_ready() gates the run so we never emit --use_bakta without it.
         db = o.get("bakta_db", "").strip()
-        if db:  # --use_bakta requires --bakta_db
+        if db:
             tf += ["--use_bakta", "--bakta_db", db]
-            opts = o.get("bakta_opts", "").strip()
-            if opts:
-                tf += ["--bakta_opts", opts]
+            if f.get("download_bakta"):
+                tf.append("--download_bakta")
+                dbt = o.get("bakta_db_type", "(default)").strip()
+                if dbt and dbt != "(default)":
+                    tf += ["--bakta_db_type", dbt]
+                if f.get("bakta_save_as_tarball"):
+                    tf.append("--bakta_save_as_tarball")
+            for key, flag in [
+                ("bakta_proteins",          "--bakta_proteins"),
+                ("bakta_prodigal_tf",       "--bakta_prodigal_tf"),
+                ("bakta_replicons",         "--bakta_replicons"),
+                ("bakta_min_contig_length", "--bakta_min_contig_length"),
+                ("bakta_opts",              "--bakta_opts"),
+            ]:
+                v = o.get(key, "").strip()
+                if v:
+                    catalog.emit_param(tf, flag, v)
+            for key in ("bakta_keep_contig_headers", "bakta_compliant",
+                        "bakta_skip_trna", "bakta_skip_tmrna", "bakta_skip_rrna",
+                        "bakta_skip_ncrna", "bakta_skip_ncrna_region",
+                        "bakta_skip_crispr", "bakta_skip_cds", "bakta_skip_sorf",
+                        "bakta_skip_gap", "bakta_skip_ori"):
+                if f.get(key):
+                    tf.append(f"--{key}")
     else:  # Prokka
-        pp = o.get("prokka_proteins", "").strip()
-        if pp:
-            tf += ["--prokka_proteins", pp]
-        po = o.get("prokka_opts", "").strip()
-        if po:
-            tf += ["--prokka_opts", po]
+        for key, flag in [
+            ("prokka_proteins",    "--prokka_proteins"),
+            ("prokka_prodigal_tf", "--prokka_prodigal_tf"),
+            ("prokka_opts",        "--prokka_opts"),
+        ]:
+            v = o.get(key, "").strip()
+            if v:
+                catalog.emit_param(tf, flag, v)
         if f.get("prokka_compliant"):
             tf.append("--prokka_compliant")
+        if f.get("prokka_debug"):
+            tf.append("--prokka_debug")
     return tf
+
+
+def bakta_ready(o: dict, f: dict) -> bool:
+    """True unless Bakta is selected without `--bakta_db`.
+
+    nf-bactopia rejects `--use_bakta` without `--bakta_db` even when
+    `--download_bakta` is set, and BEAR-HUB previously dropped the annotation
+    flags entirely in that case — so the run silently produced Prokka output
+    labelled as a Bakta run. Blocking here surfaces it instead.
+    """
+    if o.get("annotator", "Prokka") != "Bakta":
+        return True
+    return bool(o.get("bakta_db", "").strip())
 
 
 # Float params that nf-schema rejects from the CLI — passed via -params-file
@@ -905,7 +972,7 @@ def main_cmd_groups(outdir: str, fofn_path: str, o: dict, f: dict,
     if o.get("assembly_mode", "") != "ONT (Dragonflye)":
         fp = _fastp_opts(o, f).strip()
         if fp:
-            clean += ["--fastp_opts", fp]
+            catalog.emit_param(clean, "--fastp_opts", fp)
 
     asm = _assembler_flags(o, f)            # unicycler_mode, skip_qc_plots, …
     typ = _typing_flags(o, f)               # amrfinderplus_*, mlst_*, prokka_*, bakta_*
@@ -1149,6 +1216,11 @@ class BactopiaState(WizardMixin, rx.State):
         fofn_out = str(_pathlib.Path(outdir) / "samples.txt")
         if not _pathlib.Path(fofn_out).is_file():
             return ("", "Generate the FOFN first (Scan & build FOFN).")
+        if not bakta_ready(self.bopts, self.bflags):
+            return ("", "Bakta requires --bakta_db. Point it at a local Bakta DB, or "
+                        "set it to a destination path and tick --download_bakta to "
+                        "fetch one there. Without it the run would silently annotate "
+                        "with Prokka instead.")
         # Write the -params-file JSON for float params (if any user-set).
         jp = _json_params(self.bopts)
         if jp:

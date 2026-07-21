@@ -131,7 +131,8 @@ _LABELS = {
 }
 
 # Tools with bespoke parameter panels (everything else uses general opts + extras).
-DETAILED = {"amrfinderplus", "rgi", "mlst", "plasmidfinder", "mashtree", "pangenome"}
+DETAILED = {"amrfinderplus", "rgi", "mlst", "plasmidfinder", "mashtree", "pangenome",
+            "bakta"}
 
 
 def _label_for(tool_id: str) -> str:
@@ -243,40 +244,108 @@ FIELD_SPECS: dict[str, list[dict]] = {
         {"key": "mashtree.sketchsize", "kind": "int", "label": "--mashtree_sketchsize", "default": "", "help": "Bactopia default: 10000"},
         {"key": "mashtree.save_sketches", "kind": "bool", "label": "--mashtree_save_sketches", "default": False},
     ],
+    # NOTE: the bakta *tool* takes `--replicons`, while the main pipeline takes
+    # `--bakta_replicons`. Bactopia 4.0.0's tool schema documents the prefixed
+    # name but its script declares the bare one, so only `--replicons` is
+    # accepted here — the prefixed form is rejected as undeclared.
+    "bakta": [
+        {"key": "bakta.db", "kind": "path", "label": "--bakta_db (REQUIRED)", "default": "",
+         "help": "Dir holding bakta.db — or the download destination if --download_bakta is on"},
+        {"key": "bakta.download", "kind": "bool", "label": "--download_bakta", "default": False},
+        {"key": "bakta.db_type", "kind": "select", "label": "--bakta_db_type", "default": "(default)",
+         "options": ["(default)", "full", "light"], "help": "Bactopia default: full"},
+        {"key": "bakta.save_as_tarball", "kind": "bool", "label": "--bakta_save_as_tarball", "default": False},
+        {"key": "bakta.proteins", "kind": "path", "label": "--bakta_proteins (FASTA)", "default": ""},
+        {"key": "bakta.prodigal_tf", "kind": "path", "label": "--bakta_prodigal_tf", "default": ""},
+        {"key": "bakta.replicons", "kind": "path", "label": "--replicons (TSV/CSV)", "default": ""},
+        {"key": "bakta.min_contig_length", "kind": "int", "label": "--bakta_min_contig_length", "default": "", "help": "Bactopia default: 1"},
+        {"key": "bakta.keep_contig_headers", "kind": "bool", "label": "--bakta_keep_contig_headers", "default": False},
+        {"key": "bakta.compliant", "kind": "bool", "label": "--bakta_compliant", "default": False},
+        {"key": "bakta.skip_trna", "kind": "bool", "label": "--bakta_skip_trna", "default": False},
+        {"key": "bakta.skip_tmrna", "kind": "bool", "label": "--bakta_skip_tmrna", "default": False},
+        {"key": "bakta.skip_rrna", "kind": "bool", "label": "--bakta_skip_rrna", "default": False},
+        {"key": "bakta.skip_ncrna", "kind": "bool", "label": "--bakta_skip_ncrna", "default": False},
+        {"key": "bakta.skip_ncrna_region", "kind": "bool", "label": "--bakta_skip_ncrna_region", "default": False},
+        {"key": "bakta.skip_crispr", "kind": "bool", "label": "--bakta_skip_crispr", "default": False},
+        {"key": "bakta.skip_cds", "kind": "bool", "label": "--bakta_skip_cds", "default": False},
+        {"key": "bakta.skip_sorf", "kind": "bool", "label": "--bakta_skip_sorf", "default": False},
+        {"key": "bakta.skip_gap", "kind": "bool", "label": "--bakta_skip_gap", "default": False},
+        {"key": "bakta.skip_ori", "kind": "bool", "label": "--bakta_skip_ori", "default": False},
+        {"key": "bakta.opts", "kind": "text", "label": "--bakta_opts (raw)", "default": ""},
+    ],
     "pangenome": [
         {"key": "pangenome.engine", "kind": "select", "label": "Engine", "default": "Panaroo",
          "options": ["Panaroo", "PIRATE", "Roary"]},
+        # Supplement the pangenome with RefSeq genomes (ncbigenomedownload)
         {"key": "pangenome.species", "kind": "text", "label": "--species", "default": "", "help": "e.g. Escherichia coli"},
-        {"key": "pangenome.accessions", "kind": "text", "label": "--accessions", "default": ""},
+        {"key": "pangenome.accession", "kind": "text", "label": "--accession", "default": "", "help": "single RefSeq assembly accession"},
+        {"key": "pangenome.accessions", "kind": "path", "label": "--accessions (file)", "default": ""},
+        {"key": "pangenome.section", "kind": "select", "label": "--section", "default": "(default)",
+         "options": ["(default)", "refseq", "genbank"], "help": "Bactopia default: refseq"},
+        {"key": "pangenome.assembly_level", "kind": "text", "label": "--assembly_level", "default": "", "help": "Bactopia default: complete"},
+        {"key": "pangenome.kingdom", "kind": "text", "label": "--kingdom", "default": "", "help": "Bactopia default: bacteria"},
+        {"key": "pangenome.limit", "kind": "int", "label": "--limit", "default": "", "help": "max genomes to download"},
+        {"key": "pangenome.keep_downloads", "kind": "bool", "label": "--keep_downloads", "default": False},
+        # Panaroo (used when engine = Panaroo)
+        {"key": "pangenome.panaroo_mode", "kind": "select", "label": "--panaroo_mode", "default": "(default)",
+         "options": ["(default)", "strict", "moderate", "sensitive"], "help": "Bactopia default: strict"},
+        {"key": "pangenome.panaroo_alignment", "kind": "select", "label": "--panaroo_alignment", "default": "(default)",
+         "options": ["(default)", "core", "pan"], "help": "Bactopia default: core"},
+        {"key": "pangenome.panaroo_aligner", "kind": "select", "label": "--panaroo_aligner", "default": "(default)",
+         "options": ["(default)", "mafft", "prank", "clustal"], "help": "Bactopia default: mafft"},
+        {"key": "pangenome.panaroo_threshold", "kind": "float", "label": "--panaroo_threshold", "default": "", "help": "Bactopia default: 0.98"},
+        {"key": "pangenome.panaroo_core_threshold", "kind": "float", "label": "--panaroo_core_threshold", "default": "", "help": "Bactopia default: 0.95"},
+        {"key": "pangenome.panaroo_family_threshold", "kind": "float", "label": "--panaroo_family_threshold", "default": "", "help": "Bactopia default: 0.7"},
+        {"key": "pangenome.panaroo_len_dif_percent", "kind": "float", "label": "--panaroo_len_dif_percent", "default": "", "help": "Bactopia default: 0.98"},
+        {"key": "pangenome.merge_paralogs", "kind": "bool", "label": "--panaroo_merge_paralogs", "default": False},
+        {"key": "pangenome.panaroo_opts", "kind": "text", "label": "--panaroo_opts", "default": ""},
+        # PIRATE (used when engine = PIRATE)
+        {"key": "pangenome.pirate_steps", "kind": "text", "label": "--pirate_steps", "default": "", "help": "Bactopia default: 50,60,70,80,90,95,98"},
+        {"key": "pangenome.pirate_features", "kind": "text", "label": "--pirate_features", "default": "", "help": "Bactopia default: CDS"},
+        {"key": "pangenome.pirate_pan_opt", "kind": "text", "label": "--pirate_pan_opt", "default": ""},
+        {"key": "pangenome.para_off", "kind": "bool", "label": "--pirate_para_off", "default": False},
+        {"key": "pangenome.pirate_z", "kind": "bool", "label": "--pirate_z (keep intermediates)", "default": False},
+        # Roary (used when engine = Roary)
+        {"key": "pangenome.roary_i", "kind": "int", "label": "--roary_i (identity %)", "default": "", "help": "Bactopia default: 95"},
+        {"key": "pangenome.roary_cd", "kind": "int", "label": "--roary_cd (core %)", "default": "", "help": "Bactopia default: 99"},
+        {"key": "pangenome.roary_g", "kind": "int", "label": "--roary_g (max clusters)", "default": "", "help": "Bactopia default: 50000"},
+        {"key": "pangenome.roary_iv", "kind": "float", "label": "--roary_iv (MCL inflation)", "default": "", "help": "Bactopia default: 1.5"},
+        {"key": "pangenome.roary_s", "kind": "bool", "label": "--roary_s (don't split paralogs)", "default": False},
+        {"key": "pangenome.roary_ap", "kind": "bool", "label": "--roary_ap (allow paralogs)", "default": False},
+        {"key": "pangenome.use_prank", "kind": "bool", "label": "--roary_use_prank", "default": False},
+        # Prokka (annotates the downloaded RefSeq genomes)
+        {"key": "pangenome.prokka_proteins", "kind": "path", "label": "--prokka_proteins (FASTA)", "default": ""},
+        {"key": "pangenome.prokka_prodigal_tf", "kind": "path", "label": "--prokka_prodigal_tf", "default": ""},
+        {"key": "pangenome.prokka_centre", "kind": "text", "label": "--prokka_centre", "default": "", "help": "Bactopia default: Bactopia"},
+        {"key": "pangenome.prokka_coverage", "kind": "int", "label": "--prokka_coverage", "default": "", "help": "Bactopia default: 80"},
+        {"key": "pangenome.prokka_evalue", "kind": "text", "label": "--prokka_evalue", "default": "", "help": "Bactopia default: 1e-09"},
+        {"key": "pangenome.prokka_compliant", "kind": "bool", "label": "--prokka_compliant", "default": False},
+        {"key": "pangenome.prokka_debug", "kind": "bool", "label": "--prokka_debug", "default": False},
+        {"key": "pangenome.prokka_opts", "kind": "text", "label": "--prokka_opts", "default": ""},
+        # ClonalFrameML (recombination masking)
         {"key": "pangenome.skip_recombination", "kind": "bool", "label": "--skip_recombination", "default": False},
+        {"key": "pangenome.clonalframeml_emsim", "kind": "int", "label": "--clonalframeml_emsim", "default": "", "help": "Bactopia default: 100"},
+        {"key": "pangenome.clonalframeml_opts", "kind": "text", "label": "--clonalframeml_opts", "default": ""},
         # IQ-TREE
-        {"key": "pangenome.iqtree_model", "kind": "text", "label": "--iqtree_model", "default": ""},
+        {"key": "pangenome.skip_phylogeny", "kind": "bool", "label": "--skip_phylogeny", "default": False},
+        {"key": "pangenome.iqtree_model", "kind": "text", "label": "--iqtree_model", "default": "", "help": "Bactopia default: HKY"},
         {"key": "pangenome.bb", "kind": "int", "label": "--iqtree_bb (ufboot)", "default": "", "help": "Bactopia default: 1000"},
         {"key": "pangenome.alrt", "kind": "int", "label": "--iqtree_alrt", "default": "", "help": "Bactopia default: 1000"},
         {"key": "pangenome.asr", "kind": "bool", "label": "--iqtree_asr", "default": False},
         {"key": "pangenome.iqtree_opts", "kind": "text", "label": "--iqtree_opts", "default": ""},
-        # Panaroo (used when engine = Panaroo)
-        {"key": "pangenome.panaroo_mode", "kind": "text", "label": "--panaroo_mode", "default": "", "help": "strict | moderate | sensitive"},
-        {"key": "pangenome.panaroo_threshold", "kind": "float", "label": "--panaroo_threshold", "default": "", "help": "Bactopia default: 0.98"},
-        {"key": "pangenome.panaroo_core_threshold", "kind": "float", "label": "--panaroo_core_threshold", "default": "", "help": "Bactopia default: 0.95"},
-        {"key": "pangenome.merge_paralogs", "kind": "bool", "label": "--panaroo_merge_paralogs", "default": False},
-        {"key": "pangenome.panaroo_opts", "kind": "text", "label": "--panaroo_opts", "default": ""},
-        # PIRATE (used when engine = PIRATE)
-        {"key": "pangenome.pirate_steps", "kind": "text", "label": "--pirate_steps", "default": "", "help": "e.g. 50,60,70,80,90,95,98"},
-        {"key": "pangenome.para_off", "kind": "bool", "label": "--pirate_para_off", "default": False},
-        # Roary (used when engine = Roary)
-        {"key": "pangenome.roary_i", "kind": "int", "label": "--roary_i (identity %)", "default": "", "help": "Bactopia default: 95"},
-        {"key": "pangenome.roary_cd", "kind": "int", "label": "--roary_cd (core %)", "default": "", "help": "Bactopia default: 99"},
-        {"key": "pangenome.use_prank", "kind": "bool", "label": "--roary_use_prank", "default": False},
-        # Prokka (reference re-annotation)
-        {"key": "pangenome.prokka_proteins", "kind": "text", "label": "--prokka_proteins (FASTA)", "default": ""},
-        {"key": "pangenome.prokka_opts", "kind": "text", "label": "--prokka_opts", "default": ""},
-        # Scoary & SNP-dists
-        {"key": "pangenome.traits", "kind": "text", "label": "--scoary_traits (CSV)", "default": ""},
+        # Scoary (pan-GWAS)
+        {"key": "pangenome.traits", "kind": "path", "label": "--scoary_traits (CSV)", "default": ""},
         {"key": "pangenome.p_value_cutoff", "kind": "float", "label": "--scoary_p_value_cutoff", "default": "", "help": "Bactopia default: 0.05"},
-        {"key": "pangenome.correction", "kind": "text", "label": "--scoary_correction", "default": "", "help": "e.g. BH, bonferroni"},
+        {"key": "pangenome.correction", "kind": "select", "label": "--scoary_correction", "default": "(default)",
+         "options": ["(default)", "I", "B", "BH", "PW", "EPW", "P"],
+         "help": "I=individual (default), B=Bonferroni, BH=Benjamini-Hochberg"},
         {"key": "pangenome.permute", "kind": "int", "label": "--scoary_permute", "default": "", "help": "permutations (Bactopia default: 0)"},
+        {"key": "pangenome.scoary_start_col", "kind": "int", "label": "--scoary_start_col", "default": "", "help": "Bactopia default: 15"},
+        # SNP-dists
+        {"key": "pangenome.snpdists_a", "kind": "bool", "label": "--snpdists_a (count all diffs)", "default": False},
+        {"key": "pangenome.snpdists_b", "kind": "bool", "label": "--snpdists_b (blank header)", "default": False},
         {"key": "pangenome.snpdists_csv", "kind": "bool", "label": "--snpdists_csv", "default": False},
+        {"key": "pangenome.snpdists_k", "kind": "bool", "label": "--snpdists_k (keep case)", "default": False},
     ],
 }
 
@@ -300,6 +369,20 @@ def _o(opts: dict, key: str) -> str:
     return str(opts.get(key, "")).strip()
 
 
+def emit_param(dest: list[str], flag: str, value: str) -> None:
+    """Append `flag value`, or `flag=value` when the value looks like a flag.
+
+    Nextflow parses `--panaroo_opts --remove-invalid-genes` as two separate
+    params (the second becoming an undeclared `removeInvalidGenes`, which aborts
+    the run). The `=` form keeps them bound together. Free-text `*_opts` fields
+    are the ones that hit this.
+    """
+    if value.startswith("-"):
+        dest.append(f"{flag}={value}")
+    else:
+        dest.extend([flag, value])
+
+
 def _num(v: str) -> bool:
     try:
         return float(v) != 0
@@ -317,7 +400,11 @@ def _num(v: str) -> bool:
 # main.nf (typed `params{}` block) + nextflow_schema.json defaults.
 TOOL_NULL_PATHS: dict[str, tuple[str, ...]] = {
     "amrfinderplus": ("amrfinderplus_db",),
-    "bakta": ("bakta_db", "bakta_proteins", "bakta_prodigal_tf", "replicons"),
+    # NOT bakta_db: the bakta tool types it `Path` (not `Path?`) and nf-schema
+    # rejects a null with "Required parameters are missing: --bakta_db" — even
+    # with --download_bakta. It must always be a real path (verified by running
+    # the tool's param validation against bactopia 4.0.0 / nf-bactopia 2.1.1).
+    "bakta": ("bakta_proteins", "bakta_prodigal_tf", "replicons"),
     "blastn": ("blastn_query",), "blastp": ("blastp_query",), "blastx": ("blastx_query",),
     "bracken": ("kraken2_db",), "checkm2": ("checkm2_db",), "eggnog": ("eggnog_db",),
     "emmtyper": ("emmtyper_blastdb",),
@@ -347,6 +434,9 @@ FLOAT_TOOL_PARAMS: dict[str, str] = {
     "plasmidfinder.threshold":         "plasmidfinder_threshold",
     "pangenome.panaroo_threshold":     "panaroo_threshold",
     "pangenome.panaroo_core_threshold":"panaroo_core_threshold",
+    "pangenome.panaroo_family_threshold": "panaroo_family_threshold",
+    "pangenome.panaroo_len_dif_percent":  "panaroo_len_dif_percent",
+    "pangenome.roary_iv":              "roary_iv",
     "pangenome.p_value_cutoff":        "scoary_p_value_cutoff",
 }
 
@@ -378,7 +468,18 @@ def build_tool_args(tool_id: str, opts: dict, flags: dict) -> tuple[list[str], d
         """Emit `flag value` for a non-empty string/int opt."""
         v = _o(opts, key)
         if v != "":
-            e.extend([flag, v])
+            emit_param(e, flag, v)
+
+    def sel(key: str, flag: str):
+        """Emit `flag value` for a select, skipping the "leave unset" sentinel."""
+        v = _o(opts, key)
+        if v not in ("", "(default)"):
+            emit_param(e, flag, v)
+
+    def bit(key: str, flag: str):
+        """Emit a bare `flag` when the boolean is on."""
+        if flags.get(key):
+            e.append(flag)
 
     if tool_id == "amrfinderplus":
         if not flags.get("amrfinderplus.plus", True):
@@ -419,6 +520,23 @@ def build_tool_args(tool_id: str, opts: dict, flags: dict) -> tuple[list[str], d
         if flags.get("mlst.nopath"):
             e.append("--mlst_nopath")
 
+    elif tool_id == "bakta":
+        # --bakta_db is required even with --download_bakta (nf-bactopia 2.1.1).
+        val("bakta.db", "--bakta_db")
+        if flags.get("bakta.download"):
+            e.append("--download_bakta")
+            sel("bakta.db_type", "--bakta_db_type")
+            bit("bakta.save_as_tarball", "--bakta_save_as_tarball")
+        val("bakta.proteins", "--bakta_proteins")
+        val("bakta.prodigal_tf", "--bakta_prodigal_tf")
+        val("bakta.replicons", "--replicons")
+        val("bakta.min_contig_length", "--bakta_min_contig_length")
+        for k in ("keep_contig_headers", "compliant", "skip_trna", "skip_tmrna",
+                  "skip_rrna", "skip_ncrna", "skip_ncrna_region", "skip_crispr",
+                  "skip_cds", "skip_sorf", "skip_gap", "skip_ori"):
+            bit(f"bakta.{k}", f"--bakta_{k}")
+        val("bakta.opts", "--bakta_opts")
+
     elif tool_id == "plasmidfinder":
         num("plasmidfinder.mincov")
         num("plasmidfinder.threshold")
@@ -439,44 +557,74 @@ def build_tool_args(tool_id: str, opts: dict, flags: dict) -> tuple[list[str], d
             e.append("--use_pirate")
         elif engine == "Roary":
             e.append("--use_roary")
+        # Supplement with RefSeq genomes (ncbigenomedownload)
         val("pangenome.species", "--species")
+        val("pangenome.accession", "--accession")
         val("pangenome.accessions", "--accessions")
-        if flags.get("pangenome.skip_recombination"):
-            e.append("--skip_recombination")
-        # IQ-TREE
-        val("pangenome.iqtree_model", "--iqtree_model")
-        val("pangenome.bb", "--iqtree_bb")
-        val("pangenome.alrt", "--iqtree_alrt")
-        if flags.get("pangenome.asr"):
-            e.append("--iqtree_asr")
-        val("pangenome.iqtree_opts", "--iqtree_opts")
+        sel("pangenome.section", "--section")
+        val("pangenome.assembly_level", "--assembly_level")
+        val("pangenome.kingdom", "--kingdom")
+        val("pangenome.limit", "--limit")
+        bit("pangenome.keep_downloads", "--keep_downloads")
         # Engine-specific
         if engine == "Panaroo":
-            val("pangenome.panaroo_mode", "--panaroo_mode")
+            sel("pangenome.panaroo_mode", "--panaroo_mode")
+            sel("pangenome.panaroo_alignment", "--panaroo_alignment")
+            sel("pangenome.panaroo_aligner", "--panaroo_aligner")
             num("pangenome.panaroo_threshold")
             num("pangenome.panaroo_core_threshold")
-            if flags.get("pangenome.merge_paralogs"):
-                e.append("--panaroo_merge_paralogs")
+            num("pangenome.panaroo_family_threshold")
+            num("pangenome.panaroo_len_dif_percent")
+            bit("pangenome.merge_paralogs", "--panaroo_merge_paralogs")
             val("pangenome.panaroo_opts", "--panaroo_opts")
         elif engine == "PIRATE":
             val("pangenome.pirate_steps", "--pirate_steps")
-            if flags.get("pangenome.para_off"):
-                e.append("--pirate_para_off")
+            val("pangenome.pirate_features", "--pirate_features")
+            val("pangenome.pirate_pan_opt", "--pirate_pan_opt")
+            bit("pangenome.para_off", "--pirate_para_off")
+            bit("pangenome.pirate_z", "--pirate_z")
         elif engine == "Roary":
             val("pangenome.roary_i", "--roary_i")
             val("pangenome.roary_cd", "--roary_cd")
-            if flags.get("pangenome.use_prank"):
-                e.append("--roary_use_prank")
-        # Prokka
+            val("pangenome.roary_g", "--roary_g")
+            num("pangenome.roary_iv")
+            bit("pangenome.roary_s", "--roary_s")
+            bit("pangenome.roary_ap", "--roary_ap")
+            bit("pangenome.use_prank", "--roary_use_prank")
+        # Prokka (annotates the downloaded RefSeq genomes)
         val("pangenome.prokka_proteins", "--prokka_proteins")
+        val("pangenome.prokka_prodigal_tf", "--prokka_prodigal_tf")
+        val("pangenome.prokka_centre", "--prokka_centre")
+        val("pangenome.prokka_coverage", "--prokka_coverage")
+        val("pangenome.prokka_evalue", "--prokka_evalue")
+        bit("pangenome.prokka_compliant", "--prokka_compliant")
+        bit("pangenome.prokka_debug", "--prokka_debug")
         val("pangenome.prokka_opts", "--prokka_opts")
-        # Scoary & SNP-dists
+        # ClonalFrameML (recombination masking)
+        bit("pangenome.skip_recombination", "--skip_recombination")
+        if not flags.get("pangenome.skip_recombination"):
+            val("pangenome.clonalframeml_emsim", "--clonalframeml_emsim")
+            val("pangenome.clonalframeml_opts", "--clonalframeml_opts")
+        # IQ-TREE
+        bit("pangenome.skip_phylogeny", "--skip_phylogeny")
+        if not flags.get("pangenome.skip_phylogeny"):
+            val("pangenome.iqtree_model", "--iqtree_model")
+            val("pangenome.bb", "--iqtree_bb")
+            val("pangenome.alrt", "--iqtree_alrt")
+            bit("pangenome.asr", "--iqtree_asr")
+            val("pangenome.iqtree_opts", "--iqtree_opts")
+        # Scoary (pan-GWAS) — only wired up when a traits file is given
         val("pangenome.traits", "--scoary_traits")
-        num("pangenome.p_value_cutoff")
-        val("pangenome.correction", "--scoary_correction")
-        val("pangenome.permute", "--scoary_permute")
-        if flags.get("pangenome.snpdists_csv"):
-            e.append("--snpdists_csv")
+        if _o(opts, "pangenome.traits"):
+            num("pangenome.p_value_cutoff")
+            sel("pangenome.correction", "--scoary_correction")
+            val("pangenome.permute", "--scoary_permute")
+            val("pangenome.scoary_start_col", "--scoary_start_col")
+        # SNP-dists
+        bit("pangenome.snpdists_a", "--snpdists_a")
+        bit("pangenome.snpdists_b", "--snpdists_b")
+        bit("pangenome.snpdists_csv", "--snpdists_csv")
+        bit("pangenome.snpdists_k", "--snpdists_k")
 
     # Null empty-default Path? params the user didn't provide on the CLI, so the
     # run doesn't abort with "Path string cannot be empty" on Nextflow 26.

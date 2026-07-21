@@ -95,3 +95,6 @@ bearhub_rx/.web/
 bearhub_rx/.states/
 mockups/
 bearhub_rx/reflex.lock/
+
+# Local UI screenshots (kept on disk, not versioned)
+.screenshots/
