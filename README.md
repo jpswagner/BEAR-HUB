@@ -76,11 +76,18 @@ frontend so it rebuilds on next launch — while keeping `.web/node_modules`.
 ## 5. Uninstall
 
 ```bash
-bash uninstall_bear.sh
+bash uninstall_bear.sh --dry-run   # show exactly what would be removed
+bash uninstall_bear.sh             # then do it, prompting per item
 ```
 
-Removes the conda envs and config (with prompts). Delete the repo folder to
-finish.
+Prompts separately for the conda envs, the config (`~/.bear-hub`), the app state
+(`~/.bactopia_ui_local`), your data and results, and finally the repo itself —
+printing each path and its size first. Paths come from `~/.bear-hub/config.env`,
+so a results directory on another disk is found rather than missed.
+
+It refuses to run without a terminal and asks you to type `uninstall`, so a
+piped `yes` cannot walk through it. Nextflow's own `~/.nextflow` cache is left
+alone, since it is shared with any other Nextflow use on the machine.
 
 ---
 

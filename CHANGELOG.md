@@ -7,6 +7,39 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.0.4] — 2026-07-21
+
+### Fixed
+- **`uninstall_bear.sh` did not remove the installation, and could target the
+  wrong directories.** It derived every path from the repo's *parent*, but
+  `install_bear.sh` sets `BEAR_HUB_ROOT` to the repo itself. For the standard
+  clone at `~/BEAR-HUB` that resolved to `$HOME`: it offered to delete `~/data`
+  and `~/bactopia_out` — directories it never created — while reporting the
+  multi-GB conda envs as "not found" and leaving them on disk. It also never
+  touched `~/.bactopia_ui_local`, and stopped the app with
+  `pkill -f "reflex run"`, which kills unrelated Reflex apps on a shared server.
+
+### Added
+- **`uninstall_bear.sh --dry-run`** prints every path and size it would remove
+  without touching disk.
+- Uninstall safety rails: paths are read from `~/.bear-hub/config.env` (so a
+  results directory on another disk is found), `$HOME` and system directories
+  are refused outright, the script will not run without a terminal, and the
+  confirmation requires typing `uninstall` rather than `y` — a piped `yes`
+  cannot walk through it.
+
+### Removed
+- Legacy working-directory trees that `main` stopped tracking in 74610a7 but
+  which stayed on disk, making the checkout look like it shipped three UIs:
+  `pages/` and `utils/` (Streamlit), `nicegui_app/` (NiceGUI), `mockups/` (a
+  329M Reflex prototype) and stray `__pycache__/`. The Streamlit and NiceGUI
+  code remains on the `streamlit-legacy` and `nicegui-migration` branches.
+- `.bear-hub.env` is no longer tracked. `install_bear.sh` generates it, but an
+  early commit had published a developer's absolute paths along with a stale
+  `BACTOPIA_VERSION="3.0.0"` pin contradicting the 4.0.0 the installer sets.
+
+---
+
 ## [2.0.3] — 2026-07-21
 
 ### Fixed
