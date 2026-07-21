@@ -7,7 +7,7 @@ import re
 import subprocess
 import urllib.request
 
-from bearhub.core.system import get_nextflow_bin, which
+from bearhub.core.system import get_bactopia_bin, get_env_bin, get_nextflow_bin
 from bearhub.data.catalog import GITHUB_REPO
 
 # bearhub_rx/bearhub/core/ -> repo root (BEAR-HUB), where the VERSION file lives.
@@ -81,13 +81,16 @@ def get_versions() -> dict[str, str]:
     m = re.search(r"version\s+([\d.]+(?:\.[\w]+)?)", nf_out, re.IGNORECASE)
     out["nextflow"] = m.group(1) if m else "unknown"
 
-    bac_bin = which("bactopia") or "bactopia"
-    bac_out = _run([bac_bin, "--version"])
+    bac_out = _run([get_bactopia_bin(), "--version"])
     m = re.search(r"bactopia\s+v?([\d.]+)", bac_out, re.IGNORECASE)
     out["bactopia"] = m.group(1) if m else "unknown"
 
-    java_out = _run(["java", "-version"])
-    m = re.search(r'version\s+"([\d._]+)"', java_out)
+    # The env's Java is the one Nextflow runs on; the distro's (often older)
+    # Java on PATH would be reported as a false negative against the 17+ floor.
+    java_out = _run([get_env_bin("java"), "-version"])
+    # Capture the whole quoted string: conda JDKs report builds like
+    # "23.0.2-internal", which a digits-only pattern silently misses.
+    m = re.search(r'version\s+"([^"]+)"', java_out)
     out["java"] = m.group(1) if m else "unknown"
 
     docker_out = _run(["docker", "--version"])

@@ -10,13 +10,54 @@ import subprocess
 import sys
 
 APP_STATE_DIR: pathlib.Path = pathlib.Path.home() / ".bactopia_ui_local"
+# install_bear.sh writes ~/.bear-hub/config.env — that is the authoritative
+# config location and must stay first. The other two are legacy paths kept so
+# older installs keep working.
+_INSTALLER_CONFIG: pathlib.Path = pathlib.Path.home() / ".bear-hub" / "config.env"
 _CONFIG_DIR: pathlib.Path = APP_STATE_DIR
 _LEGACY_CONFIG: pathlib.Path = pathlib.Path.home() / ".bear-hub.env"
 _bactopia_version_cache: str | None = None
 
+# bearhub_rx/bearhub/core/ -> repo root (BEAR-HUB), where envs/ lives.
+_REPO_ROOT: pathlib.Path = pathlib.Path(__file__).resolve().parents[3]
+
 
 def which(cmd: str) -> str | None:
     return shutil.which(cmd)
+
+
+def _bactopia_env_prefix() -> pathlib.Path | None:
+    """Locate the bactopia conda env (config var → repo layout).
+
+    Nothing in that env is ever on PATH, so every tool lookup has to go through
+    the prefix. The repo-layout fallback keeps version detection working even
+    when config.env is missing or wasn't loaded.
+    """
+    prefix = os.environ.get("BACTOPIA_ENV_PREFIX", "").strip()
+    candidates = [pathlib.Path(prefix).expanduser()] if prefix else []
+    root = os.environ.get("BEAR_HUB_ROOT", "").strip()
+    if root:
+        candidates.append(pathlib.Path(root).expanduser() / "envs" / "bactopia")
+    candidates.append(_REPO_ROOT / "envs" / "bactopia")
+    for cand in candidates:
+        if (cand / "bin").is_dir():
+            return cand
+    return None
+
+
+def get_env_bin(name: str) -> str:
+    """Resolve a tool from the bactopia env first, then PATH.
+
+    The env's copy is authoritative: it is what Nextflow and Bactopia actually
+    run with. Falling back to PATH first would report an unrelated system tool
+    (e.g. the distro's Java 11 instead of the env's Java 23).
+    """
+    prefix = _bactopia_env_prefix()
+    if prefix:
+        cand = prefix / "bin" / name
+        if cand.is_file() and os.access(cand, os.X_OK):
+            return str(cand)
+    return which(name) or name
 
 
 def get_nextflow_bin() -> str:
@@ -26,12 +67,17 @@ def get_nextflow_bin() -> str:
         p = pathlib.Path(explicit).expanduser().resolve()
         if p.is_file() and os.access(p, os.X_OK):
             return str(p)
-    prefix = os.environ.get("BACTOPIA_ENV_PREFIX", "").strip()
-    if prefix:
-        cand = pathlib.Path(prefix).expanduser() / "bin" / "nextflow"
-        if cand.is_file() and os.access(cand, os.X_OK):
-            return str(cand)
-    return which("nextflow") or "nextflow"
+    return get_env_bin("nextflow")
+
+
+def get_bactopia_bin() -> str:
+    """Resolve the Bactopia CLI (env var → bactopia env prefix → PATH)."""
+    explicit = os.environ.get("BACTOPIA_BIN", "").strip()
+    if explicit:
+        p = pathlib.Path(explicit).expanduser().resolve()
+        if p.is_file() and os.access(p, os.X_OK):
+            return str(p)
+    return get_env_bin("bactopia")
 
 
 def nextflow_available() -> bool:
@@ -53,24 +99,18 @@ def get_bactopia_version() -> str | None:
     global _bactopia_version_cache
     if _bactopia_version_cache is not None:
         return _bactopia_version_cache
-    nf = get_nextflow_bin()
-    candidates: list[str] = []
-    if nf and nf != "nextflow":
-        candidates.append(str(pathlib.Path(nf).parent / "bactopia"))
-    candidates.append("bactopia")
-    for exe in candidates:
-        try:
-            r = subprocess.run(
-                [exe, "--version"],
-                capture_output=True, text=True, timeout=15,
-            )
-            m = re.search(r"bactopia\s+v?(\d+\.\d+\.\d+)", r.stdout + r.stderr,
-                          re.IGNORECASE)
-            if m:
-                _bactopia_version_cache = m.group(1)
-                return _bactopia_version_cache
-        except OSError:
-            pass
+    try:
+        r = subprocess.run(
+            [get_bactopia_bin(), "--version"],
+            capture_output=True, text=True, timeout=15,
+        )
+        m = re.search(r"bactopia\s+v?(\d+\.\d+\.\d+)", r.stdout + r.stderr,
+                      re.IGNORECASE)
+        if m:
+            _bactopia_version_cache = m.group(1)
+            return _bactopia_version_cache
+    except OSError:
+        pass
     _bactopia_version_cache = "4.0.0"
     return _bactopia_version_cache
 
@@ -173,6 +213,7 @@ def shutdown() -> None:
 def bootstrap_env() -> None:
     """Load env vars from the BEAR-HUB config file, if present."""
     candidates: list[pathlib.Path] = [
+        _INSTALLER_CONFIG,
         _CONFIG_DIR / "config.env",
         _LEGACY_CONFIG,
     ]
