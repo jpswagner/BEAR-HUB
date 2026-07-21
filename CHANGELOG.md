@@ -7,6 +7,37 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.0.3] — 2026-07-21
+
+### Fixed
+- **`update_bear.sh` could leave the app unable to start.** It deleted the whole
+  `bearhub_rx/.web/` to force a frontend rebuild, but that directory holds
+  `node_modules` and Reflex never reinstalls them on the next launch. The
+  production build then failed with `react-router: command not found`. The
+  updater now removes only the compiled output (`build/`, `.states/`), and
+  `run.sh` self-heals a missing `node_modules` on launch.
+- **Status page reported Bactopia and Nextflow as `unknown`.** The app looked for
+  its config at `~/.bactopia_ui_local/config.env`, but `install_bear.sh` writes
+  `~/.bear-hub/config.env`. That file was never read, so `BACTOPIA_ENV_PREFIX`
+  stayed unset and tool lookups fell back to `PATH` — where nothing from the
+  `bactopia` conda env ever appears. Tool resolution now goes through the env
+  prefix, with a repo-layout fallback so detection works even without a config.
+- **Status page reported the wrong Java.** It resolved `java` from `PATH`,
+  showing the distro's JDK (e.g. 11) instead of the env's (23) that Nextflow
+  actually runs on — which read as a failure against the Java 17+ requirement.
+  Conda JDK builds (`23.0.2-internal`) were also parsed as `unknown`.
+
+### Added
+- **GitHub link in the top bar**, on every page.
+
+### Documentation
+- README: documented the in-app **Update & verify** flow (shipped in 2.0.2 but
+  undocumented); corrected the run section (frontend and backend share port
+  3200 in single-port mode, not `:8200`); and fixed a troubleshooting entry that
+  told users to delete the whole `.web/` — the exact action that breaks startup.
+
+---
+
 ## [2.0.2] — 2026-07-10
 
 ### Fixed

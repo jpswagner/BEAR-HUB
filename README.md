@@ -51,18 +51,27 @@ bash bearhub_rx/run.sh
 ```
 
 Then open **http://localhost:3200**. The first launch compiles the frontend
-(~1–2 min); later launches are fast. Backend runs on `:8200`.
+(~1–2 min); later launches are fast. Frontend and backend share port **3200**
+(production single-port mode).
 
 ## 4. Update
+
+**From the app (easiest).** Open the **Status** page → **Update & verify**. It
+confirms first (warning you if runs are active, since updating stops the app),
+then pulls, re-runs the installer, relaunches, and keeps the full output in a
+**Last update log** panel so you can review what changed. The same page shows an
+"Update available" banner when a newer release exists on GitHub.
+
+**From the terminal.**
 
 ```bash
 bash update_bear.sh      # or: make update
 ```
 
-This stashes any local changes, fast-forward pulls the latest code, re-runs the
-installer (keeping the Bactopia version you already installed), and clears the
-stale Reflex frontend so it rebuilds on next launch. The **Status** page shows an
-"Update available" banner when a newer release exists on GitHub.
+Either route does the same thing: stops the running app, stashes any local
+changes (restored at the end), fast-forward pulls, re-runs the installer
+(keeping the Bactopia version you already installed), and clears the compiled
+frontend so it rebuilds on next launch — while keeping `.web/node_modules`.
 
 ## 5. Uninstall
 
@@ -80,10 +89,12 @@ finish.
 | Symptom | Fix |
 |---|---|
 | **Run fails instantly / red "Docker daemon not running" banner** | Start Docker: `sudo systemctl start docker`. Add your user once: `sudo usermod -aG docker "$USER"` then log out/in. |
-| **`install_bear.sh` Step 6 says Java/Nextflow FAIL** | The `bactopia` env didn't get a JDK/Nextflow. Re-run the installer, or `conda run -p ~/BEAR-HUB/envs/bactopia nextflow -version`. |
+| **`install_bear.sh` Step 6 says Java/Nextflow FAIL** | The `bactopia` env didn't get a JDK/Nextflow. Re-run the installer, or `<repo>/envs/bactopia/bin/nextflow -version`. |
+| **Status page shows Bactopia / Nextflow as `unknown`** | Fixed in **v2.0.3**. Those tools live in `<repo>/envs/bactopia/bin/` and are never on `PATH`, so the app reads their location from `~/.bear-hub/config.env` — re-run `bash install_bear.sh` if that file is missing. |
 | **Reflex won't install / "missing conda"** | The installer auto-installs Miniforge if conda is absent, then pip-installs Reflex (idempotent — re-run `bash install_bear.sh` to repair a partial install). Reflex ships on **PyPI, not conda**; by hand: `<repo>/envs/bear-hub/bin/python -m pip install reflex==0.9.3`. |
-| **`http://localhost:3200` doesn't load** | First run is still compiling — wait for `App running at...` in the terminal. Check nothing else uses ports **3200/8200**. |
-| **Page is blank / stale after an update** | Stop `run.sh`, delete `bearhub_rx/.web/`, relaunch (it rebuilds). |
+| **`http://localhost:3200` doesn't load** | First run is still compiling — wait for `App running at...` in the terminal. Check nothing else uses port **3200**. |
+| **Page is blank / stale after an update** | Stop `run.sh`, delete `bearhub_rx/.web/build/` (**not** the whole `.web/` — it holds `node_modules`), relaunch (it rebuilds). |
+| **`react-router: command not found` after an update** | `.web/node_modules` was wiped. `run.sh` reinstalls it automatically on the next launch; if that fails: `cd bearhub_rx/.web && bun install`. |
 | **`Parameter ... is not declared` / `Path string cannot be empty`** | Pipeline/Bactopia version mismatch — BEAR-HUB targets **Bactopia 4.0.0** (needs **Nextflow ≥ 26.04**). Confirm both in the **Status** page. |
 | **A Tool needs a database (e.g. `mlst_db`)** | Some `--wf` tools require an external DB. Provide its path in the tool's **db** field (Browse), or via the global *Extra args* box. |
 | **MLST scheme dropdown only shows `(auto/none)`** | Schemes load from `bearhub_rx/bearhub/data/static.py`; auto-detection still works without picking one. |
