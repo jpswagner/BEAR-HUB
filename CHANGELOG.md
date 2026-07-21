@@ -7,6 +7,39 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.0.5] — 2026-07-21
+
+### Changed
+- **⚠️ `--min_contig_len` now defaults to 500, matching Bactopia (was 1000).**
+  This changes assembly output: contigs between 500 and 1000 bp are now kept
+  where previous runs discarded them. BEAR-HUB had been silently overriding the
+  pipeline default. Assemblies produced before and after this release are not
+  directly comparable — set the field back to 1000 to reproduce older runs.
+
+### Fixed
+- **"Min contig cov" was a silent no-op in the default assembly mode.**
+  `--min_contig_cov` reaches Shovill and Dragonflye (`--mincov`) but Unicycler's
+  argument block has no coverage filter, so with the default *Illumina PE
+  (Unicycler)* mode the value was emitted, passed schema validation, and did
+  nothing. The UI presented it beside "Min contig len" as though both applied
+  everywhere. Both fields now state their scope.
+
+### Added
+- The assembly step explains that Bactopia selects the assembler **per sample**
+  from the FOFN `runtype` column — detected from each sample's files, not from
+  the "Assembly mode" selector. A mixed FOFN can run Shovill, Dragonflye and
+  Unicycler in one job, which is why options for a hidden assembler panel stay
+  in effect for matching samples.
+
+### Documentation
+- `docs/bactopia/PARAM_AUDIT.md` gains a per-assembler scope table
+  (`ext.args`→Shovill, `ext.args2`→Dragonflye, `ext.args3`→Unicycler) recording
+  which parameters each assembler actually consumes, plus a note not to "fix"
+  the unconditional flag emission by gating it on the UI mode — that would drop
+  options which mixed-runtype FOFNs need.
+
+---
+
 ## [2.0.4] — 2026-07-21
 
 ### Fixed

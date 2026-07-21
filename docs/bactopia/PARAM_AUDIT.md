@@ -46,6 +46,39 @@ Nextflow 26.04.4) until it printed *"Validation complete."*
 | `bakta_db: null` in the tool params-file | The `bakta` tool types it `Path` (not `Path?`) → *"Required parameters are missing: --bakta_db"*. It can never be nulled. | **fixed** — removed from `TOOL_NULL_PATHS` |
 | `replicons` vs `bakta_replicons` | **Bactopia bug**: the two entry points are *inverted*. Main pipeline accepts only `--bakta_replicons`; the `--wf bakta` tool declares `bakta_replicons` in its schema but only `--replicons` works (the prefixed form is rejected as undeclared). | both handled per entry point |
 
+### Assembler param scope — which assembler actually consumes what
+
+`modules/bactopia/assembler/module.config` builds three arg blocks and
+`main.nf` routes them: `ext.args`→Shovill, `ext.args2`→Dragonflye,
+`ext.args3`→Unicycler. A param absent from a block is **silently ignored** by
+that assembler — it still passes schema validation, so there is no error.
+
+| Param | Shovill | Dragonflye | Unicycler |
+|---|:--:|:--:|:--:|
+| `min_contig_len` | ✅ `--minlen` | ✅ `--minlen` | ✅ `--min_fasta_length` |
+| `min_contig_cov` | ✅ `--mincov` | ✅ `--mincov` | ❌ **no coverage filter** |
+| `shovill_assembler` / `shovill_opts` / `shovill_kmers` / `no_stitch` / `no_corr` | ✅ | ❌ | ❌ |
+| `dragonflye_assembler` / `dragonflye_opts` / `nanohq` / `no_polish` / `medaka_*` / `pilon_rounds` / `polypolish_rounds` / `racon_rounds` | ❌ | ✅ | ❌ |
+| `unicycler_mode` / `min_component_size` / `min_dead_end_size` / `no_miniasm` / `no_rotate` | ❌ | ❌ | ✅ |
+
+`min_contig_len` is **not** a Unicycler-only knob (the `--unicycler_opts` row
+above reads that way) — it is global and reaches all three.
+
+**`min_contig_cov` is the trap**: BEAR-HUB shows it beside `min_contig_len` under
+"General assembly", implying the same scope, but Unicycler ignores it. With the
+default mode (Illumina PE Unicycler) the emitted `--min_contig_cov 10` did
+nothing and nothing said so. Now labelled in the UI.
+
+**Why the flags are still emitted unconditionally:** `core/fofn.py` classifies
+`runtype` **per sample from its files**, not from the UI's assembly-mode
+selector. One FOFN can mix `paired-end`, `ont`, `hybrid` and `single-end` rows,
+so Bactopia may run all three assemblers in a single job. Gating emission on the
+UI mode would silently drop options that matching rows do need. The panels hide
+by mode; the values stay live. This is deliberate — do not "fix" it by gating.
+
+BEAR-HUB's `min_contig_len` default was **1000**, overriding Bactopia's 500;
+reverted to **500** so the pipeline default is not silently changed.
+
 Coverage after this round: pangenome **25 → 56** fields (all 9 Panaroo params, incl. the
 4 that were missing: `panaroo_alignment`, `panaroo_aligner`, `panaroo_family_threshold`,
 `panaroo_len_dif_percent`); main-pipeline Bakta **2 → 21**; `bakta` promoted to a
@@ -74,8 +107,8 @@ Change here **and** in `state.py` if a different value is wanted.
 
 | Param | Flag | BEAR-HUB default | Bactopia default | Reason |
 |---|---|---|---|---|
-| `min_contig_len` | `--min_contig_len` | **1000** (always emitted) | 500 | More conservative contig filter; also drives Unicycler `--min_fasta_length` |
-| `min_contig_cov` | `--min_contig_cov` | **10** | 2 | Realistic minimum coverage for Illumina data |
+| `min_contig_len` | `--min_contig_len` | 500 (always emitted) | 500 | ~~1000~~ **reverted 2026-07** to match Bactopia. No longer an override. Global: reaches Shovill/Dragonflye `--minlen` **and** Unicycler `--min_fasta_length` |
+| `min_contig_cov` | `--min_contig_cov` | **10** | 2 | Realistic minimum coverage for Illumina data. ⚠️ Shovill/Dragonflye only — **Unicycler ignores it** (no coverage filter in its arg block) |
 | `amr_ident_min` | `--ident_min` | **0.9** | -1 (auto) | Explicit threshold instead of the tool's auto-calibration |
 | `amr_coverage_min` | `--coverage_min` | **0.5** | 0.5 | Matches Bactopia — no override |
 | `fastp_M` | `-M` in `--fastp_opts` | **20** | 15 | Stricter sliding-window quality threshold |

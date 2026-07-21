@@ -157,7 +157,8 @@ section("5. state — DEFAULT_BOPTS / DEFAULT_BFLAGS / command builder")
 from bearhub.state import DEFAULT_BOPTS, DEFAULT_BFLAGS, _assembler_flags, _fastp_opts, _main_cmd
 
 # Default values
-check("min_contig_len default = 1000",  DEFAULT_BOPTS["min_contig_len"] == "1000")
+check("min_contig_len default = 500 (matches Bactopia)",
+      DEFAULT_BOPTS["min_contig_len"] == "500")
 check("min_contig_cov default = 10",    DEFAULT_BOPTS["min_contig_cov"] == "10")
 check("unicycler_mode default = normal",DEFAULT_BOPTS["unicycler_mode"] == "normal")
 check("assembly_mode = PE Unicycler",   "Unicycler" in DEFAULT_BOPTS["assembly_mode"])
@@ -210,7 +211,7 @@ for flag, expected in [
     ("--use_unicycler",     True),
     ("--unicycler_mode",    True),
     ("--skip_qc_plots",     True),
-    ("--min_contig_len 1000", True),
+    ("--min_contig_len 500", True),
     ("--min_contig_cov 10", True),
     ("--ident_min",         False),
     ("--coverage_min",      False),

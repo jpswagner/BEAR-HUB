@@ -504,6 +504,16 @@ def _step_assembler():
             spacing="2",
             align="end",
         ),
+        rx.callout(
+            "Bactopia picks the assembler per sample from the FOFN 'runtype' column, "
+            "which is detected from each sample's files — not from this selector. A "
+            "mixed FOFN can run Shovill, Dragonflye and Unicycler in the same job. "
+            "This selector sets --use_unicycler and the hybrid strategy; the panels "
+            "below only control which options are shown. Options you set for an "
+            "assembler stay in effect for matching samples even when its panel is "
+            "hidden.",
+            icon="info", color_scheme="gray", size="1",
+        ),
         rx.cond(
             _mode_is("Illumina PE (Shovill)", "Illumina SE (Shovill-SE)"),
             rx.card(
@@ -552,7 +562,9 @@ def _step_assembler():
                     ),
                     rx.text(
                         "Unicycler's --min_fasta_length is taken from 'Min contig "
-                        "len' below. Component/dead-end sizes default to 1000 bp.",
+                        "len' below. Component/dead-end sizes default to 1000 bp. "
+                        "'Min contig cov' does NOT apply here — Unicycler has no "
+                        "coverage filter.",
                         size="1", color="var(--gray-9)",
                     ),
                     spacing="2", align="start", width="100%",
@@ -573,6 +585,14 @@ def _step_assembler():
                     opt_in("Min contig len", "min_contig_len", typ="number", width="150px"),
                     opt_in("Min contig cov", "min_contig_cov", typ="number", width="150px"),
                     wrap="wrap", spacing="4", align="end",
+                ),
+                rx.text(
+                    "Min contig len applies to every assembler (Shovill/Dragonflye "
+                    "--minlen, Unicycler --min_fasta_length). Min contig cov reaches "
+                    "Shovill and Dragonflye only — Unicycler has no coverage filter "
+                    "and ignores it, so it has no effect on hybrid or "
+                    "--use_unicycler samples.",
+                    size="1", color="var(--gray-9)",
                 ),
                 spacing="3", align="start", width="100%",
             ),

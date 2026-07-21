@@ -548,9 +548,13 @@ DEFAULT_BOPTS: dict[str, str] = {
     "unicycler_mode":       "normal",
     "min_component_size":   "",
     "min_dead_end_size":    "",
-    # min_contig_len = 1000 (BEAR-HUB default; Bactopia default is 500).
-    # This also drives Unicycler --min_fasta_length via Bactopia's assembler subworkflow.
-    "min_contig_len":       "1000",
+    # min_contig_len = 500, matching Bactopia's own default (was 1000).
+    # Not a Unicycler-only knob: Bactopia's assembler module feeds it to every
+    # assembler under that tool's native flag — Shovill/Dragonflye `--minlen`,
+    # Unicycler `--min_fasta_length`.
+    "min_contig_len":       "500",
+    # min_contig_cov reaches Shovill and Dragonflye (`--mincov`) but NOT
+    # Unicycler — its arg block has no coverage filter. See _assembler_flags().
     "min_contig_cov":       "10",
     # polishing
     "polypolish_rounds":    "1",
@@ -758,10 +762,17 @@ def _assembler_flags(o: dict, f: dict) -> list[str]:
         af.append("--skip_qc_plots")
     if f.get("no_polish"):
         af.append("--no_polish")
-    # min_contig_len: BEAR-HUB default 1000 (Bactopia default 500). Always emit.
-    mcl = o.get("min_contig_len", "1000")
+    # min_contig_len: now matches Bactopia's default (500). Still emitted
+    # explicitly so the preview shows the value actually in effect. Applies to
+    # all three assemblers (Shovill/Dragonflye --minlen, Unicycler
+    # --min_fasta_length).
+    mcl = o.get("min_contig_len", "500")
     af += ["--min_contig_len", str(mcl)]
     # min_contig_cov: BEAR-HUB default 10 (Bactopia default 2). Only emit if ≠ default.
+    # NOTE: consumed by Shovill and Dragonflye only — Unicycler's arg block has
+    # no --mincov, so this is a silent no-op for `hybrid`/use_unicycler rows.
+    # Still emitted unconditionally because a FOFN may mix runtypes (fofn.py
+    # classifies per sample), so ONT/PE rows in the same run do use it.
     mcc = o.get("min_contig_cov", "10")
     if mcc and mcc != "2":
         af += ["--min_contig_cov", str(mcc)]

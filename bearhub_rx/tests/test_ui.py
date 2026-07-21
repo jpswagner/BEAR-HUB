@@ -153,7 +153,7 @@ async def main():
     check("Cmd: --use_unicycler present",         "--use_unicycler" in cmd)
     check("Cmd: --unicycler_mode present",        "--unicycler_mode" in cmd)
     check("Cmd: --skip_qc_plots (plural)",        "--skip_qc_plots" in cmd)
-    check("Cmd: --min_contig_len 1000",           "--min_contig_len 1000" in cmd)
+    check("Cmd: --min_contig_len 500",            "--min_contig_len 500" in cmd)
     check("Cmd: --ident_min 0.9",                 "--ident_min 0.9" in cmd)
     check("Cmd: --hybrid ABSENT",                 "--hybrid" not in cmd)
     check("Cmd: --unicycler_opts ABSENT",         "--unicycler_opts" not in cmd)
