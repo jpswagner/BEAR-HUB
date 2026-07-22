@@ -7,6 +7,28 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.0.6] — 2026-07-22
+
+### Fixed
+- **Update broke the app on machines with an old system Node.js.** After
+  updating, `run.sh` (production mode) died at **"Failed to compress the exported
+  frontend"** when the only `node` on the user's `PATH` was an end-of-life build
+  (seen in the field with Node **12.22.9**). Reflex's production build runs
+  `node compress-static.js` via `which node` — the first node on `PATH` — and an
+  EOL node can't execute it (ESM `node:zlib`, brotli). BEAR-HUB never shipped its
+  own Node, so it silently depended on whatever the user had. The installer now
+  **bundles a modern Node.js (>=20.19) inside the `bear-hub` conda env** and
+  `run.sh` puts that env's `bin` first on `PATH`, so the build always uses it and
+  never the system node. The check is idempotent (skips the conda solve when the
+  env already has Node >= 20), so `update_bear.sh` repairs existing installs too.
+- **`run.sh <flag>` silently dropped production mode into dev.** Any extra
+  argument replaced the whole prod invocation, so e.g. `run.sh --loglevel debug`
+  became a bare `reflex run` (= dev mode). Extra flags are now **appended** to the
+  production defaults; pass `--env` explicitly (e.g. `run.sh --env dev`) to choose
+  the mode yourself.
+
+---
+
 ## [2.0.5] — 2026-07-21
 
 ### Changed

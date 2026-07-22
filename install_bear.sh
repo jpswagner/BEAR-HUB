@@ -227,6 +227,30 @@ setup_bear_hub_env() {
     fi
     echo "Ensuring Reflex ${REFLEX_VERSION} (PyPI) in the 'bear-hub' env..."
     "${BEAR_PREFIX}/bin/python" -m pip install "reflex==${REFLEX_VERSION}"
+
+    # ── Ensure a modern Node.js INSIDE the env ────────────────────────────────
+    # Reflex's production build compresses the exported frontend by running
+    # `node compress-static.js` via `which node` — i.e. the FIRST node on the
+    # user's PATH. On a machine whose only node is an EOL system build (e.g.
+    # 12.22.x), that step dies with "Failed to compress the exported frontend"
+    # and the app never comes up after an update. Ship our own modern node in
+    # the env so the build never depends on the user's system node; run.sh puts
+    # this env's bin first on PATH so `which node` resolves here. Idempotent:
+    # skip when the env already has node >= 20 (avoids a conda re-solve on every
+    # update).
+    local env_node_major=0
+    if [[ -x "${BEAR_PREFIX}/bin/node" ]]; then
+        env_node_major="$("${BEAR_PREFIX}/bin/node" -e \
+            'console.log(process.versions.node.split(".")[0])' 2>/dev/null || echo 0)"
+    fi
+    if [[ "${env_node_major:-0}" -lt 20 ]]; then
+        echo "Ensuring a modern Node.js (>=20.19) in the 'bear-hub' env..."
+        "${MAMBA_BIN:-${CONDA_BIN}}" install -y -p "${BEAR_PREFIX}" \
+            -c conda-forge 'nodejs>=20.19'
+    else
+        echo "Node.js in 'bear-hub' env: $("${BEAR_PREFIX}/bin/node" --version 2>/dev/null) (OK)"
+    fi
+
     # Pre-build the Reflex frontend (.web/) so the first launch is fast.
     # The app already lives in bearhub_rx/ — no `reflex init` needed (that would
     # scaffold a new app). `reflex run` generates .web/ automatically; we just
@@ -237,7 +261,10 @@ setup_bear_hub_env() {
     local app_dir="${BEAR_HUB_ROOT}/bearhub_rx"
     if [[ -f "${app_dir}/rxconfig.py" ]]; then
         echo "Pre-compilando frontend Reflex em ${app_dir}/.web ..."
-        ( cd "${app_dir}" && "${BEAR_PREFIX}/bin/python" -m reflex export --frontend-only \
+        # Put the env's bin first on PATH so the export's compress step uses the
+        # env's modern node (via `which node`), not an old system node.
+        ( cd "${app_dir}" && PATH="${BEAR_PREFIX}/bin:${PATH}" \
+            "${BEAR_PREFIX}/bin/python" -m reflex export --frontend-only \
             --no-zip --loglevel warning 2>/dev/null ) || \
             echo "  (pre-compile skipped — will build on first run)"
     fi

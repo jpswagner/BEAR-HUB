@@ -32,12 +32,21 @@ fi
 echo "$$" > "${CONFIG_DIR}/bear-hub.pid"
 
 # ── Run arguments ─────────────────────────────────────────────────────────────
-# No args → production single-port on ${BEAR_HUB_PORT:-3200}. Caller args win.
+# Default is PRODUCTION single-port on ${BEAR_HUB_PORT:-3200}. Extra flags
+# (e.g. `--loglevel debug`) are APPENDED to the prod defaults so they don't
+# silently drop the app into dev mode — a real trap: `run.sh --loglevel debug`
+# used to become a bare `reflex run` (= dev). To pick the mode yourself, pass
+# `--env` explicitly (e.g. `run.sh --env dev`) and your args are used verbatim.
 PORT="${BEAR_HUB_PORT:-3200}"
-if [ "$#" -gt 0 ]; then
+PROD_ARGS=(--env prod --single-port --frontend-port "${PORT}" --backend-port "${PORT}")
+if [ "$#" -eq 0 ]; then
+  RUN_ARGS=("${PROD_ARGS[@]}")
+elif printf '%s\n' "$@" | grep -qE -- '^--env(=|$)'; then
+  # Caller chose the mode explicitly — respect their args verbatim.
   RUN_ARGS=("$@")
 else
-  RUN_ARGS=(--env prod --single-port --frontend-port "${PORT}" --backend-port "${PORT}")
+  # Extra flags but no mode → keep prod defaults and append them.
+  RUN_ARGS=("${PROD_ARGS[@]}" "$@")
 fi
 
 # Resolve the bear-hub env's Python by path. We launch via `python -m reflex`
@@ -68,6 +77,16 @@ if [ -z "$PY" ] || ! "$PY" -c "import reflex" >/dev/null 2>&1; then
   echo "  Run the installer first:  bash \"${REPO_ROOT}/install_bear.sh\"" >&2
   exit 1
 fi
+
+# ── Put the env's bin first on PATH ───────────────────────────────────────────
+# Reflex's production build compresses the exported frontend by running
+# `node compress-static.js`, locating node via `which node` — the FIRST node on
+# PATH. An EOL system node (e.g. 12.22.x) can't run it and the build dies with
+# "Failed to compress the exported frontend". The installer ships a modern node
+# inside the env; prepend its bin so `which node` resolves there, not to an old
+# system node. (Bactopia is launched by explicit prefix, so this doesn't affect it.)
+ENV_BIN="$(cd "$(dirname "$PY")" && pwd)"
+export PATH="${ENV_BIN}:${PATH}"
 
 # ── Self-heal: make sure the frontend dependencies are present ────────────────
 # `reflex run` compiles the frontend but never installs node_modules, and
